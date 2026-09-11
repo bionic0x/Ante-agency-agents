@@ -1,0 +1,42 @@
+name: Temporary OpenClaw Community Consolidation
+
+on:
+  push:
+    branches:
+      - upstream-2026-09-strategy-doctrine
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upstream-2026-09-strategy-doctrine
+          fetch-depth: 0
+
+      - name: Import and reconcile community agents
+        run: python3 scripts/import-openclaw-community.py
+
+      - name: Validate canonical agent structure
+        run: |
+          chmod +x scripts/lint-agents.sh scripts/check-divisions.sh scripts/check-runbooks.sh
+          ./scripts/lint-agents.sh
+          ./scripts/check-divisions.sh
+          ./scripts/check-runbooks.sh
+
+      - name: Regenerate converted-output manifest
+        run: bash scripts/test-convert-outputs.sh --update
+
+      - name: Remove this one-time workflow
+        run: rm .github/workflows/temp-import-openclaw-community.yml
+
+      - name: Commit unified catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Consolidate OpenClaw community agents into unified agency"
+          git push origin HEAD:upstream-2026-09-strategy-doctrine
