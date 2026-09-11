@@ -21,9 +21,18 @@ jobs:
         run: python3 scripts/import-openclaw-community.py
 
       - name: Validate canonical agent structure
+        shell: bash
         run: |
           chmod +x scripts/lint-agents.sh scripts/check-divisions.sh scripts/check-runbooks.sh
-          ./scripts/lint-agents.sh
+          mapfile -t AGENT_FILES < <(
+            for d in academic design engineering finance game-development gis healthcare marketing paid-media product project-management research sales security spatial-computing specialized support testing; do
+              [ -d "$d" ] || continue
+              find "$d" -name '*.md' -type f -print
+            done | sort | while IFS= read -r f; do
+              [ "$(head -n 1 "$f")" = "---" ] && printf '%s\n' "$f"
+            done
+          )
+          ./scripts/lint-agents.sh "${AGENT_FILES[@]}"
           ./scripts/check-divisions.sh
           ./scripts/check-runbooks.sh
 
