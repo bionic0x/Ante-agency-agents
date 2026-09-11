@@ -1,194 +1,342 @@
 # ⚡ NEXUS Quick-Start Guide
 
-> **Get from zero to orchestrated multi-agent pipeline in 5 minutes.**
+> **From one specialist to a governed multi-agent team without confusing orchestration, execution, and strategy.**
 
 ---
 
 ## What is NEXUS?
 
-**NEXUS** (Network of EXperts, Unified in Strategy) turns The Agency's AI specialists into a coordinated pipeline. Instead of activating agents one at a time and hoping they work together, NEXUS defines exactly who does what, when, and how quality is verified at every step.
+**NEXUS** (Network of EXperts, Unified in Strategy) coordinates Agency Agents into repeatable multi-agent workflows.
 
-## Choose Your Mode
+The Agency Agents app v0.3.0 adds **Runbooks** as deployable scenario teams. `strategy/runbooks.json` is the machine-readable contract the app uses to map a scenario to real agent slugs and install the roster.
 
-| I want to... | Use | Agents | Time |
-|-------------|-----|--------|------|
-| Build a complete product from scratch | **NEXUS-Full** | All | 12-24 weeks |
-| Build a feature or MVP | **NEXUS-Sprint** | 15-25 | 2-6 weeks |
-| Do a specific task (bug fix, campaign, audit) | **NEXUS-Micro** | 5-10 | 1-5 days |
+NEXUS handles orchestration. The new **General Strategy Doctrine** governs material strategic choice.
+
+These are different jobs:
+
+```text
+GENERAL STRATEGY DOCTRINE
+What result? Why this mechanism? Against what reaction? With what sacrifice? Until when?
+
+NEXUS
+Who works when? What context is handed off? What quality gate controls execution?
+
+SPECIALIST AGENTS
+How is the selected intervention executed competently?
+```
+
+For material decisions, start with strategy before launching a full execution pipeline.
 
 ---
 
-## 🚀 NEXUS-Full: Start a Complete Project
+## Choose the Right Entry Point
 
-**Copy this prompt to activate the full pipeline:**
+| Your problem | Start with | Why |
+|---|---|---|
+| Material decision, unclear route, major resource commitment | **Strategic Decision & Transition Runbook** | Diagnose purpose, geometry, mechanism, reaction, allocation, evidence, and exit first |
+| Build a product from scratch | **NEXUS-Full** | Full discovery → strategy → foundation → build → harden → launch → operate |
+| Build a feature or MVP | **Startup MVP / Enterprise Feature Runbook** | Bounded execution with role-specific team and quality gates |
+| Marketing objective where the constraint is not yet proven | **Strategy-Led Marketing Campaign Runbook** | Prevents channel-first planning and KPI sovereignty |
+| Production incident | **Incident Response Runbook** | Time-critical coordinated response with verification |
+| Low-materiality specialist task | **Direct specialist activation** | Do not add strategic ceremony where it changes no decision |
 
+---
+
+## 🧭 Strategic Decision & Transition
+
+Use when the question is **what should we do?** rather than merely **how do we execute an already authorized task?**
+
+The runbook follows:
+
+```text
+DEFINE END STATE
+↓
+MAP ACTORS / AUTHORITY / DEPENDENCIES
+↓
+BUILD CAUSAL MODEL
+↓
+IDENTIFY CONTROL / DECISIVE DEPENDENCY / SCHWERPUNKT
+↓
+DESIGN REAL OPTIONS
+↓
+SUBMIT TO COMPETENT REACTION
+↓
+HUMAN DECISION
+↓
+EXECUTE WITH INTENT + RESERVE + REVIEW
+↓
+TRANSITION + CONSERVE
 ```
+
+**Activation prompt:**
+
+```text
+Activate the Strategic Decision & Transition runbook.
+
+Decision required: [DECISION]
+Superior purpose: [WHY THIS MATTERS]
+Decision owner: [OWNER]
+Horizon: [TIME]
+Known hard constraints: [LEGAL / ETHICAL / FINANCIAL / TECHNICAL / INSTITUTIONAL]
+Available resources: [RESOURCES]
+
+Do not start with a preferred tool or solution.
+Use the General Strategy Doctrine.
+Separate facts, hypotheses, attributed intentions, and unknowns.
+Generate real alternatives, model competent reactions, preserve reserve,
+and define sufficient success, refutators, transition, and stopping conditions.
+Strategic Red Team review is required before irreversible commitment.
+```
+
+Governing file: `strategy/GENERAL-STRATEGY-DOCTRINE.md`  
+Runbook: `strategy/runbooks/scenario-strategic-decision.md`
+
+---
+
+## 🚀 NEXUS-Full: Complete Project
+
+Use when strategic authorization exists or include the General Strategy Director in Phase 1 when the product/business route is still material and contestable.
+
+```text
 Activate Agents Orchestrator in NEXUS-Full mode.
 
-Project: [YOUR PROJECT NAME]
-Specification: [DESCRIBE YOUR PROJECT OR LINK TO SPEC]
+Project: [PROJECT]
+Specification: [SPEC]
 
-Execute the complete NEXUS pipeline:
-- Phase 0: Discovery (Trend Researcher, Feedback Synthesizer, UX Researcher, Analytics Reporter, Legal Compliance Checker, Tool Evaluator)
-- Phase 1: Strategy (Studio Producer, Senior Project Manager, Sprint Prioritizer, UX Architect, Brand Guardian, Backend Architect, Finance Tracker)
-- Phase 2: Foundation (DevOps Automator, Frontend Developer, Backend Architect, UX Architect, Infrastructure Maintainer)
-- Phase 3: Build (Dev↔QA loops — all engineering + Evidence Collector)
-- Phase 4: Harden (Reality Checker, Performance Benchmarker, API Tester, Legal Compliance Checker)
-- Phase 5: Launch (Growth Hacker, Content Creator, all marketing agents, DevOps Automator)
-- Phase 6: Operate (Analytics Reporter, Infrastructure Maintainer, Support Responder, ongoing)
+Phase 0 — Discovery
+Research, user evidence, market/context, constraints.
 
-Quality gates between every phase. Evidence required for all assessments.
-Maximum 3 retries per task before escalation.
+Phase 1 — Strategy & architecture
+General Strategy Director when the superior route remains open;
+Studio Producer / Senior PM / Product / UX / Brand / Backend / Finance as relevant.
+Run Strategic Red Team before major irreversible commitment.
+
+Phase 2 — Foundation
+Infrastructure, architecture, design systems, scaffolding.
+
+Phase 3 — Build
+Task-level developer ↔ QA loops.
+
+Phase 4 — Harden
+Reality, security, performance, API, accessibility, compliance as required.
+
+Phase 5 — Launch
+Activate only marketing/growth interventions justified by the launch strategy.
+
+Phase 6 — Operate & transition
+Measure, learn, maintain, sunset, institutionalize, re-diagnose.
+```
+
+NEXUS quality gates do not replace strategic coherence tests. A perfectly executed wrong strategy is still wrong.
+
+---
+
+## 🏃 Startup MVP / Enterprise Feature
+
+Use the deployable runbooks in the app when the delivery scenario fits.
+
+### Startup MVP
+
+- rapid product build;
+- product + engineering + QA core;
+- growth activated later;
+- use General Strategy Director first if product/market/business route remains materially uncertain.
+
+Runbook: `strategy/runbooks/scenario-startup-mvp.md`
+
+### Enterprise Feature
+
+- multi-stakeholder feature delivery;
+- stronger compliance, governance, security, and quality needs;
+- escalate to Strategic Decision runbook if scope changes enterprise obligations, portfolio, or high-irreversibility architecture.
+
+Runbook: `strategy/runbooks/scenario-enterprise-feature.md`
+
+---
+
+## 📢 Strategy-Led Marketing Campaign
+
+Do not activate platform specialists first for a material campaign.
+
+**Activation prompt:**
+
+```text
+Activate the Strategy-Led Marketing Campaign runbook.
+
+Superior business outcome: [OUTCOME]
+Baseline / gap: [BASELINE]
+Decision owner: [OWNER]
+Horizon: [HORIZON]
+Budget / capacity: [RESOURCES]
+Hard limits: [LIMITS]
+
+First determine whether the demand job is create, capture, or conserve.
+Map buying situations, intermediaries, availability and bottlenecks.
+Diagnose the constraint and causal mechanism before selecting channels.
+Compare non-campaign alternatives where relevant.
+Model buyer, competitor, platform, retailer and operational reactions.
+Then allocate concentration, minimum support and reserve.
+Only after human approval activate the selected channel specialists.
+Measure business outcome, mechanism and execution separately.
+Define sufficient success, refutators, constraint-migration triggers and exit.
+```
+
+The runbook can legitimately conclude **do not launch a campaign yet**.
+
+Runbook: `strategy/runbooks/scenario-marketing-campaign.md`  
+Marketing doctrine: `marketing/AGENCY_OPERATING_MODEL.md`
+
+---
+
+## 🚨 Incident Response
+
+Use the app's Incident Response Runbook for production incidents where detection, authorization and effect time are compressed.
+
+Runbook: `strategy/runbooks/scenario-incident-response.md`
+
+The strategic doctrine still applies at the boundary: incident responders can execute inside emergency authority, but permanent policy, architecture, risk acceptance, or external commitments require the appropriate decision owner.
+
+---
+
+## 🎯 Direct Specialist Activation
+
+Direct activation is correct when:
+
+- purpose and scope are already authorized;
+- the task is low-materiality or reversible;
+- the specialist is not being asked to redefine superior goals;
+- cross-system externalities are limited;
+- success criteria and handoff are clear.
+
+Examples:
+
+```text
+Activate API Tester to verify [ENDPOINT / CONTRACT].
+Success condition: [CONDITION].
+Evidence required: [EVIDENCE].
+Escalate if [THRESHOLD].
+```
+
+```text
+Activate UX Researcher to test [QUESTION] with [USERS].
+Decision this research informs: [DECISION].
+Do not recommend product strategy beyond the evidence; surface implications and unknowns.
+```
+
+```text
+Activate Legal Compliance Checker for [SCOPE].
+Treat legal/admissibility constraints as boundaries, not as a weighted trade-off against business upside.
 ```
 
 ---
 
-## 🏃 NEXUS-Sprint: Build a Feature or MVP
+## 🧪 Two Different Gate Systems
 
-**Copy this prompt:**
+### Strategic coherence gates
 
-```
-Activate Agents Orchestrator in NEXUS-Sprint mode.
+Use for material choice:
 
-Feature/MVP: [DESCRIBE WHAT YOU'RE BUILDING]
-Timeline: [TARGET WEEKS]
-Skip Phase 0 (market already validated).
+1. **Purpose** — Does the immediate result serve the superior purpose?
+2. **Causal** — Can the action produce the effect through an explicit mechanism?
+3. **Interactive** — Does it survive competent reaction/adaptation?
+4. **Conversion** — Do resources actually convert into control/effect?
+5. **Legitimacy** — Does the method preserve cooperation/authority needed to consolidate success?
+6. **Epistemic** — Are facts, hypotheses, attributed intentions and unknowns separated?
+7. **Exit** — Can we adapt, transfer, stop, terminate and conserve?
 
-Sprint team:
-- PM: Senior Project Manager, Sprint Prioritizer
-- Design: UX Architect, Brand Guardian
-- Engineering: Frontend Developer, Backend Architect, DevOps Automator
-- QA: Evidence Collector, Reality Checker, API Tester
-- Support: Analytics Reporter
+These are contradiction tests, not a score.
 
-Begin at Phase 1 with architecture and sprint planning.
-Run Dev↔QA loops for all implementation tasks.
-Reality Checker approval required before launch.
-```
+### Execution quality gates
+
+Use after a choice:
+
+- specification complete enough to execute;
+- task implementation complete;
+- QA evidence supports PASS;
+- security/performance/accessibility/compliance gates as relevant;
+- integration verified;
+- production readiness supported by evidence.
+
+Do not use an execution PASS to prove the strategy was correct.
 
 ---
 
-## 🎯 NEXUS-Micro: Do a Specific Task
+## 🔬 Evidence Rules
 
-**Pick your scenario and copy the prompt:**
+Every material decision package preserves:
 
-### Fix a Bug
-```
-Activate Backend Architect to investigate and fix [BUG DESCRIPTION].
-After fix, activate API Tester to verify the fix.
-Then activate Evidence Collector to confirm no visual regressions.
-```
+- **facts** — sufficiently supported observations for the stated use;
+- **hypotheses** — explanations still open to alternatives/refutation;
+- **attributed intentions** — inferences about what another actor wants;
+- **unknowns** — material information not available.
 
-### Run a Marketing Campaign
-```
-Activate Social Media Strategist as campaign lead for [CAMPAIGN DESCRIPTION].
-Team: Content Creator, Twitter Engager, Instagram Curator, Reddit Community Builder.
-Brand Guardian reviews all content before publishing.
-Analytics Reporter tracks performance daily.
-Growth Hacker optimizes channels weekly.
-```
+Also separate:
 
-### Conduct a Compliance Audit
-```
-Activate Legal Compliance Checker for comprehensive compliance audit.
-Scope: [GDPR / CCPA / HIPAA / ALL]
-After audit, activate Executive Summary Generator to create stakeholder report.
-```
+- probability;
+- confidence;
+- impact.
 
-### Investigate Performance Issues
-```
-Activate Performance Benchmarker to diagnose performance issues.
-Scope: [API response times / Page load / Database queries / All]
-After diagnosis, activate Infrastructure Maintainer for optimization.
-DevOps Automator deploys any infrastructure changes.
+A dashboard does not convert an inference into a fact.
+
+---
+
+## 🛑 Autonomy and Stop Authority
+
+Use the least authority required for the task.
+
+```text
+Assist
+→ Recommend
+→ Act after approval
+→ Act within explicit bounds
+→ Adapt policy within bounds
+→ Broad autonomous objective pursuit
 ```
 
-### Market Research
-```
-Activate Trend Researcher for market intelligence on [DOMAIN].
-Deliverables: Competitive landscape, market sizing, trend forecast.
-After research, activate Executive Summary Generator for executive brief.
-```
+Higher autonomy requires stronger purpose architecture, clearer rights, better evidence, bounded consequences, reserve, and real stop authority.
 
-### UX Improvement
-```
-Activate UX Researcher to identify usability issues in [FEATURE/PRODUCT].
-After research, activate UX Architect to design improvements.
-Frontend Developer implements changes.
-Evidence Collector verifies improvements.
-```
+Prospective claims about autonomous escalation or saturation remain hypotheses unless independently evidenced in the current case.
 
 ---
 
 ## 📁 Strategy Documents
 
 | Document | Purpose | Location |
-|----------|---------|----------|
-| **Master Strategy** | Complete NEXUS doctrine | `strategy/nexus-strategy.md` |
-| **Phase 0 Playbook** | Discovery & intelligence | `strategy/playbooks/phase-0-discovery.md` |
-| **Phase 1 Playbook** | Strategy & architecture | `strategy/playbooks/phase-1-strategy.md` |
-| **Phase 2 Playbook** | Foundation & scaffolding | `strategy/playbooks/phase-2-foundation.md` |
-| **Phase 3 Playbook** | Build & iterate | `strategy/playbooks/phase-3-build.md` |
-| **Phase 4 Playbook** | Quality & hardening | `strategy/playbooks/phase-4-hardening.md` |
-| **Phase 5 Playbook** | Launch & growth | `strategy/playbooks/phase-5-launch.md` |
-| **Phase 6 Playbook** | Operate & evolve | `strategy/playbooks/phase-6-operate.md` |
-| **Activation Prompts** | Ready-to-use agent prompts | `strategy/coordination/agent-activation-prompts.md` |
-| **Handoff Templates** | Standardized handoff formats | `strategy/coordination/handoff-templates.md` |
-| **Startup MVP Runbook** | 4-6 week MVP build | `strategy/runbooks/scenario-startup-mvp.md` |
-| **Enterprise Feature Runbook** | Enterprise feature development | `strategy/runbooks/scenario-enterprise-feature.md` |
-| **Marketing Campaign Runbook** | Multi-channel campaign | `strategy/runbooks/scenario-marketing-campaign.md` |
+|---|---|---|
+| **General Strategy Doctrine** | Cross-agency purpose, power, causality, evidence, interaction and termination | `strategy/GENERAL-STRATEGY-DOCTRINE.md` |
+| **NEXUS Master Strategy** | Multi-agent orchestration doctrine | `strategy/nexus-strategy.md` |
+| **NEXUS Executive Brief** | Compact overview | `strategy/EXECUTIVE-BRIEF.md` |
+| **Strategic Decision Runbook** | Material cross-domain decision + transition | `strategy/runbooks/scenario-strategic-decision.md` |
+| **Startup MVP Runbook** | MVP delivery | `strategy/runbooks/scenario-startup-mvp.md` |
+| **Enterprise Feature Runbook** | Enterprise feature delivery | `strategy/runbooks/scenario-enterprise-feature.md` |
+| **Strategy-Led Marketing Runbook** | Demand diagnosis → selected interventions → evidence/exit | `strategy/runbooks/scenario-marketing-campaign.md` |
 | **Incident Response Runbook** | Production incident handling | `strategy/runbooks/scenario-incident-response.md` |
+| **Runbook roster contract** | App v0.3.0 one-click team deployment | `strategy/runbooks.json` |
+| **Marketing Operating Model** | Marketing specialization of general doctrine | `marketing/AGENCY_OPERATING_MODEL.md` |
+| **Activation Prompts** | Reusable NEXUS prompts | `strategy/coordination/agent-activation-prompts.md` |
+| **Handoff Templates** | Structured execution handoffs | `strategy/coordination/handoff-templates.md` |
 
 ---
 
 ## 🔑 Key Concepts in 30 Seconds
 
-1. **Quality Gates** — No phase advances without evidence-based approval
-2. **Dev↔QA Loop** — Every task is built then tested; PASS to proceed, FAIL to retry (max 3)
-3. **Handoffs** — Structured context transfer between agents (never start cold)
-4. **Reality Checker** — Final quality authority; defaults to "NEEDS WORK"
-5. **Agents Orchestrator** — Pipeline controller managing the entire flow
-6. **Evidence Over Claims** — Screenshots, test results, and data — not assertions
-
----
-
-## 🎭 The Agents at a Glance
-
-```
-ENGINEERING         │ DESIGN              │ MARKETING
-Frontend Developer  │ UI Designer         │ Growth Hacker
-Backend Architect   │ UX Researcher       │ Content Creator
-Mobile App Builder  │ UX Architect        │ Twitter Engager
-AI Engineer         │ Brand Guardian      │ TikTok Strategist
-DevOps Automator    │ Visual Storyteller  │ Instagram Curator
-Rapid Prototyper    │ Whimsy Injector     │ Reddit Community Builder
-Senior Developer    │ Image Prompt Eng.   │ App Store Optimizer
-                    │                     │ Social Media Strategist
-────────────────────┼─────────────────────┼──────────────────────
-PRODUCT             │ PROJECT MGMT        │ TESTING
-Sprint Prioritizer  │ Studio Producer     │ Evidence Collector
-Trend Researcher    │ Project Shepherd    │ Reality Checker
-Feedback Synthesizer│ Studio Operations   │ Test Results Analyzer
-                    │ Experiment Tracker  │ Performance Benchmarker
-                    │ Senior Project Mgr  │ API Tester
-                    │                     │ Tool Evaluator
-                    │                     │ Workflow Optimizer
-────────────────────┼─────────────────────┼──────────────────────
-SUPPORT             │ SPATIAL             │ SPECIALIZED
-Support Responder   │ XR Interface Arch.  │ Agents Orchestrator
-Analytics Reporter  │ macOS Spatial/Metal │ Analytics Reporter
-Finance Tracker     │ XR Immersive Dev    │ LSP/Index Engineer
-Infra Maintainer    │ XR Cockpit Spec.    │ Sales Data Extraction
-Legal Compliance    │ visionOS Spatial    │ Data Consolidation
-Exec Summary Gen.   │ Terminal Integration│ Report Distribution
-```
+1. **Purpose before proxy** — execution metrics serve superior outcomes.
+2. **Diagnosis before tool** — available capability does not define the problem.
+3. **Mechanism before activity** — state why the action should change the result.
+4. **Reaction is part of strategy** — other actors adapt, oppose and cooperate.
+5. **Concentration + economy + reserve** — priority requires sacrifice and option value.
+6. **Evidence can defeat the plan** — facts, hypotheses, intentions and unknowns stay separate.
+7. **Intent-based delegation** — decentralize method inside clear purpose and boundaries.
+8. **Quality gates verify execution** — they do not prove strategic correctness.
+9. **Termination starts at entry** — define sufficient success and transition before scaling.
+10. **The institution should outlive the campaign** — preserve capability and learning, remove obsolete debris.
 
 ---
 
 <div align="center">
 
-**Start with a mode. Follow the playbook. Trust the pipeline.**
+**Choose the right level first. Then choose the right agents.**
 
-`strategy/nexus-strategy.md` — The complete doctrine
+`strategy/GENERAL-STRATEGY-DOCTRINE.md` · `strategy/nexus-strategy.md` · `strategy/runbooks.json`
 
 </div>
