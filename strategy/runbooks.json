@@ -1,6 +1,43 @@
 {
-  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — the agent .md filename stem (the corpus id), e.g. engineering/engineering-frontend-developer.md -> \"engineering-frontend-developer\"; specialized/agents-orchestrator.md -> \"agents-orchestrator\" (note: the stem is NOT always division-prefixed, and display names are prefixed/drift — so rosters reference slugs, which are rename-proof and testable). `mode` is the NEXUS activation mode (Full | Sprint | Micro) that sizes the team; `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with the markdown in strategy/runbooks/; every slug must resolve to a real agent file (scripts/check-runbooks.sh can guard this, mirroring check-divisions.sh). strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
+  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — the agent .md filename stem (the corpus id). `mode` is the NEXUS activation mode. `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with strategy/runbooks/ and real agent files; scripts/check-runbooks.sh guards the contract. strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
   "runbooks": [
+    {
+      "slug": "strategic-decision",
+      "title": "Strategic Decision & Transition",
+      "mode": "NEXUS-Sprint",
+      "duration": "Decision-dependent",
+      "summary": "Frame a material decision from superior purpose through actor geometry, causal logic, reaction, concentration, evidence, and transition — with independent challenge before irreversible commitment.",
+      "doc": "strategy/runbooks/scenario-strategic-decision.md",
+      "roster": [
+        {
+          "group": "Strategic Core",
+          "activation": "always",
+          "agents": [
+            "general-strategy-director",
+            "research-synthesist",
+            "business-strategist",
+            "strategic-red-team"
+          ]
+        },
+        {
+          "group": "Decision Support",
+          "activation": "as needed",
+          "agents": [
+            "specialized-master-plan-architect",
+            "chief-financial-officer",
+            "organizational-psychologist"
+          ]
+        },
+        {
+          "group": "Execution & Verification",
+          "activation": "after choice",
+          "agents": [
+            "project-management-project-shepherd",
+            "testing-reality-checker"
+          ]
+        }
+      ]
+    },
     {
       "slug": "startup-mvp",
       "title": "Startup MVP Build",
