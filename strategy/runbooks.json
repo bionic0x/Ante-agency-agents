@@ -136,27 +136,43 @@
     },
     {
       "slug": "marketing-campaign",
-      "title": "Multi-Channel Marketing Campaign",
+      "title": "Strategy-Led Marketing Campaign",
       "mode": "NEXUS-Sprint",
-      "duration": "2-4 weeks",
-      "summary": "Launch a coordinated, brand-consistent campaign across channels that drives measurable acquisition and engagement.",
+      "duration": "Campaign-dependent",
+      "summary": "Diagnose the demand constraint before selecting channels, then launch only the interventions whose causal role, resources, evidence, reactions, and stopping rules are explicit.",
       "doc": "strategy/runbooks/scenario-marketing-campaign.md",
       "roster": [
         {
-          "group": "Campaign Core",
+          "group": "Strategic Core",
           "activation": "always",
           "agents": [
-            "marketing-social-media-strategist",
-            "marketing-content-creator",
+            "marketing-strategy-orchestrator",
+            "marketing-strategy-director",
+            "market-demand-mapper",
+            "marketing-evidence-lead",
+            "marketing-portfolio-allocator",
+            "marketing-strategic-red-team"
+          ]
+        },
+        {
+          "group": "Intervention Core",
+          "activation": "after diagnosis",
+          "agents": [
             "marketing-growth-hacker",
+            "marketing-content-creator",
+            "marketing-social-media-strategist",
             "design-brand-guardian",
             "support-analytics-reporter"
           ]
         },
         {
-          "group": "Platform Specialists",
-          "activation": "as needed",
+          "group": "Platform & Channel Specialists",
+          "activation": "only when selected",
           "agents": [
+            "marketing-seo-specialist",
+            "marketing-aeo-foundations",
+            "marketing-agentic-search-optimizer",
+            "marketing-email-strategist",
             "marketing-twitter-engager",
             "marketing-tiktok-strategist",
             "marketing-instagram-curator",
@@ -169,6 +185,7 @@
           "activation": "as needed",
           "agents": [
             "product-trend-researcher",
+            "research-synthesist",
             "project-management-experiment-tracker",
             "support-executive-summary-generator",
             "support-legal-compliance-checker"
