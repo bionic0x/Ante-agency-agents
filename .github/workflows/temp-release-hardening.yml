@@ -20,7 +20,7 @@ jobs:
       - name: Apply deterministic hardening migration
         run: |
           chmod +x scripts/*.sh scripts/*.py
-          python3 scripts/apply-release-hardening.py
+          python3 scripts/bootstrap-release-hardening.py
           python3 scripts/bootstrap-marketing-framework.py
           git add -A
 
@@ -33,7 +33,7 @@ jobs:
       - name: Build verified release artifacts
         shell: bash
         run: |
-          rm -f .github/workflows/temp-release-hardening.yml scripts/bootstrap-marketing-framework.py
+          rm -f .github/workflows/temp-release-hardening.yml scripts/bootstrap-release-hardening.py scripts/bootstrap-marketing-framework.py
           python3 scripts/build-catalog.py --check
           cat > /tmp/UNIFIED_AGENCY_BUILD_INFO.json <<EOF
           {
@@ -54,7 +54,7 @@ jobs:
           }
           EOF
           cp /tmp/UNIFIED_AGENCY_BUILD_INFO.json UNIFIED_AGENCY_BUILD_INFO.json
-          zip -qr /tmp/Unified_Agency_Release.zip . -x '.git/*' '.github/workflows/temp-release-hardening.yml'
+          zip -qr /tmp/Unified_Agency_Release.zip . -x '.git/*' '.github/workflows/temp-release-hardening.yml' 'scripts/bootstrap-release-hardening.py' 'scripts/bootstrap-marketing-framework.py'
           rm UNIFIED_AGENCY_BUILD_INFO.json
           zip -qr /tmp/Unified_Agency_Catalog.zip catalog
           unzip -t /tmp/Unified_Agency_Release.zip >/dev/null
