@@ -1,0 +1,52 @@
+name: Temporary Package Unified Agency
+
+on:
+  push:
+    branches:
+      - upstream-2026-09-strategy-doctrine
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upstream-2026-09-strategy-doctrine
+          fetch-depth: 1
+
+      - name: Build single downloadable package
+        shell: bash
+        run: |
+          rm -f .github/workflows/temp-package-unified-agency.yml
+          cat > UNIFIED_AGENCY_BUILD_INFO.json <<'EOF'
+          {
+            "package": "Unified Agency",
+            "repository": "bionic0x/Ante-agency-agents",
+            "branch": "upstream-2026-09-strategy-doctrine",
+            "canonical_consolidated_commit": "941377a9d78a5e82ac89b693ff963aad44875bf0",
+            "pull_request": 2,
+            "agency_agents_upstream_commit": "6d29a9b08785a0e49ffc9818bbdd381164c2df5f",
+            "openclaw_source": "mergisi/awesome-openclaw-agents",
+            "openclaw_source_commit": "05820c51125e86a979432e21651d34dc9b14621f",
+            "canonical_agent_count": 474,
+            "openclaw_discovered_soul_files": 196,
+            "openclaw_imported_agents": 186,
+            "openclaw_aliases": 10,
+            "architecture": "one doctrine, one canonical catalog, one NEXUS/runbook registry, multiple tool adapters"
+          }
+          EOF
+          zip -qr Unified_Agency.zip . -x '.git/*' 'Unified_Agency.zip'
+          unzip -t Unified_Agency.zip >/dev/null
+          sha256sum Unified_Agency.zip > Unified_Agency.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Unified_Agency
+          path: |
+            Unified_Agency.zip
+            Unified_Agency.zip.sha256
+          compression-level: 0
+          if-no-files-found: error
