@@ -20,7 +20,8 @@ jobs:
       - name: Apply deterministic hardening migration
         run: |
           chmod +x scripts/*.sh scripts/*.py
-          python3 scripts/bootstrap-release-hardening.py
+          python3 scripts/apply-release-hardening.py
+          python3 scripts/bootstrap-marketing-framework.py
           git add -A
 
       - name: Regenerate all integration outputs
@@ -32,7 +33,7 @@ jobs:
       - name: Build verified release artifacts
         shell: bash
         run: |
-          rm -f .github/workflows/temp-release-hardening.yml scripts/bootstrap-release-hardening.py
+          rm -f .github/workflows/temp-release-hardening.yml scripts/bootstrap-marketing-framework.py
           python3 scripts/build-catalog.py --check
           cat > /tmp/UNIFIED_AGENCY_BUILD_INFO.json <<EOF
           {
@@ -53,7 +54,7 @@ jobs:
           }
           EOF
           cp /tmp/UNIFIED_AGENCY_BUILD_INFO.json UNIFIED_AGENCY_BUILD_INFO.json
-          zip -qr /tmp/Unified_Agency_Release.zip . -x '.git/*' '.github/workflows/temp-release-hardening.yml' 'scripts/bootstrap-release-hardening.py'
+          zip -qr /tmp/Unified_Agency_Release.zip . -x '.git/*' '.github/workflows/temp-release-hardening.yml'
           rm UNIFIED_AGENCY_BUILD_INFO.json
           zip -qr /tmp/Unified_Agency_Catalog.zip catalog
           unzip -t /tmp/Unified_Agency_Release.zip >/dev/null
@@ -66,7 +67,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Release harden unified agency and publish reliability squad"
+          git commit -m "Release harden unified agency and align marketing doctrine"
           git push origin HEAD:upstream-2026-09-strategy-doctrine
 
       - uses: actions/upload-artifact@v4
