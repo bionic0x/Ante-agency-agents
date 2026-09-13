@@ -246,12 +246,12 @@
       "required_artifacts": [
         "strategy/templates/strategic-decision-record.md",
         "strategy/templates/claim-register.yaml",
-        "strategy/htp-gate0/00-gate0-object-non-object.md",
-        "strategy/htp-gate0/01-gate0-jurisdiction-activity-memo.md",
-        "strategy/htp-gate0/02-gate0-threat-model-solana-arbitrum.md",
-        "strategy/htp-gate0/03-gate0-domain-map-solana-arbitrum.md",
-        "strategy/htp-gate0/04-gate0-claim-register.md",
-        "strategy/htp-gate0/05-gate0-mvp-falsifier.md"
+        "strategy/htp-gate0/gate0/01-object-non-object.md",
+        "strategy/htp-gate0/gate0/02-jurisdiction-activity.md",
+        "strategy/htp-gate0/gate0/03-threat-model.md",
+        "strategy/htp-gate0/gate0/04-domain-map.md",
+        "strategy/htp-gate0/gate0/05-claim-registers.yaml",
+        "strategy/htp-gate0/gate0/06-mvp-falsifiers.md"
       ],
       "termination_criteria": "Gate 0 closes with PROCEED, PROCEED_WITH_CONDITIONS, REDESIGN, or REJECT once the bounded artifacts and evidence are sufficient; HOLD persists only while a named evidence/authority condition remains unresolved. No Gate 0 result authorizes live offensive or executing capability.",
       "doc": "strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md",
