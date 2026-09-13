@@ -1,0 +1,79 @@
+handoff:
+  id: hnd_gate0_sol_kamino_001
+  from_seat: E1-SOL
+  from_agent: engineering-solana-program-engineer
+  to_seat: S1
+  to_agent: security-blockchain-security-auditor
+  network_scope: solana
+  protocol_scope: Kamino_Lend_Main_Market_SOL_USDC
+  status: submitted
+
+  governing_object: >-
+    Review the frozen Kamino Lend Main Market manifest and determine whether the
+    current evidence is sufficient to advance SOL-ORC and SOL-ORD into benchmark
+    construction without weakening the Gate 0 account, oracle, timing, authority,
+    or provenance boundaries.
+
+  non_object: >-
+    Authorize deployment, signing, transaction submission, custody, liquidation,
+    program changes, public attacker attribution, or claim that Kamino currently
+    suffers from either scoped threat class.
+
+  artifact_ref: >-
+    strategy/htp-gate0/instances/2026-09-13-kamino-aave/solana-kamino-manifest.yaml
+  artifact_freeze_date: "2026-09-13"
+  source_revisions:
+    - repository: Kamino-Finance/klend
+      commit: a08760976f51a3a58c4a0c6ea27b4a0e565bca79
+    - repository: Kamino-Finance/klend-sdk
+      commit: 38845294447623f6de3afc9dec29875f959f6f48
+
+  evidence_status: hypothesis
+  environment: documentary
+  authority_ref: null
+  requested_work: review
+
+  frozen_identifiers:
+    program_id: KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD
+    market: 7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF
+    SOL_reserve: d4A2prbA2whesmvHaL88BH6Ewn5N4bTSU2Ze8P6Bc4Q
+    USDC_reserve: D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59
+    SOL_mint: So11111111111111111111111111111111111111112
+    USDC_mint: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+
+  unresolved_questions:
+    - What are the exact live reserve configs/tokenInfo oracle mappings at the frozen slot?
+    - What are the runtime owners and account hashes for market/reserves/programdata?
+    - What is the deployed ProgramData upgrade authority and byte parity with the pinned source release?
+    - Which external swap/router/DEX/liquidation path defines the eligible SOL-ORD population?
+    - Which provider/version/time fields are actually consumed for SOL and USDC valuation?
+
+  acceptance_criteria:
+    - source_and_deployment_identity_not_conflated
+    - account_and_authority_boundaries_explicit_or_blocking
+    - live_oracle_configuration_explicit_or_blocking
+    - SOL_ORD_execution_surface_explicit_or_class_held
+    - unsupported_or_missing_data_never_maps_to_healthy
+    - ex_post_timing_not_marketed_as_preventive
+
+  allowed_tools:
+    - repository_read
+    - static_review
+    - read_only_rpc_snapshot
+    - local_test
+    - replay
+    - simulation
+
+  prohibited_actions:
+    - production_write
+    - external_disclosure
+    - transaction_signing
+    - transaction_submission
+    - custody
+    - live_pause
+    - liquidation
+    - program_upgrade
+    - live_third_party_exploitation
+
+  reviewer: S1
+  expires_at: runtime_manifest_revision_or_gate0_decision
