@@ -1,7 +1,54 @@
 {
-  "_note": "Machine-readable NEXUS scenario contracts. Each runbook declares not only an installable agent roster but also the governing object, explicit non-object, accountable decision owner, mandatory decision/evidence artifacts, and termination criteria. The Strategic Assurance Lead is mandatory in every material runbook. Agent entries are filename-stem slugs and must resolve to catalog agents. Strategy documentation constrains orchestration; it does not grant real-world execution authority.",
+  "_note": "Machine-readable NEXUS scenario contracts. Each runbook declares the governing object, explicit non-object, accountable decision owner, mandatory decision/evidence artifacts, termination criteria, and an installable roster. The Strategic Assurance Lead is mandatory in every material runbook. Agent entries are filename-stem slugs and must resolve to catalog agents. Strategy documentation constrains orchestration; it does not grant real-world execution authority.",
   "schema_version": "2.0",
   "runbooks": [
+    {
+      "slug": "strategic-decision",
+      "title": "Strategic Decision & Transition",
+      "mode": "NEXUS-Sprint",
+      "duration": "decision-dependent",
+      "summary": "Frame a material decision from superior purpose through actor geometry, causal logic, reaction, concentration, evidence, and transition, with independent challenge before irreversible commitment.",
+      "governing_object": "Produce a decision-ready strategic choice whose superior purpose, causal mechanism, authority, resource concentration, alternatives, refutators, reactions, and transition conditions are explicit enough for an accountable human owner to decide.",
+      "non_object": "Generate strategy theater, maximize analysis volume, manufacture consensus, or convert an agent recommendation into execution authority.",
+      "decision_owner": "Named human or institutional authority accountable for the material decision",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Close the strategic decision cycle when the authorized owner records a bounded decision and review/termination conditions, or terminate/redesign when a fatal authority, admissibility, causal, evidence, or conservation defect remains unresolved.",
+      "doc": "strategy/runbooks/scenario-strategic-decision.md",
+      "roster": [
+        {
+          "group": "Strategic Control",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "general-strategy-director",
+            "research-synthesist",
+            "business-strategist",
+            "strategic-red-team"
+          ]
+        },
+        {
+          "group": "Decision Support",
+          "activation": "as required by the decision geometry",
+          "agents": [
+            "specialized-master-plan-architect",
+            "chief-financial-officer",
+            "organizational-psychologist",
+            "support-legal-compliance-checker"
+          ]
+        },
+        {
+          "group": "Execution & Verification",
+          "activation": "only after an authorized bounded decision",
+          "agents": [
+            "project-management-project-shepherd",
+            "testing-reality-checker"
+          ]
+        }
+      ]
+    },
     {
       "slug": "startup-mvp",
       "title": "Startup MVP Build",
@@ -130,18 +177,18 @@
     },
     {
       "slug": "marketing-campaign",
-      "title": "Multi-Channel Marketing Campaign",
+      "title": "Strategy-Led Marketing Campaign",
       "mode": "NEXUS-Sprint",
-      "duration": "planning estimate: 2-4 weeks",
-      "summary": "Test and scale a coordinated market-response hypothesis while keeping channel activity subordinate to a measurable commercial or behavioral outcome.",
-      "governing_object": "Produce a defined audience behavior or commercial result through a compliant, brand-coherent campaign whose causal assumptions and measurement limits remain explicit.",
-      "non_object": "Maximize impressions, posting frequency, engagement, follower growth, or channel coverage without proving their contribution to the declared result.",
+      "duration": "campaign-dependent",
+      "summary": "Diagnose the demand constraint before selecting channels, then activate only interventions whose causal role, evidence plan, resources, reactions, and stopping rules are explicit.",
+      "governing_object": "Improve a defined superior commercial or behavioral outcome by diagnosing the binding demand constraint and selecting the smallest coherent set of marketing interventions capable of changing it.",
+      "non_object": "Maximize impressions, posting frequency, engagement, follower growth, channel coverage, or campaign activity as ends in themselves.",
       "decision_owner": "Authorized marketing or business owner",
       "required_artifacts": [
         "strategy/templates/strategic-decision-record.md",
         "strategy/templates/claim-register.yaml"
       ],
-      "termination_criteria": "Stop, reallocate, or redesign when the response hypothesis is falsified, marginal spend/effort no longer contributes to the governing object, a compliance/brand constraint is breached, or the campaign objective is reached and measurement closes.",
+      "termination_criteria": "Stop, reallocate, redesign, or re-diagnose when the demand/causal hypothesis is falsified, marginal effort no longer contributes to the governing object, a hard constraint is breached, or the sufficient result is reached and conserved.",
       "doc": "strategy/runbooks/scenario-marketing-campaign.md",
       "roster": [
         {
@@ -149,24 +196,33 @@
           "activation": "always",
           "agents": [
             "specialized-strategic-assurance-lead",
-            "agents-orchestrator",
+            "marketing-strategy-orchestrator",
+            "marketing-strategy-director",
+            "market-demand-mapper",
+            "marketing-evidence-lead",
+            "marketing-portfolio-allocator",
+            "marketing-strategic-red-team"
+          ]
+        },
+        {
+          "group": "Intervention Core",
+          "activation": "only after diagnosis selects the relevant mechanism",
+          "agents": [
+            "marketing-growth-hacker",
+            "marketing-content-creator",
             "marketing-social-media-strategist",
+            "design-brand-guardian",
             "support-analytics-reporter"
           ]
         },
         {
-          "group": "Campaign Core",
-          "activation": "when permitted by the current strategic output",
+          "group": "Platform & Channel Specialists",
+          "activation": "only when selected by the strategic thesis",
           "agents": [
-            "marketing-content-creator",
-            "marketing-growth-hacker",
-            "design-brand-guardian"
-          ]
-        },
-        {
-          "group": "Platform Specialists",
-          "activation": "only where the audience and channel hypothesis justify them",
-          "agents": [
+            "marketing-seo-specialist",
+            "marketing-aeo-foundations",
+            "marketing-agentic-search-optimizer",
+            "marketing-email-strategist",
             "marketing-twitter-engager",
             "marketing-tiktok-strategist",
             "marketing-instagram-curator",
@@ -179,6 +235,7 @@
           "activation": "as needed",
           "agents": [
             "product-trend-researcher",
+            "research-synthesist",
             "project-management-experiment-tracker",
             "support-executive-summary-generator",
             "support-legal-compliance-checker"
