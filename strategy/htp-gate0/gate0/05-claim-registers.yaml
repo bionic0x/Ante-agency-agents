@@ -1,0 +1,193 @@
+gate0_artifact:
+  id: "05"
+  title: "Dual-Network Empty Claim Registers"
+  status: draft_gate0_pending
+  owner_seat: D3
+  owner_agent: research-proposition-citation-auditor
+  supporting_seats:
+    - D1
+    - G1
+  rule: >-
+    Solana and Arbitrum One share a schema but not evidentiary status.
+    A claim, metric, validation result, legal conclusion, security acceptance,
+    or Gate decision from one network does not upgrade the other network.
+
+schema:
+  version: "1.1-proposed"
+  required_fields:
+    - claim_id
+    - statement
+    - claim_type
+    - threat_class
+    - evidence_status
+    - source_refs
+    - source_lineage
+    - dataset_hash
+    - protocol_and_market_scope
+    - adapter_and_policy_versions
+    - measurement_window
+    - sample_size_and_denominator
+    - baseline_and_estimand
+    - method_and_code_version
+    - estimate_and_uncertainty
+    - false_positives_and_false_negatives
+    - coverage_and_missingness
+    - limitations_and_alternative_explanations
+    - conflicts_of_interest
+    - owner_and_reviewer
+    - review_date
+  allowed_evidence_status:
+    - hypothesis
+    - backtested
+    - shadow_validated
+    - production_validated
+    - independently_verified
+  claim_types:
+    - documentary_fact
+    - technical_hypothesis
+    - empirical_performance
+    - causal_effect
+    - economic_effect
+    - security_finding
+    - legal_or_regulatory_proposition
+    - product_proposition
+  status_rules:
+    hypothesis: >-
+      Proposition is plausible or documented as a question but does not yet have
+      the reproducible empirical evidence required for a higher status.
+    backtested: >-
+      Historical or frozen replay was executed with identified dataset, code,
+      scope, denominator, method, missingness and uncertainty. This does not
+      imply prospective timing or production usefulness.
+    shadow_validated: >-
+      Prospective shadow observation measured evidence availability and detector
+      behavior without production intervention. This does not imply adoption or
+      economic benefit.
+    production_validated: >-
+      An authorized production/pilot context recorded the relevant delivery,
+      adoption/action and outcome measurements for the specific claim. This
+      status is not reachable merely by deploying software.
+    independently_verified: >-
+      A named independent reviewer reproduced or independently checked the
+      specific proposition/method and the register states exactly what was
+      verified. Multiple reports sharing the same upstream source do not qualify.
+
+cross_network_transfer_policy:
+  default: forbidden
+  rule: >-
+    A transfer requires its own registered proposition identifying the conserved
+    mechanism, what differs by chain, separate evidence references, and a named
+    reviewer. Shared schema, vocabulary, or S1 reviewer is not independent evidence.
+
+registries:
+  solana:
+    network_scope: solana
+    protocol_scope: PENDING
+    allowed_threat_classes:
+      - SOL-ORD
+      - SOL-ORC
+    claims: []
+    prohibited_status_shortcuts:
+      - "pattern_candidate -> proven_attack"
+      - "ordering_observed -> actor_identity_or_intent"
+      - "post_inclusion_replay -> prospective_prevention"
+      - "alert_generated -> loss_avoided"
+      - "one_adapter_version -> provider_wide_validation"
+      - "one_protocol -> solana_wide_performance"
+    required_scope_metadata:
+      program_ids: []
+      markets: []
+      oracle_feeds: []
+      adapter_versions: []
+      policy_versions: []
+      token_programs: []
+      dataset_ref: PENDING
+
+  arbitrum_one:
+    network_scope: arbitrum_one
+    protocol_scope: PENDING
+    allowed_threat_classes:
+      - ARB-ORC
+      - ARB-RES
+    claims: []
+    prohibited_status_shortcuts:
+      - "rpc_outage -> sequencer_outage"
+      - "sequencer_up -> protocol_risk_resolved"
+      - "example_grace_period -> economically_optimal_policy"
+      - "synthetic_cascade -> realized_loss"
+      - "alert_before_modeled_event -> loss_avoided"
+      - "one_market_or_feed -> arbitrum_wide_performance"
+      - "l1_fallback_exists -> guaranteed_practical_access"
+    required_scope_metadata:
+      contracts: []
+      proxy_implementation_pairs: []
+      markets: []
+      oracle_feeds: []
+      oracle_interface_versions: []
+      sequencer_uptime_feed: PENDING_IF_USED
+      policy_versions: []
+      dataset_ref: PENDING
+
+status_change_control:
+  required_fields:
+    - claim_id
+    - from_status
+    - to_status
+    - evidence_added
+    - reviewer
+    - changed_at
+    - limitations_added_or_revised
+  rules:
+    - "Phase completion is not evidence."
+    - "Age of a document is not evidence."
+    - "Editorial approval is not empirical validation."
+    - "Security review does not automatically validate performance."
+    - "Legal review does not automatically validate security or economics."
+    - "A status may be downgraded when evidence, scope, deployment, or documentation changes."
+
+quantitative_claim_minimum:
+  required_when_applicable:
+    - units
+    - eligible_population
+    - denominator
+    - measurement_window
+    - baseline
+    - estimand
+    - method
+    - dataset_version
+    - code_version
+    - adapter_version
+    - policy_version
+    - uncertainty
+    - missingness
+    - non_evaluable_cases
+    - false_positive_definition
+    - false_negative_definition
+
+causal_claim_control:
+  loss_avoidance_chain:
+    - detection
+    - delivery
+    - adoption
+    - action
+    - outcome
+    - counterfactual
+  rule: >-
+    Missing links remain missing. Detection alone cannot be registered as avoided
+    economic loss. Historical association alone cannot establish the counterfactual.
+
+review_state:
+  solana:
+    d3_review: pending
+    named_reviewer: PENDING
+    claims_count: 0
+  arbitrum_one:
+    d3_review: pending
+    named_reviewer: PENDING
+    claims_count: 0
+
+current_gate_effect:
+  result: gate0_pending
+  reason: >-
+    Empty registers are correctly initialized, but protocol scopes, human reviewers,
+    datasets, test parameters and independent approval remain pending.
