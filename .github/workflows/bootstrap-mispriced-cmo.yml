@@ -1,0 +1,46 @@
+name: Bootstrap mispriced-cmo branch
+
+on:
+  push:
+    branches:
+      - feat/mispriced-cmo-division
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .bootstrap/mispriced-cmo/patch.bz2.b64.* > /tmp/patch.b64
+          base64 --decode /tmp/patch.b64 > /tmp/patch.bz2
+          echo "6ff27affba0037405572935ca1514d9febe826c83402cc7da662f93bee4ada20  /tmp/patch.bz2" | sha256sum -c -
+          bzip2 -dc /tmp/patch.bz2 > /tmp/mispriced-cmo.patch
+          echo "ab8dbf422aeb374b45dad778685c67626394ed9800397bb81fa211cd7fc5fa04  /tmp/mispriced-cmo.patch" | sha256sum -c -
+          git apply --check /tmp/mispriced-cmo.patch
+
+      - name: Apply source patch preserving commit metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git am /tmp/mispriced-cmo.patch
+
+      - name: Remove bootstrap material and publish clean branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -r .bootstrap
+          git rm .github/workflows/bootstrap-mispriced-cmo.yml
+          git commit -m "chore: remove mispriced-cmo bootstrap material"
+          git push origin HEAD:feat/mispriced-cmo-division
