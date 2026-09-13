@@ -1,0 +1,49 @@
+# NEXUS claim register template
+#
+# Copy this file into the working project. Keep decision-critical claims small,
+# explicit, sourced, and versioned. Empty registers are valid at project start.
+# A claim without adequate support does not disappear; its status changes.
+
+schema_version: "1.0"
+initiative: ""
+owner: ""
+last_updated: ""
+
+allowed_status:
+  - EVIDENCE
+  - HYPOTHESIS
+  - ASSUMPTION
+  - UNKNOWN
+
+allowed_quantitative_status:
+  - MEASURED
+  - TARGET
+  - ESTIMATE
+  - HYPOTHESIS
+  - NOT_APPLICABLE
+
+claims: []
+
+# Example structure — keep commented until instantiated.
+# claims:
+#   - id: CLM-001
+#     proposition: ""
+#     status: HYPOTHESIS
+#     quantitative_status: NOT_APPLICABLE
+#     materiality: high               # low | medium | high | critical
+#     decision_supported: ""
+#     source_refs: []                 # files, URLs, test IDs, queries, commits, tickets
+#     source_date: ""
+#     observation_window: ""
+#     baseline: ""
+#     method: ""
+#     sample_size: null
+#     confidence: ""
+#     alternatives: []
+#     falsifier: ""
+#     limitations: []
+#     conflicts_of_interest: []
+#     owner: ""
+#     review_trigger: ""
+#     expires: ""
+#     notes: ""
