@@ -1,187 +1,237 @@
-# 📢 Runbook: Multi-Channel Marketing Campaign
+# Runbook — Multi-Channel Marketing Campaign
 
-> **Mode**: NEXUS-Micro to NEXUS-Sprint | **Duration**: 2-4 weeks | **Agents**: 10-15
+> **Mode:** NEXUS-Sprint  
+> **Planning range:** campaign-dependent; often multi-week  
+> **Purpose:** test and scale a coordinated audience-response hypothesis while keeping channel activity subordinate to a measurable commercial or behavioral result
 
 ---
 
-## Scenario
+## Governing frame
 
-You're launching a coordinated marketing campaign across multiple channels. Content needs to be platform-specific, brand-consistent, and data-driven. The campaign needs to drive measurable acquisition and engagement.
+**Governing object:** produce a defined audience behavior or commercial result through a compliant, brand-coherent campaign whose causal assumptions and measurement limits remain explicit.
 
-## Agent Roster
+**Non-object:** maximize impressions, posting frequency, engagement, follower growth, channel coverage, or creative volume without establishing their contribution to the declared result.
 
-### Campaign Core
-| Agent | Role |
-|-------|------|
-| Social Media Strategist | Campaign lead, cross-platform strategy |
-| Content Creator | Content production across all formats |
-| Growth Hacker | Acquisition strategy, funnel optimization |
-| Brand Guardian | Brand consistency across all channels |
-| Analytics Reporter | Performance tracking and optimization |
+## Decision owner
 
-### Platform Specialists
-| Agent | Role |
-|-------|------|
-| Twitter Engager | Twitter/X campaign execution |
-| TikTok Strategist | TikTok content and growth |
-| Instagram Curator | Instagram visual content |
-| Reddit Community Builder | Reddit authentic engagement |
-| App Store Optimizer | App store presence (if mobile) |
+An authorized marketing/business owner controls budget, external commitment, and material campaign changes within the organization's policies. Compliance, brand, platform, and legal authorities retain their respective rights.
 
-### Support
-| Agent | Role |
-|-------|------|
-| Trend Researcher | Market timing and trend alignment |
-| Experiment Tracker | A/B testing campaign variations |
-| Executive Summary Generator | Campaign reporting |
-| Legal Compliance Checker | Ad compliance, disclosure requirements |
+---
 
-## Execution Plan
+## Strategic control roster
 
-### Week 1: Strategy & Content Creation
+| Agent | Slug | Responsibility |
+|---|---|---|
+| Strategic Assurance Lead | `specialized-strategic-assurance-lead` | object/non-object, causal thesis, seven tests, stop/scale logic |
+| Agents Orchestrator | `agents-orchestrator` | execution mesh and handoffs |
+| Social Media Strategist | `marketing-social-media-strategist` | campaign/channel coordination |
+| Analytics Reporter | `support-analytics-reporter` | baseline, measurement, evidence |
 
-```
-Day 1-2: Campaign Strategy
-├── Social Media Strategist → Cross-platform campaign strategy
-│   ├── Campaign objectives and KPIs
-│   ├── Target audience definition
-│   ├── Platform selection and budget allocation
-│   ├── Content calendar (4-week plan)
-│   └── Engagement strategy per platform
-│
-├── Trend Researcher → Market timing analysis
-│   ├── Trending topics to align with
-│   ├── Competitor campaign analysis
-│   └── Optimal launch timing
-│
-├── Growth Hacker → Acquisition funnel design
-│   ├── Landing page optimization plan
-│   ├── Conversion funnel mapping
-│   ├── Viral mechanics (referral, sharing)
-│   └── Channel budget allocation
-│
-├── Brand Guardian → Campaign brand guidelines
-│   ├── Campaign-specific visual guidelines
-│   ├── Messaging framework
-│   ├── Tone and voice for campaign
-│   └── Do's and don'ts
-│
-└── Legal Compliance Checker → Ad compliance review
-    ├── Disclosure requirements
-    ├── Platform-specific ad policies
-    └── Regulatory constraints
+Campaign, platform, research, brand, growth, content, experiment, and compliance agents are activated only when the audience/channel hypothesis needs them. See `strategy/runbooks.json`.
 
-Day 3-5: Content Production
-├── Content Creator → Multi-format content creation
-│   ├── Blog posts / articles
-│   ├── Email sequences
-│   ├── Landing page copy
-│   ├── Video scripts
-│   └── Social media copy (platform-adapted)
-│
-├── Twitter Engager → Twitter-specific content
-│   ├── Launch thread (10-15 tweets)
-│   ├── Daily engagement tweets
-│   ├── Reply templates
-│   └── Hashtag strategy
-│
-├── TikTok Strategist → TikTok content plan
-│   ├── Video concepts (3-5 videos)
-│   ├── Hook strategies
-│   ├── Trending audio/format alignment
-│   └── Posting schedule
-│
-├── Instagram Curator → Instagram content
-│   ├── Feed posts (carousel, single image)
-│   ├── Stories content
-│   ├── Reels concepts
-│   └── Visual aesthetic guidelines
-│
-└── Reddit Community Builder → Reddit strategy
-    ├── Subreddit targeting
-    ├── Value-first post drafts
-    ├── Comment engagement plan
-    └── AMA preparation (if applicable)
+---
+
+## Mandatory artifacts
+
+Before material spend/exposure:
+
+- Strategic Decision Record;
+- Claim Register;
+- measured baseline or explicit `UNKNOWN`;
+- audience/problem evidence;
+- response hypothesis and credible alternatives;
+- channel-selection rationale;
+- budget/exposure authority;
+- brand/compliance constraints;
+- scale, pause, reallocate, and termination conditions.
+
+---
+
+## Campaign thesis
+
+Write one causal chain per major audience/channel combination:
+
+```yaml
+audience: ""
+observed_need_or_state: ""
+message_or_offer: ""
+channel: ""
+expected_behavior_change: ""
+mechanism: ""
+measured_baseline: ""
+target: ""
+leading_indicator: ""
+outcome_metric: ""
+guardrail_metrics: []
+alternative_explanation: ""
+falsifier: ""
+scale_condition: ""
+stop_or_reallocate_condition: ""
 ```
 
-### Week 2: Launch & Activate
+A platform is not part of the plan merely because the catalog has a specialist for it.
 
-```
-Day 1: Pre-Launch
-├── All content queued and scheduled
-├── Analytics tracking verified
-├── A/B test variants configured
-├── Landing pages live and tested
-└── Team briefed on engagement protocols
+---
 
-Day 2-3: Launch
-├── Twitter Engager → Launch thread + real-time engagement
-├── Instagram Curator → Launch posts + stories
-├── TikTok Strategist → Launch videos
-├── Reddit Community Builder → Authentic community posts
-├── Content Creator → Blog post published + email blast
-├── Growth Hacker → Paid campaigns activated
-└── Analytics Reporter → Real-time dashboard monitoring
+## Execution pattern
 
-Day 4-5: Optimize
-├── Analytics Reporter → First 48-hour performance report
-├── Growth Hacker → Channel optimization based on data
-├── Experiment Tracker → A/B test early results
-├── Social Media Strategist → Engagement strategy adjustment
-└── Content Creator → Response content based on reception
-```
+### 1. Establish baseline and decision metric
 
-### Week 3-4: Sustain & Optimize
+Separate:
 
-```
-Daily:
-├── Platform agents → Engagement and content posting
-├── Analytics Reporter → Daily performance snapshot
-└── Growth Hacker → Funnel optimization
+- activity: posts, sends, impressions;
+- outputs: visits, leads, conversations;
+- effects: qualified intent, trial, conversion, retention behavior;
+- governing outcome: the commercial/behavioral result that matters.
 
-Weekly:
-├── Social Media Strategist → Campaign performance review
-├── Experiment Tracker → A/B test results and new tests
-├── Content Creator → New content based on performance data
-└── Analytics Reporter → Weekly campaign report
+Do not let the most visible platform metric replace the result.
 
-End of Campaign:
-├── Analytics Reporter → Comprehensive campaign analysis
-├── Growth Hacker → ROI analysis and channel effectiveness
-├── Executive Summary Generator → Campaign executive summary
-└── Social Media Strategist → Lessons learned and recommendations
-```
+### 2. Select channels from audience evidence
 
-## Campaign Metrics
+For each candidate channel ask:
 
-| Metric | Target | Owner |
-|--------|--------|-------|
-| Total reach | [Target based on budget] | Social Media Strategist |
-| Engagement rate | > 3% average across platforms | Platform agents |
-| Click-through rate | > 2% on CTAs | Growth Hacker |
-| Conversion rate | > 5% landing page | Growth Hacker |
-| Cost per acquisition | < [Target CAC] | Growth Hacker |
-| Brand sentiment | Net positive | Brand Guardian |
-| Content pieces published | [Target count] | Content Creator |
-| A/B tests completed | ≥ 5 | Experiment Tracker |
+- Is the target audience actually reachable there?
+- What behavior is plausible on that channel?
+- What evidence supports the mechanism?
+- What does the channel cost in money, creative capacity, moderation/support, and measurement complexity?
+- Does simultaneous activation help coordination or destroy attribution?
 
-## Platform-Specific KPIs
+### 3. Build content/offer against the hypothesis
 
-| Platform | Primary KPI | Secondary KPI | Agent |
-|----------|------------|---------------|-------|
-| Twitter/X | Impressions + engagement rate | Follower growth | Twitter Engager |
-| TikTok | Views + completion rate | Follower growth | TikTok Strategist |
-| Instagram | Reach + saves | Profile visits | Instagram Curator |
-| Reddit | Upvotes + comment quality | Referral traffic | Reddit Community Builder |
-| Email | Open rate + CTR | Unsubscribe rate | Content Creator |
-| Blog | Organic traffic + time on page | Backlinks | Content Creator |
-| Paid ads | ROAS + CPA | Quality score | Growth Hacker |
+Content Creator, Brand Guardian, and platform specialists produce work against an explicit response hypothesis.
 
-## Brand Consistency Checkpoints
+Creative quantity is not a success criterion.
 
-| Checkpoint | When | Agent |
-|-----------|------|-------|
-| Content review before publishing | Every piece | Brand Guardian |
-| Visual consistency audit | Weekly | Brand Guardian |
-| Voice and tone check | Weekly | Brand Guardian |
-| Compliance review | Before launch + weekly | Legal Compliance Checker |
+### 4. Compliance and platform review
+
+Review applicable:
+
+- ad disclosures;
+- endorsements/influencer rules;
+- claims substantiation;
+- data/consent rules;
+- platform policies;
+- regulated product/category limits;
+- brand constraints.
+
+Do not generalize one jurisdiction/platform review to another without evidence.
+
+### 5. Controlled activation
+
+Choose a spend/exposure level that can generate decision-grade evidence while preserving reserve.
+
+Possible approaches:
+
+- one channel first;
+- small parallel cells with clear attribution;
+- audience holdout;
+- sequential creative test;
+- budget-capped multi-channel launch;
+- full coordinated campaign where simultaneity is itself part of the mechanism.
+
+### 6. Update rather than chase
+
+When results arrive, compare the causal explanations.
+
+A poor metric can mean:
+
+- wrong audience;
+- wrong message/offer;
+- wrong channel;
+- tracking failure;
+- insufficient exposure;
+- external/context change;
+- fundamentally weak product/value proposition.
+
+Do not reflexively increase spend or content cadence before identifying which explanation the evidence supports.
+
+---
+
+## Metrics
+
+This runbook contains no universal engagement, CTR, CAC, conversion, ROAS, reach, follower, or posting-frequency threshold.
+
+Every quantitative target must state:
+
+| Field | Requirement |
+|---|---|
+| Status | `MEASURED` / `TARGET` / `ESTIMATE` / `HYPOTHESIS` |
+| Baseline | measured comparator or `UNKNOWN` |
+| Window | observation period |
+| Source | analytics/ad/CRM/source-of-truth |
+| Method | attribution/calculation definition |
+| Decision use | scale / hold / stop / learn |
+| Limitations | known bias, delay, missingness |
+
+An industry benchmark may inform a hypothesis; it does not become this campaign's baseline by citation alone.
+
+---
+
+## Guardrails
+
+As applicable track:
+
+- compliance/brand incidents;
+- unsubscribe/complaint rate;
+- support burden;
+- low-quality lead share;
+- return/refund/cancellation behavior;
+- audience fatigue;
+- organic cannibalization;
+- marginal cost deterioration;
+- attribution/data-quality degradation.
+
+A campaign can improve its headline metric while harming the governing object.
+
+---
+
+## Gate / allocation decision
+
+At material budget/exposure changes apply the seven coherence tests.
+
+Possible outputs:
+
+- `PROCEED`
+- `PROCEED_WITH_CONDITIONS`
+- `HOLD`
+- `REDESIGN`
+- `REJECT`
+
+The business/marketing decision owner authorizes actual spend and publication.
+
+### Scale only when
+
+- the mechanism remains plausible;
+- outcome evidence is sufficient for the added commitment;
+- marginal economics remain within the authorized bounds;
+- guardrails remain acceptable;
+- measurement can still distinguish the relevant effects;
+- additional exposure does not consume the reserve needed to respond.
+
+### Reallocate / stop when
+
+- falsifier triggers;
+- guardrail breach makes the tactic inadmissible;
+- marginal spend/effort no longer contributes to the governing object;
+- a better channel/offer dominates under the current evidence;
+- product/offer weakness makes further media optimization strategically irrelevant;
+- required authority or platform access is withdrawn.
+
+---
+
+## Handoff / closure
+
+At campaign close preserve:
+
+- final Claim Register;
+- measured baseline vs result;
+- attribution method and limitations;
+- channel/creative hypotheses supported or rejected;
+- audience/market changes observed;
+- guardrail outcomes;
+- reusable brand/compliance learnings;
+- recommendations expressed as hypotheses with conditions, not universal rules.
+
+Expire campaign-specific access, automation, budgets, and temporary processes when their authority ends.
+
+> **Runbook success:** the organization learns which market mechanism deserves more or less investment while producing a defensible commercial/behavioral result — not merely a busier set of channels.

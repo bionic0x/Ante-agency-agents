@@ -1,21 +1,37 @@
 {
-  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — the agent .md filename stem (the corpus id), e.g. engineering/engineering-frontend-developer.md -> \"engineering-frontend-developer\"; specialized/agents-orchestrator.md -> \"agents-orchestrator\" (note: the stem is NOT always division-prefixed, and display names are prefixed/drift — so rosters reference slugs, which are rename-proof and testable). `mode` is the NEXUS activation mode (Full | Sprint | Micro) that sizes the team; `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with the markdown in strategy/runbooks/; every slug must resolve to a real agent file (scripts/check-runbooks.sh can guard this, mirroring check-divisions.sh). strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
+  "_note": "Machine-readable NEXUS scenario contracts. Each runbook declares not only an installable agent roster but also the governing object, explicit non-object, accountable decision owner, mandatory decision/evidence artifacts, and termination criteria. The Strategic Assurance Lead is mandatory in every material runbook. Agent entries are filename-stem slugs and must resolve to catalog agents. Strategy documentation constrains orchestration; it does not grant real-world execution authority.",
+  "schema_version": "2.0",
   "runbooks": [
     {
       "slug": "startup-mvp",
       "title": "Startup MVP Build",
       "mode": "NEXUS-Sprint",
-      "duration": "4-6 weeks",
-      "summary": "Idea to live product with real users, fast — without skipping QA.",
+      "duration": "planning estimate: 4-6 weeks",
+      "summary": "Test a bounded product thesis and ship the smallest evidence-generating product without confusing feature delivery with product-market validation.",
+      "governing_object": "Establish whether a specific customer problem can be solved by a usable, supportable product strongly enough to justify the next material investment.",
+      "non_object": "Maximize feature count, sprint velocity, launch speed, or demo polish as ends in themselves.",
+      "decision_owner": "Product owner or authorized founder/executive",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Close, redesign, or narrow the initiative when the declared falsifier is met, required authority/resources cannot be obtained, or the minimum sufficient result is achieved and transferred to ordinary ownership.",
       "doc": "strategy/runbooks/scenario-startup-mvp.md",
       "roster": [
         {
-          "group": "Core Team",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
             "agents-orchestrator",
             "project-manager-senior",
-            "product-sprint-prioritizer",
+            "product-sprint-prioritizer"
+          ]
+        },
+        {
+          "group": "Product & Build",
+          "activation": "when permitted by the current strategic output",
+          "agents": [
             "design-ux-architect",
             "engineering-frontend-developer",
             "engineering-backend-architect",
@@ -26,7 +42,7 @@
         },
         {
           "group": "Growth Team",
-          "activation": "week 3+",
+          "activation": "only after the relevant value and audience hypothesis is testable",
           "agents": [
             "marketing-growth-hacker",
             "marketing-content-creator",
@@ -51,18 +67,33 @@
       "slug": "enterprise-feature",
       "title": "Enterprise Feature Development",
       "mode": "NEXUS-Sprint",
-      "duration": "6-12 weeks",
-      "summary": "Ship a major feature into an existing enterprise product with non-negotiable compliance, security, and quality gates, and multi-stakeholder alignment.",
+      "duration": "planning estimate: 6-12 weeks",
+      "summary": "Deliver a material enterprise capability without sacrificing system integrity, compliance, maintainability, or stakeholder authority for roadmap completion.",
+      "governing_object": "Produce a validated enterprise capability that improves the declared user/business outcome while remaining compatible with the existing product, controls, and operating model.",
+      "non_object": "Ship the roadmap item, maximize scope, or satisfy a single stakeholder metric regardless of system-level consequences.",
+      "decision_owner": "Authorized product/program owner with relevant security/compliance concurrence",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Stop or redesign when a fatal security/compliance/architecture condition emerges, the causal benefit thesis is falsified, or the validated capability is transferred to normal product and operations ownership.",
       "doc": "strategy/runbooks/scenario-enterprise-feature.md",
       "roster": [
         {
-          "group": "Core Team",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
             "agents-orchestrator",
             "project-management-project-shepherd",
             "project-manager-senior",
-            "product-sprint-prioritizer",
+            "product-sprint-prioritizer"
+          ]
+        },
+        {
+          "group": "Core Product & Engineering",
+          "activation": "when permitted by the current strategic output",
+          "agents": [
             "design-ux-architect",
             "design-ux-researcher",
             "design-ui-designer",
@@ -78,7 +109,7 @@
         },
         {
           "group": "Compliance & Governance",
-          "activation": "as needed",
+          "activation": "as required by scope and before the relevant commitment",
           "agents": [
             "support-legal-compliance-checker",
             "design-brand-guardian",
@@ -88,7 +119,7 @@
         },
         {
           "group": "Quality Assurance",
-          "activation": "as needed",
+          "activation": "as needed and at material gates",
           "agents": [
             "testing-test-results-analyzer",
             "testing-workflow-optimizer",
@@ -101,24 +132,40 @@
       "slug": "marketing-campaign",
       "title": "Multi-Channel Marketing Campaign",
       "mode": "NEXUS-Sprint",
-      "duration": "2-4 weeks",
-      "summary": "Launch a coordinated, brand-consistent campaign across channels that drives measurable acquisition and engagement.",
+      "duration": "planning estimate: 2-4 weeks",
+      "summary": "Test and scale a coordinated market-response hypothesis while keeping channel activity subordinate to a measurable commercial or behavioral outcome.",
+      "governing_object": "Produce a defined audience behavior or commercial result through a compliant, brand-coherent campaign whose causal assumptions and measurement limits remain explicit.",
+      "non_object": "Maximize impressions, posting frequency, engagement, follower growth, or channel coverage without proving their contribution to the declared result.",
+      "decision_owner": "Authorized marketing or business owner",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Stop, reallocate, or redesign when the response hypothesis is falsified, marginal spend/effort no longer contributes to the governing object, a compliance/brand constraint is breached, or the campaign objective is reached and measurement closes.",
       "doc": "strategy/runbooks/scenario-marketing-campaign.md",
       "roster": [
         {
-          "group": "Campaign Core",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
+            "agents-orchestrator",
             "marketing-social-media-strategist",
-            "marketing-content-creator",
-            "marketing-growth-hacker",
-            "design-brand-guardian",
             "support-analytics-reporter"
           ]
         },
         {
+          "group": "Campaign Core",
+          "activation": "when permitted by the current strategic output",
+          "agents": [
+            "marketing-content-creator",
+            "marketing-growth-hacker",
+            "design-brand-guardian"
+          ]
+        },
+        {
           "group": "Platform Specialists",
-          "activation": "as needed",
+          "activation": "only where the audience and channel hypothesis justify them",
           "agents": [
             "marketing-twitter-engager",
             "marketing-tiktok-strategist",
@@ -128,7 +175,7 @@
           ]
         },
         {
-          "group": "Support",
+          "group": "Research & Compliance",
           "activation": "as needed",
           "agents": [
             "product-trend-researcher",
@@ -143,25 +190,41 @@
       "slug": "incident-response",
       "title": "Incident Response",
       "mode": "NEXUS-Micro",
-      "duration": "Minutes to hours",
-      "summary": "Detection through post-mortem for a production incident — fast response without cutting corners.",
+      "duration": "incident-dependent; minutes to hours for containment, longer for conservation",
+      "summary": "Restore critical service safely, preserve evidence, and prevent recurrence without optimizing MTTR at the expense of integrity or learning.",
+      "governing_object": "Return the affected service to a safe, supportable condition while preserving evidence, controlling blast radius, and establishing the changes needed to prevent recurrence.",
+      "non_object": "Minimize MTTR, close the incident, or restore green dashboards regardless of residual risk, evidence loss, or recurrence.",
+      "decision_owner": "Named incident authority under the organization's incident policy",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "End emergency mode only when containment and recovery criteria are met, residual risks have owners, temporary authority/access is expired or transferred, and conservation actions are assigned to ordinary ownership.",
       "doc": "strategy/runbooks/scenario-incident-response.md",
       "roster": [
         {
-          "group": "P0 Critical Response",
+          "group": "Strategic & Incident Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
+            "agents-orchestrator",
             "support-infrastructure-maintainer",
             "engineering-devops-automator",
-            "engineering-backend-architect",
-            "engineering-frontend-developer",
-            "support-support-responder",
             "support-executive-summary-generator"
           ]
         },
         {
-          "group": "Verification & Post-Mortem",
-          "activation": "post-fix",
+          "group": "Technical Response",
+          "activation": "according to the incident authority and affected system",
+          "agents": [
+            "engineering-backend-architect",
+            "engineering-frontend-developer",
+            "support-support-responder"
+          ]
+        },
+        {
+          "group": "Verification & Conservation",
+          "activation": "during validation and post-fix",
           "agents": [
             "testing-evidence-collector",
             "testing-api-tester",
@@ -175,14 +238,29 @@
       "slug": "htp-gate0-solana-arbitrum",
       "title": "HTP Gate 0 — Solana + Arbitrum",
       "mode": "NEXUS-Sprint",
-      "duration": "14 planning days",
-      "summary": "Close an evidence-first, non-executing Gate 0 for bounded Solana and Arbitrum One DeFi risk-monitoring workstreams with chain-specific engineering and transversal security review.",
+      "duration": "planning window: 14 days",
+      "summary": "Close an evidence-first, non-executing Gate 0 for bounded Solana and Arbitrum One DeFi risk-monitoring workstreams with chain-specific engineering, security, research, and legal review.",
+      "governing_object": "Determine whether a bounded, defensive Solana + Arbitrum One monitoring MVP is coherent, supportable, legally reviewable, and falsifiable before any live-service or executing capability is authorized.",
+      "non_object": "Maximize chain coverage, MEV capture, exploitability knowledge, detector count, or speed to live execution.",
+      "decision_owner": "HTP Governance or explicitly delegated Gate 0 owner",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml",
+        "strategy/htp-gate0/gate0/01-object-non-object.md",
+        "strategy/htp-gate0/gate0/02-jurisdiction-activity.md",
+        "strategy/htp-gate0/gate0/03-threat-model.md",
+        "strategy/htp-gate0/gate0/04-domain-map.md",
+        "strategy/htp-gate0/gate0/05-claim-registers.yaml",
+        "strategy/htp-gate0/gate0/06-mvp-falsifiers.md"
+      ],
+      "termination_criteria": "Gate 0 closes with PROCEED, PROCEED_WITH_CONDITIONS, REDESIGN, or REJECT once the bounded artifacts and evidence are sufficient; HOLD persists only while a named evidence/authority condition remains unresolved. No Gate 0 result authorizes live offensive or executing capability.",
       "doc": "strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md",
       "roster": [
         {
           "group": "Core Gate 0",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
             "specialized-chief-of-staff",
             "product-manager",
             "security-blockchain-security-auditor",

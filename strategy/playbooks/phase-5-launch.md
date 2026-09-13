@@ -1,277 +1,164 @@
-# 🚀 Phase 5 Playbook — Launch & Growth
+# Phase 5 — Launch, Exposure & Market Interaction
 
-> **Duration**: 2-4 weeks (T-7 through T+14) | **Agents**: 12 | **Gate Keepers**: Studio Producer + Analytics Reporter
+> **Status:** execution module subordinate to `strategy/STRATEGIC-CONTROL-PLANE.md`.
 
----
+## Function
 
-## Objective
+Expose the validated capability to real users/markets in a way that preserves control, measurement, rollback, authority, and the ability to learn.
 
-Coordinate go-to-market execution across all channels simultaneously. Maximum impact at launch. Every marketing agent fires in concert while engineering ensures stability.
+Launch is not “maximum impact” by default. Simultaneous channel activation, full traffic exposure, or aggressive promotion can increase value in some contexts and destroy observability, reliability, or optionality in others.
 
-## Pre-Conditions
+## Governing question
 
-- [ ] Phase 4 Quality Gate passed (Reality Checker READY verdict)
-- [ ] Phase 4 Handoff Package received
-- [ ] Production deployment plan approved
-- [ ] Marketing content pipeline ready (from Phase 3 Track B)
+> What is the smallest authorized exposure that can produce the intended result or decision-grade evidence without consuming unnecessary reserve?
 
-## Launch Timeline
+## Entry conditions
 
-### T-7: Pre-Launch Week
+- current strategic output permits the intended exposure;
+- material release claims are supported or appropriately qualified;
+- launch authority is explicit;
+- critical rollback/recovery paths are ready;
+- launch measurement distinguishes baseline, target, and observation;
+- compliance/brand/security conditions relevant to external exposure are resolved or gated.
 
-#### Content & Campaign Preparation (Parallel)
+## Launch design
 
-```
-ACTIVATE Content Creator:
-- Finalize all launch content (blog posts, landing pages, email sequences)
-- Queue content in publishing platforms
-- Prepare response templates for anticipated questions
-- Create launch day real-time content plan
+Choose the exposure pattern from the governing object and risk profile:
 
-ACTIVATE Social Media Strategist:
-- Finalize cross-platform campaign assets
-- Schedule pre-launch teaser content
-- Coordinate influencer partnerships
-- Prepare platform-specific content variations
+- internal / controlled pilot;
+- invited cohort;
+- percentage or segment rollout;
+- geographic rollout;
+- partner-limited rollout;
+- public launch;
+- channel-specific campaign;
+- staged expansion after evidence gates.
 
-ACTIVATE Growth Hacker:
-- Arm viral mechanics (referral codes, sharing incentives)
-- Configure growth experiment tracking
-- Set up funnel analytics
-- Prepare acquisition channel budgets
+No pattern is universally superior.
 
-ACTIVATE App Store Optimizer (if mobile):
-- Finalize store listing (title, description, keywords, screenshots)
-- Submit app for review (if applicable)
-- Prepare launch day ASO adjustments
-- Configure in-app review prompts
-```
+## Main workstreams
 
-#### Technical Preparation (Parallel)
+| Need | Candidate agents/functions |
+|---|---|
+| release coordination | Agents Orchestrator, Project Manager, DevOps |
+| product/operations | Product Manager, Infrastructure Maintainer, Support |
+| measurement | Analytics Reporter, Experiment Tracker |
+| messaging/brand | Brand Guardian, Content Creator, channel specialists |
+| compliance/security | relevant reviewer/auditor |
+| evidence challenge | Reality Checker, Evidence Collector |
+| strategic coherence | Strategic Assurance Lead |
 
-```
-ACTIVATE DevOps Automator:
-- Prepare blue-green deployment
-- Verify rollback procedures
-- Configure feature flags for gradual rollout
-- Test deployment pipeline end-to-end
+Activate marketing/channel specialists only where the audience-response hypothesis justifies them.
 
-ACTIVATE Infrastructure Maintainer:
-- Configure auto-scaling for 10x expected traffic
-- Verify monitoring and alerting thresholds
-- Test disaster recovery procedures
-- Prepare incident response runbook
+## Protocol
 
-ACTIVATE Project Shepherd:
-- Distribute launch checklist to all agents
-- Confirm all dependencies resolved
-- Set up launch day communication channel
-- Brief stakeholders on launch plan
+### 1. Define launch thesis
+
+```yaml
+audience_or_exposure: ""
+intended_behavior_or_system_effect: ""
+mechanism: ""
+measured_baseline: ""
+target: ""
+leading_signals: []
+guardrail_signals: []
+scale_condition: ""
+pause_condition: ""
+rollback_condition: ""
 ```
 
-### T-1: Launch Eve
+### 2. Separate target from evidence
 
-```
-FINAL CHECKLIST (Project Shepherd coordinates):
+Targets are not forecasts and forecasts are not measurements.
 
-Technical:
-☐ Blue-green deployment tested
-☐ Rollback procedure verified
-☐ Auto-scaling configured
-☐ Monitoring dashboards live
-☐ Incident response team on standby
-☐ Feature flags configured
+For each published or executive claim identify:
 
-Content:
-☐ All content queued and scheduled
-☐ Email sequences armed
-☐ Social media posts scheduled
-☐ Blog posts ready to publish
-☐ Press materials distributed
+- status;
+- source;
+- observation window;
+- baseline;
+- method;
+- limitation.
 
-Marketing:
-☐ Viral mechanics tested
-☐ Referral system operational
-☐ Analytics tracking verified
-☐ Ad campaigns ready to activate
-☐ Community engagement plan ready
+### 3. Preserve observability
 
-Support:
-☐ Support team briefed
-☐ FAQ and help docs published
-☐ Escalation procedures confirmed
-☐ Feedback collection active
-```
+A launch should produce interpretable evidence. If every channel, feature, pricing change, and segment changes at once, attribution may become impossible.
 
-### T-0: Launch Day
+Parallel execution is justified when it preserves the ability to distinguish relevant effects or when the governing object values coordinated simultaneity enough to accept the measurement cost.
 
-#### Hour 0: Deployment
+### 4. Protect the downside
 
-```
-ACTIVATE DevOps Automator:
-1. Execute blue-green deployment to production
-2. Run health checks on all services
-3. Verify database migrations complete
-4. Confirm all endpoints responding
-5. Switch traffic to new deployment
-6. Monitor error rates for 15 minutes
-7. Confirm: DEPLOYMENT SUCCESSFUL or ROLLBACK
+Before material exposure, establish as applicable:
 
-ACTIVATE Infrastructure Maintainer:
-1. Monitor all system metrics in real-time
-2. Watch for traffic spikes and scaling events
-3. Track error rates and response times
-4. Alert on any threshold breaches
-5. Confirm: SYSTEMS STABLE
-```
+- rollback / kill / pause path;
+- operational owner;
+- incident escalation;
+- capacity limits;
+- support path;
+- security/compliance contacts;
+- message correction path;
+- spend/exposure cap;
+- data-quality checks.
 
-#### Hour 1-2: Marketing Activation
+### 5. Scale from evidence, not excitement
 
-```
-ACTIVATE Twitter Engager:
-- Publish launch thread
-- Engage with early responses
-- Monitor brand mentions
-- Amplify positive reactions
-- Real-time conversation participation
+Expansion requires the current record to show why additional exposure still has positive expected contribution to the governing object.
 
-ACTIVATE Reddit Community Builder:
-- Post authentic launch announcement in relevant subreddits
-- Engage with comments (value-first, not promotional)
-- Monitor community sentiment
-- Respond to technical questions
+A good initial result can move the culmination point closer by increasing support burden, cost, adverse attention, dependency concentration, or user expectations.
 
-ACTIVATE Instagram Curator:
-- Publish launch visual content
-- Stories with product demos
-- Engage with early followers
-- Cross-promote with other channels
+## Launch gate
 
-ACTIVATE TikTok Strategist:
-- Publish launch videos
-- Monitor for viral potential
-- Engage with comments
-- Adjust content based on early performance
-```
+Review:
 
-#### Hour 2-8: Monitoring & Response
+- release state is supported by the hardening evidence;
+- authority covers the proposed audience/exposure;
+- claims are supportable at the language used;
+- monitoring can detect the declared guardrails;
+- rollback/recovery can be executed by someone who actually holds the authority;
+- measurement can distinguish enough of the causal thesis to inform scaling;
+- support/operations can conserve the result if adoption occurs;
+- the planned exposure leaves appropriate reserve.
 
-```
-ACTIVATE Support Responder:
-- Handle incoming user inquiries
-- Document common issues
-- Escalate technical problems to engineering
-- Collect early user feedback
+Strategic Assurance issues the bounded output; the decision owner authorizes the real commitment.
 
-ACTIVATE Analytics Reporter:
-- Real-time metrics dashboard
-- Hourly traffic and conversion reports
-- Channel attribution tracking
-- User behavior flow analysis
+## During launch
 
-ACTIVATE Feedback Synthesizer:
-- Monitor all feedback channels
-- Categorize incoming feedback
-- Identify critical issues
-- Prioritize user-reported problems
-```
+At each material expansion point update:
 
-### T+1 to T+7: Post-Launch Week
+- Claim Register;
+- Strategic Decision Record;
+- user/system reaction;
+- guardrail state;
+- reserve consumption;
+- culmination assessment;
+- termination/scale decision.
 
-```
-DAILY CADENCE:
+Do not wait for a fixed calendar checkpoint if the falsifier or stop condition triggers earlier.
 
-Morning:
-├── Analytics Reporter → Daily metrics report
-├── Feedback Synthesizer → Feedback summary
-├── Infrastructure Maintainer → System health report
-└── Growth Hacker → Channel performance analysis
+## Exit condition
 
-Afternoon:
-├── Content Creator → Response content based on reception
-├── Social Media Strategist → Engagement optimization
-├── Experiment Tracker → Launch A/B test results
-└── Support Responder → Issue resolution summary
+Launch mode ends when:
 
-Evening:
-├── Executive Summary Generator → Daily stakeholder briefing
-├── Project Shepherd → Cross-team coordination
-└── DevOps Automator → Deployment of hotfixes (if needed)
-```
+- the intended exposure has produced sufficient evidence/result;
+- the capability is stable enough for normal operation;
+- ownership has transferred to operations/product/support;
+- launch-only permissions and processes expire;
+- the next growth/expansion decision is separated from the fact that launch already happened.
 
-### T+7 to T+14: Optimization Week
+A successful launch does not create an automatic mandate for expansion.
 
-```
-ACTIVATE Growth Hacker:
-- Analyze first-week acquisition data
-- Optimize conversion funnels based on data
-- Scale winning channels, cut losing ones
-- Refine viral mechanics based on K-factor data
+## Handoff
 
-ACTIVATE Analytics Reporter:
-- Week 1 comprehensive analysis
-- Cohort analysis of launch users
-- Retention curve analysis
-- Revenue/engagement metrics
+Carry into operation:
 
-ACTIVATE Experiment Tracker:
-- Launch systematic A/B tests
-- Test onboarding variations
-- Test pricing/packaging (if applicable)
-- Test feature discovery flows
+- Strategic Context Header;
+- measured baseline vs observed launch results;
+- current claim states;
+- user/system reaction evidence;
+- operational SLOs/targets with source;
+- known risks and support burden;
+- remaining launch exceptions/access to expire;
+- scale/pause/termination conditions;
+- owner of the conserved result.
 
-ACTIVATE Executive Summary Generator:
-- Week 1 executive summary (SCQA format)
-- Key metrics vs. targets
-- Recommendations for Week 2+
-- Resource reallocation suggestions
-```
-
-## Quality Gate Checklist
-
-| # | Criterion | Evidence Source | Status |
-|---|-----------|----------------|--------|
-| 1 | Deployment successful (zero-downtime) | DevOps Automator deployment logs | ☐ |
-| 2 | Systems stable (no P0/P1 in 48 hours) | Infrastructure Maintainer monitoring | ☐ |
-| 3 | User acquisition channels active | Analytics Reporter dashboard | ☐ |
-| 4 | Feedback loop operational | Feedback Synthesizer report | ☐ |
-| 5 | Stakeholders informed | Executive Summary Generator output | ☐ |
-| 6 | Support operational | Support Responder metrics | ☐ |
-| 7 | Growth metrics tracking | Growth Hacker channel reports | ☐ |
-
-## Gate Decision
-
-**Dual sign-off**: Studio Producer (strategic) + Analytics Reporter (data)
-
-- **STABLE**: Product launched, systems stable, growth active → Phase 6 activation
-- **CRITICAL**: Major issues requiring immediate engineering response → Hotfix cycle
-- **ROLLBACK**: Fundamental problems → Revert deployment, return to Phase 4
-
-## Handoff to Phase 6
-
-```markdown
-## Phase 5 → Phase 6 Handoff Package
-
-### For Ongoing Operations:
-- Launch metrics baseline (Analytics Reporter)
-- User feedback themes (Feedback Synthesizer)
-- System performance baseline (Infrastructure Maintainer)
-- Growth channel performance (Growth Hacker)
-- Support issue patterns (Support Responder)
-
-### For Continuous Improvement:
-- A/B test results and learnings (Experiment Tracker)
-- Process improvement recommendations (Workflow Optimizer)
-- Financial performance vs. projections (Finance Tracker)
-- Compliance monitoring status (Legal Compliance Checker)
-
-### Operational Cadences Established:
-- Daily: System monitoring, support, analytics
-- Weekly: Analytics report, feedback synthesis, sprint planning
-- Monthly: Executive summary, financial review, compliance check
-- Quarterly: Strategic review, process optimization, market intelligence
-```
-
----
-
-*Phase 5 is complete when the product is deployed, systems are stable for 48+ hours, growth channels are active, and the feedback loop is operational.*
+> **Completion criterion:** exposure has become an evidence-bearing transition to ordinary ownership, not a one-way commitment justified by launch momentum.
