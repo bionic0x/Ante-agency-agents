@@ -1,0 +1,89 @@
+name: Temporary Unified Agency Release Hardening
+
+on:
+  push:
+    branches:
+      - upstream-2026-09-strategy-doctrine
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: upstream-2026-09-strategy-doctrine
+          fetch-depth: 0
+
+      - name: Apply deterministic hardening migration
+        run: |
+          chmod +x scripts/*.sh scripts/*.py
+          python3 scripts/bootstrap-release-hardening.py
+          python3 scripts/bootstrap-marketing-framework.py
+          git add -A
+
+      - name: Regenerate all integration outputs
+        run: bash scripts/test-convert-outputs.sh --update
+
+      - name: Verify complete release gate
+        run: bash scripts/verify-release.sh
+
+      - name: Build verified release artifacts
+        shell: bash
+        run: |
+          rm -f .github/workflows/temp-release-hardening.yml scripts/bootstrap-release-hardening.py scripts/bootstrap-marketing-framework.py
+          python3 scripts/build-catalog.py --check
+          cat > /tmp/UNIFIED_AGENCY_BUILD_INFO.json <<EOF
+          {
+            "package": "Unified Agency Release",
+            "repository": "bionic0x/Ante-agency-agents",
+            "branch": "upstream-2026-09-strategy-doctrine",
+            "source_commit_before_release_commit": "${GITHUB_SHA}",
+            "canonical_agent_count": 478,
+            "division_count": 18,
+            "runbook_count": 6,
+            "openclaw_source_commit": "05820c51125e86a979432e21651d34dc9b14621f",
+            "openclaw_discovered_soul_files": 196,
+            "openclaw_imported_agents": 186,
+            "openclaw_aliases": 10,
+            "lint_errors": 0,
+            "lint_warnings": 0,
+            "architecture": "one doctrine, one canonical catalog, one NEXUS/runbook registry, multiple tool adapters"
+          }
+          EOF
+          cp /tmp/UNIFIED_AGENCY_BUILD_INFO.json UNIFIED_AGENCY_BUILD_INFO.json
+          zip -qr /tmp/Unified_Agency_Release.zip . -x '.git/*' '.github/workflows/temp-release-hardening.yml' 'scripts/bootstrap-release-hardening.py' 'scripts/bootstrap-marketing-framework.py'
+          rm UNIFIED_AGENCY_BUILD_INFO.json
+          zip -qr /tmp/Unified_Agency_Catalog.zip catalog
+          unzip -t /tmp/Unified_Agency_Release.zip >/dev/null
+          unzip -t /tmp/Unified_Agency_Catalog.zip >/dev/null
+          sha256sum /tmp/Unified_Agency_Release.zip > /tmp/Unified_Agency_Release.zip.sha256
+          sha256sum /tmp/Unified_Agency_Catalog.zip > /tmp/Unified_Agency_Catalog.zip.sha256
+
+      - name: Commit verified canonical state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Release harden unified agency and align marketing doctrine"
+          git push origin HEAD:upstream-2026-09-strategy-doctrine
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Unified_Agency_Release
+          path: |
+            /tmp/Unified_Agency_Release.zip
+            /tmp/Unified_Agency_Release.zip.sha256
+          compression-level: 0
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Unified_Agency_Catalog
+          path: |
+            /tmp/Unified_Agency_Catalog.zip
+            /tmp/Unified_Agency_Catalog.zip.sha256
+          compression-level: 0
+          if-no-files-found: error
