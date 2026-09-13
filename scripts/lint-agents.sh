@@ -24,6 +24,7 @@ AGENT_DIRS=(
   gis
   healthcare
   marketing
+  mispriced-cmo
   paid-media
   product
   project-management
@@ -178,7 +179,7 @@ else
     if [[ -d "$dir" ]]; then
       while IFS= read -r f; do
         files+=("$f")
-      done < <(find "$dir" -name "*.md" -type f | sort)
+      done < <(find "$dir" -name "*.md" -type f ! -name "README.md" | sort)
     fi
   done
 fi

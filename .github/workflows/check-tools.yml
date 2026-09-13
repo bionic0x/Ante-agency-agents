@@ -32,3 +32,14 @@ jobs:
 
       - name: Validate agent selection (install.sh --agent / --agents-file)
         run: bash scripts/test-agent-selection.sh
+
+      - name: Validate generated catalog (CATALOG.md)
+        # Advisory on pull requests (contributors need not regenerate); enforced on pushes to main.
+        run: |
+          if ! python3 scripts/build-catalog.py --check; then
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "::warning::CATALOG.md is stale — maintainers regenerate with: python3 scripts/build-catalog.py"
+            else
+              exit 1
+            fi
+          fi

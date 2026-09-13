@@ -1,0 +1,34 @@
+{
+  "package": "Unified Agency",
+  "repository": "bionic0x/Ante-agency-agents",
+  "branch": "upstream-2026-09-strategy-doctrine",
+  "canonical_consolidated_commit": "941377a9d78a5e82ac89b693ff963aad44875bf0",
+  "pull_request": 2,
+  "agency_agents_upstream_commit": "6d29a9b08785a0e49ffc9818bbdd381164c2df5f",
+  "openclaw_source": "mergisi/awesome-openclaw-agents",
+  "openclaw_source_commit": "05820c51125e86a979432e21651d34dc9b14621f",
+  "canonical_agent_count": 487,
+  "openclaw_discovered_soul_files": 196,
+  "openclaw_imported_agents": 186,
+  "openclaw_aliases": 10,
+  "architecture": "one doctrine, one canonical catalog, one NEXUS/runbook registry, multiple tool adapters",
+  "division_count": 19,
+  "runbook_count": 8,
+  "revision": {
+    "date": "2026-09-13",
+    "base": "main @ 2d4bff0 (post PR #4)",
+    "agent_count_at_base": 476,
+    "changes": [
+      "Moved non-agent doctrine marketing/AGENCY_OPERATING_MODEL.md to strategy/MARKETING-OPERATING-MODEL.md and updated every reference",
+      "Resolved 61 recommended-section lint warnings across 37 agents",
+      "Repaired UTF-16-damaged emoji section headings in engineering-mobile-app-builder.md and marketing-app-store-optimizer.md",
+      "Regenerated integrations/hermes/README.md agent count (was stale at 279)",
+      "check-agent-originality.sh scores imported agents on their capability notes instead of the shared import wrapper (max similarity 38.5% -> 4.7%)",
+      "Added mispriced-cmo division (11 agents) and 2 runbooks: marketing-mispricing-diagnostic, boring-wins-manuscript, both carrying the NEXUS v2 strategic contract fields",
+      "Renamed the division's Proposition & Citation Auditor to Mispricing Claim Auditor to avoid a display-name collision with research-proposition-citation-auditor",
+      "lint-agents.sh no longer treats a division README.md as an agent file (marketing/README.md was failing lint on main)",
+      "Added scripts/build-catalog.py and generated CATALOG.md (complete roster; README omitted 194 agents)",
+      "Regenerated integration outputs and scripts/convert-outputs.sha256"
+    ]
+  }
+}

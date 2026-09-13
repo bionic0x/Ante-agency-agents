@@ -1,13 +1,13 @@
 # Marketing Division — Strategy-Led Agent Model
 
-> **Governance**: this division operates under the repository-wide NEXUS v2 Strategic Control Plane. `marketing/AGENCY_OPERATING_MODEL.md` is a domain operating model, not a parallel source of agency-wide authority.
+> **Governance**: this division operates under the repository-wide NEXUS v2 Strategic Control Plane. `strategy/MARKETING-OPERATING-MODEL.md` is a domain operating model, not a parallel source of agency-wide authority.
 
 The marketing division uses a two-level model:
 
 1. **Strategic control agents** diagnose, choose, allocate, challenge, and govern evidence inside the marketing domain.
 2. **Intervention specialists** execute bounded work in channels, content, growth, platforms, and communities.
 
-Read [`AGENCY_OPERATING_MODEL.md`](AGENCY_OPERATING_MODEL.md) before using the system for a material marketing decision. For material commitments, also preserve the repository-wide Strategic Decision Record, Claim Register, Strategic Assurance, accountable decision owner, and termination requirements.
+Read [`MARKETING-OPERATING-MODEL.md`](../strategy/MARKETING-OPERATING-MODEL.md) before using the system for a material marketing decision. For material commitments, also preserve the repository-wide Strategic Decision Record, Claim Register, Strategic Assurance, accountable decision owner, and termination requirements.
 
 ## Strategic control agents
 
