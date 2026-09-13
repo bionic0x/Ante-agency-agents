@@ -507,7 +507,7 @@ division_emoji() {
   if ! supports_unicode; then printf '*'; return; fi
   case "$1" in
     academic) printf '📚';; design) printf '🎨';; engineering) printf '💻';;
-    finance) printf '💵';; game-development) printf '🎮';; gis) printf '🌍';; marketing) printf '📢';;
+    finance) printf '💵';; game-development) printf '🎮';; gis) printf '🌍';; marketing) printf '📢';; mispriced-cmo) printf '⚖️';;
     paid-media) printf '💰';; product) printf '📊';; project-management) printf '🎬';;
     research) printf '🔍';; sales) printf '💼';; security) printf '🔒';; spatial-computing) printf '🥽';;
     specialized) printf '🎯';; support) printf '🛟';; testing) printf '🧪';; *) printf '•';;

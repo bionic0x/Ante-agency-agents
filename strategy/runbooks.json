@@ -341,6 +341,101 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "marketing-mispricing-diagnostic",
+      "title": "The Marketing Mispricing Diagnostic",
+      "mode": "NEXUS-Sprint",
+      "duration": "2 weeks (optional 4-6 week sprint)",
+      "summary": "Separate demand creation from demand extraction in two weeks: classify marketing capital by job, run nine evidence-graded modules, challenge the thesis, and deliver a board-safe Mispricing Report and Repricing Memo.",
+      "governing_object": "Determine where a company's marketing capital is creating future demand and where it is harvesting demand that earlier brand investment already built, and state the reallocation that follows, with every material claim graded by evidence.",
+      "non_object": "Judge creative taste, audit agency performance, redesign the brand, or produce a growth forecast the evidence does not fund.",
+      "decision_owner": "Engagement lead, or the client-side CMO/CFO sponsor named in the Strategic Decision Record",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml",
+        "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md"
+      ],
+      "termination_criteria": "The diagnostic closes when the Availability Ledger, the nine modules, and the Repricing Memo are delivered with every material claim graded [FACT]/[INFERENCE]/[HYPOTHESIS]/[JUDGMENT] and every gap named. It terminates early, with findings stated as incomplete, if budget, spend or measurement data sufficient to separate creation from extraction cannot be obtained. No output authorizes a reallocation the client's own governance has not approved.",
+      "doc": "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md",
+      "roster": [
+        {
+          "group": "Engagement Core",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "mispriced-cmo-diagnostic-lead",
+            "mispriced-cmo-availability-ledger-analyst",
+            "mispriced-cmo-measurement-bias-reviewer",
+            "mispriced-cmo-recognition-equity-auditor",
+            "mispriced-cmo-voice-fame-analyst",
+            "mispriced-cmo-physical-availability-analyst",
+            "mispriced-cmo-governance-risk-analyst"
+          ]
+        },
+        {
+          "group": "Strategic Control & Challenge",
+          "activation": "always",
+          "agents": [
+            "market-demand-mapper",
+            "marketing-evidence-lead",
+            "marketing-portfolio-allocator",
+            "chief-financial-officer",
+            "marketing-strategic-red-team"
+          ]
+        },
+        {
+          "group": "Deliverable & Assurance",
+          "activation": "days 9-10",
+          "agents": [
+            "mispriced-cmo-repricing-memo-writer",
+            "mispriced-cmo-proposition-auditor"
+          ]
+        },
+        {
+          "group": "Commercial (internal)",
+          "activation": "qualification and next phase only",
+          "agents": [
+            "maxx-profit-offer-architect"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "boring-wins-manuscript",
+      "title": "BORING WINS Chapter Production",
+      "mode": "NEXUS-Micro",
+      "duration": "1-5 days per chapter pass",
+      "summary": "Take a BORING WINS chapter from draft to publication-ready: architecture, argument, verified evidence, cross-work consistency, and line edit in the book's voice.",
+      "governing_object": "Bring a BORING WINS chapter to publishable state: the argument holds, every figure and citation traces to a verified source, and the prose keeps the book's register.",
+      "non_object": "Soften the cultural critique, convert the book into a framework or how-to manual, or let a hypothesis harden into doctrine because it has survived several drafts.",
+      "decision_owner": "Author (Javier Peiro Rius)",
+      "required_artifacts": [
+        "strategy/templates/claim-register.yaml",
+        "strategy/runbooks/scenario-boring-wins-manuscript.md"
+      ],
+      "termination_criteria": "A chapter closes when its claims are registered and sourced, its tensions with the rest of the manuscript are recorded or resolved, and the author accepts the draft. It stops short of that when a load-bearing citation cannot be verified: the claim is cut or demoted to [HYPOTHESIS] rather than shipped as fact.",
+      "doc": "strategy/runbooks/scenario-boring-wins-manuscript.md",
+      "roster": [
+        {
+          "group": "Core",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "boring-wins-manuscript-editor",
+            "mispriced-cmo-proposition-auditor"
+          ]
+        },
+        {
+          "group": "Support",
+          "activation": "as needed",
+          "agents": [
+            "research-synthesist",
+            "marketing-strategic-red-team",
+            "marketing-book-co-author"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -109,6 +109,8 @@ See the [Multi-Tool Integrations](#-multi-tool-integrations) section below for f
 
 ## 🎨 The Agency Roster
 
+> The tables below are curated highlights. **[CATALOG.md](CATALOG.md) is the complete, generated roster** — every agent in every division (including the agents normalized from the OpenClaw community source and the strategic control layer) plus all NEXUS runbooks. Regenerate it with `python3 scripts/build-catalog.py`.
+
 ### 💻 Engineering Division
 
 Building the future, one commit at a time.
@@ -270,6 +272,24 @@ Growing your audience, one authentic interaction at a time.
 | 📧 [Email Marketing Strategist](marketing/marketing-email-strategist.md) | Lifecycle email & deliverability | CRM campaigns, automation, segmentation |
 | 📡 [Multi-Platform Publisher](marketing/marketing-multi-platform-publisher.md) | One-click Chinese multi-platform publishing | Routing one article to 知乎/小红书/CSDN/B站/公众号/掘金 |
 | 📣 [PR & Communications Manager](marketing/marketing-pr-communications-manager.md) | PR, media relations & crisis comms | Press releases, thought leadership, reputation |
+
+### ⚖️ Mispriced CMO Division
+
+Separating demand creation from demand extraction — and pricing marketing around availability, not activity. Runs on the marketing strategic control layer and the doctrine in `strategy/MARKETING-OPERATING-MODEL.md`.
+
+| Agent | Specialty | When to Use |
+|-------|-----------|-------------|
+| ⚖️ [Mispricing Diagnostic Lead](mispriced-cmo/mispriced-cmo-diagnostic-lead.md) | Two-week Marketing Mispricing Diagnostic, nine modules, mispricing thesis | New CMO, agency review, proposed rebrand, rising CAC, board scrutiny of marketing |
+| 📒 [Availability Ledger Analyst](mispriced-cmo/mispriced-cmo-availability-ledger-analyst.md) | Budget classified by demand job, declared vs. real ratio, Ratio Covenant | Finding where capital leaks from creation to extraction |
+| 🔬 [Measurement Bias Reviewer](mispriced-cmo/mispriced-cmo-measurement-bias-reviewer.md) | Attribution vs. incrementality, metric register, evidence architecture | Dashboards that make harvest look efficient and brand look invisible |
+| 🧿 [Recognition Equity Auditor](mispriced-cmo/mispriced-cmo-recognition-equity-auditor.md) | Distinctive assets, fame × uniqueness, rebrand burden of proof | Before any refresh, rebrand, or agency-led identity change |
+| 📣 [ESOV & Fame Analyst](mispriced-cmo/mispriced-cmo-voice-fame-analyst.md) | ESOV Fiction Test, Fame Deficit profile | Testing whether a growth target is funded and the creative can build memory |
+| 🛒 [Physical Availability Gap Analyst](mispriced-cmo/mispriced-cmo-physical-availability-analyst.md) | Presence, prominence, portfolio, fulfilment, lost demand | When buyers think of the brand but cannot find or buy it |
+| ⏳ [Four-Year Clock & Exceptions Desk Analyst](mispriced-cmo/mispriced-cmo-governance-risk-analyst.md) | Tenure and incentive risk, category-reframing test | Short-horizon incentives; claims that the category must be reframed |
+| 🖋️ [Repricing Memo Writer](mispriced-cmo/mispriced-cmo-repricing-memo-writer.md) | Mispricing Report and board Repricing Memo | Turning findings into a board decision |
+| 🧾 [Proposition & Citation Auditor](mispriced-cmo/mispriced-cmo-proposition-auditor.md) | Claim registers, citation drift, cross-work tensions | Before a manuscript chapter or client report is released |
+| 📕 [Boring Wins Manuscript Editor](mispriced-cmo/boring-wins-manuscript-editor.md) | Chapter architecture, voice, theory, lexicon, line edit | Developing BORING WINS chapters |
+| 🏦 [MAXX Profit Offer Architect](mispriced-cmo/maxx-profit-offer-architect.md) | Internal offer ladder, value-based pricing, proposals | Internal commercial design only — never client-facing |
 
 ### 📊 Product Division
 
@@ -632,6 +652,24 @@ See the **[Nexus Spatial Discovery Exercise](examples/nexus-spatial-discovery.md
 
 ---
 
+### Scenario 7: The Marketing Mispricing Diagnostic
+
+**Your Team** (runbook: [`scenario-marketing-mispricing-diagnostic.md`](strategy/runbooks/scenario-marketing-mispricing-diagnostic.md)):
+
+1. ⚖️ **Mispricing Diagnostic Lead** - Mandate, engagement state, mispricing thesis
+2. 📒 **Availability Ledger Analyst** - Classify every budget line by the job it actually performs
+3. 🔬 **Measurement Bias Reviewer** - Separate attribution from incrementality
+4. 🧿 **Recognition Equity Auditor** - Test whether distinctive assets are compounding
+5. 📣 **ESOV & Fame Analyst** - Check that growth is funded by voice and carried by memorable work
+6. 🛒 **Physical Availability Gap Analyst** - Find demand lost before it becomes revenue
+7. ⏳ **Four-Year Clock & Exceptions Desk Analyst** - Expose incentives that reward extraction
+8. 🟥 **Marketing Strategic Red Team** - Attack the thesis before readout
+9. 🖋️ **Repricing Memo Writer** - Board-safe report and memo
+
+**Result**: In two weeks, an evidence-graded answer to where marketing is winning quarters and losing the brand — and the three capital decisions to make in the next 90 days.
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
@@ -713,7 +751,8 @@ Each agent is designed with:
 
 ## 📊 Stats
 
-- 🎭 **230+ Specialized Agents** across every division
+- 🎭 **480+ Specialized Agents** across 19 divisions — full list in [CATALOG.md](CATALOG.md)
+- 🧭 **7 NEXUS runbooks** with one-click team rosters in `strategy/runbooks.json`
 - 📝 **10,000+ lines** of personality, process, and code examples
 - ⏱️ **Months of iteration** from real-world usage
 - 🌟 **Battle-tested** in production environments
