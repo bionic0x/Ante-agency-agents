@@ -170,6 +170,42 @@
           ]
         }
       ]
+    },
+    {
+      "slug": "htp-gate0-solana-arbitrum",
+      "title": "HTP Gate 0 — Solana + Arbitrum",
+      "mode": "NEXUS-Sprint",
+      "duration": "14 planning days",
+      "summary": "Close an evidence-first, non-executing Gate 0 for bounded Solana and Arbitrum One DeFi risk-monitoring workstreams with chain-specific engineering and transversal security review.",
+      "doc": "strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md",
+      "roster": [
+        {
+          "group": "Core Gate 0",
+          "activation": "always",
+          "agents": [
+            "specialized-chief-of-staff",
+            "product-manager",
+            "security-blockchain-security-auditor",
+            "research-synthesist",
+            "research-proposition-citation-auditor"
+          ]
+        },
+        {
+          "group": "Chain Engineering",
+          "activation": "domain map, technical reconciliation, and S1 handoff",
+          "agents": [
+            "engineering-solana-program-engineer",
+            "engineering-solidity-smart-contract-engineer"
+          ]
+        },
+        {
+          "group": "Mandatory Legal Review",
+          "activation": "jurisdiction/activity memo and before any live-service expansion",
+          "agents": [
+            "support-legal-compliance-checker"
+          ]
+        }
+      ]
     }
   ]
 }
