@@ -1,381 +1,237 @@
-# 📢 Runbook: Strategy-Led Marketing Campaign
+# Runbook — Multi-Channel Marketing Campaign
 
-> **Mode**: NEXUS-Sprint | **Duration**: Campaign-dependent | **Agents**: Strategic core + selected intervention specialists
-
----
-
-## Scenario
-
-Use this runbook when marketing is one candidate mechanism for changing a superior commercial outcome and the work is material enough to require diagnosis, allocation, evidence, and stopping logic.
-
-This runbook does **not** assume that a multi-channel campaign is the answer. Its first job is to determine whether the binding problem is actually demand creation/capture/conservation or instead product, price, availability, supply, service, distribution, organizational capacity, or another constraint.
-
-If the diagnosis does not support a campaign, stop the runbook and route the decision upward rather than producing content to satisfy the template.
-
-## Governing References
-
-- `strategy/GENERAL-STRATEGY-DOCTRINE.md`
-- `marketing/AGENCY_OPERATING_MODEL.md`
-
-## Agent Roster
-
-### Strategic Core
-
-| Agent | Role |
-|---|---|
-| Marketing Strategy Orchestrator | Maintains gates, handoffs, state, lifecycle, and authority boundaries |
-| Marketing Strategy Director | Owns demand diagnosis and strategic thesis; recommends to decision owner |
-| Market & Demand Mapper | Maps buying situations, intermediaries, availability, dependencies, and constraints |
-| Marketing Evidence Lead | Governs evidence, provenance, counterfactuals, confidence, and refutators |
-| Marketing Portfolio Allocator | Chooses concentration, economy, reserve, and lifecycle state |
-| Marketing Strategic Red Team | Challenges purpose, causal model, reactions, conversion, evidence, and exit |
-
-### Intervention Specialists
-
-Activate only after diagnosis identifies their mechanism as relevant.
-
-| Agent | Typical role |
-|---|---|
-| Growth Hacker | Acquisition/conversion/retention experiments and marginal growth economics |
-| Content Creator | Content as a selected intervention, not a default strategy |
-| Social Media Strategist | Cross-platform execution when social is strategically justified |
-| SEO / AEO / Agentic Search specialists | Search/discovery interventions when retrieval/discovery is binding |
-| Paid Media specialists | Paid reach/capture when incremental media response justifies spend |
-| Email Strategist | Lifecycle/capture/conservation when owned messaging is causal |
-| PR Communications Manager | Legitimacy/fame/earned reach when appropriate |
-| Platform specialists | Native execution for selected platforms |
-
-### Adjacent Support
-
-| Agent | Role |
-|---|---|
-| Brand Guardian | Distinctiveness, brand consistency, trust, and brand-asset constraints |
-| Trend Researcher / Research Synthesist | External evidence and alternative explanations |
-| Experiment Tracker | Operational experiment registry after evidence design |
-| Analytics Reporter | Operating measurement inside the Evidence Plan |
-| Legal Compliance Checker | Claims, disclosure, legal boundaries |
-| Executive Summary Generator | Decision-grade synthesis after uncertainty is preserved |
+> **Mode:** NEXUS-Sprint  
+> **Planning range:** campaign-dependent; often multi-week  
+> **Purpose:** test and scale a coordinated audience-response hypothesis while keeping channel activity subordinate to a measurable commercial or behavioral result
 
 ---
 
-## Phase 0 — Mandate
+## Governing frame
 
-**Lead**: Marketing Strategy Orchestrator
+**Governing object:** produce a defined audience behavior or commercial result through a compliant, brand-coherent campaign whose causal assumptions and measurement limits remain explicit.
 
-Record:
+**Non-object:** maximize impressions, posting frequency, engagement, follower growth, channel coverage, or creative volume without establishing their contribution to the declared result.
 
-```yaml
-decision_owner: ""
-superior_business_outcome: ""
-baseline: ""
-incremental_gap: ""
-horizon: ""
-available_resources: ""
-hard_limits: []
-materiality: low | medium | high
-irreversibility: low | medium | high
-stop_authority: ""
-```
+## Decision owner
 
-If the campaign objective is expressed only as impressions, engagement, followers, CTR, leads, content output, or platform growth, do not proceed until its relationship to the superior result is explicit.
-
-### Gate 0
-
-**What business condition must improve, and what must not be sacrificed to improve it?**
+An authorized marketing/business owner controls budget, external commitment, and material campaign changes within the organization's policies. Compliance, brand, platform, and legal authorities retain their respective rights.
 
 ---
 
-## Phase 1 — Determine the Demand Job
+## Strategic control roster
 
-**Lead**: Marketing Strategy Director
-
-Classify the primary work:
-
-- **Create** — increase future retrieval, desire, consideration, legitimacy, trial, or category entry.
-- **Capture** — turn existing need/predisposition into a transaction by improving relevance, access, offer, conversion, or assisted choice.
-- **Conserve** — protect memory, relationships, customers, trust, distribution, data utility, or capability already built.
-
-A campaign may combine jobs, but do not hide incompatible horizons or measurements inside a single objective.
-
-### Gate 1
-
-**What must change in demand, not merely in media activity?**
-
----
-
-## Phase 2 — Reconstruct Market Geometry
-
-**Lead**: Market & Demand Mapper
-
-Map:
-
-- buying situations and category entry cues;
-- user, buyer, payer, influencer, prescriber;
-- retailers, platforms, marketplaces, AI intermediaries, procurement, gatekeepers;
-- formal and effective control of access, ranking, stock, price, data, fulfilment, and transaction;
-- mental availability and distinctive retrieval;
-- physical availability: presence, prominence, portfolio, fulfilment;
-- sequential bottlenecks;
-- dependencies, substitutes, and switching time.
-
-Do not assume a communication problem before checking whether the buyer can actually find, select, buy, receive, or use the offer.
-
-### Gate 2
-
-**Where does demand actually fail to be created, captured, or conserved?**
-
----
-
-## Phase 3 — Diagnose Constraint and Causal Model
-
-**Lead**: Marketing Strategy Director  
-**Evidence**: Marketing Evidence Lead
-
-Separate:
-
-- symptom;
-- primary constraint;
-- secondary/threshold conditions;
-- alternative explanations;
-- missing evidence.
-
-Write:
-
-> We believe **[X]** currently limits **[Y]** because **[evidence]**. If we change X through **[intervention]**, we expect **[mechanism signal]**, then **[behavior/state change]**, then **[business result]**. We reduce confidence if **[refutator]** occurs.
-
-Every causal arrow needs a reason.
-
-### Gate 3
-
-**What observation would make us stop believing the campaign mechanism?**
-
----
-
-## Phase 4 — Design Real Options
-
-**Lead**: Marketing Strategy Director
-
-Generate options that differ by mechanism. Depending on diagnosis, these may include:
-
-- no new campaign / maintain current course;
-- fix physical availability first;
-- change product/offer/price before media;
-- broad reach / brand-memory intervention;
-- targeted capture intervention;
-- retail/platform intervention;
-- lifecycle/CRM intervention;
-- staged market/geography pilot;
-- campaign with multiple coordinated mechanisms.
-
-Do not present five platforms as five strategic options if all use the same underlying mechanism.
-
-For each option specify:
-
-- expected mechanism;
-- time to effect;
-- evidence/confidence;
-- resource requirement;
-- dependency;
-- reversibility;
-- likely reaction;
-- sustainment/exit cost.
-
-### Gate 4
-
-**Could a non-campaign option achieve the minimum result with fewer assumptions or lower cost?**
-
----
-
-## Phase 5 — Allocate Concentration, Economy, and Reserve
-
-**Lead**: Marketing Portfolio Allocator
-
-Choose:
-
-- **Concentration** — enough support for the priority to have a material chance of producing the mechanism.
-- **Economy** — minimum sufficient support for secondary areas.
-- **Reserve** — deliberately uncommitted money, creative capacity, inventory, management attention, time, or testing budget.
-
-Compare marginal value of the next resource. Do not let historical average ROAS/ROI or departmental ownership determine allocation by default.
-
-Assign lifecycle state:
-
-```text
-EXPLORE | SCALE | MAINTAIN | SUNSET
-```
-
-### Gate 5
-
-**What observable resource shift proves that this is actually the priority, and what receives less?**
-
----
-
-## Phase 6 — Model Reaction and Red-Team the Choice
-
-**Lead**: Marketing Strategic Red Team
-
-Model relevant second moves:
-
-- buyer learning / persuasion knowledge;
-- competitor imitation or retaliation;
-- paid-media auction inflation;
-- platform/ranking changes;
-- retailer response;
-- creator/community trust response;
-- reference-price effects of promotion;
-- supply/service strain;
-- internal sales/operations incentives;
-- cooperation that makes further pressure unnecessary.
-
-Run seven tests:
-
-1. purpose;
-2. causal;
-3. interactive;
-4. conversion;
-5. legitimacy;
-6. epistemic;
-7. exit.
-
-Classify findings as fatal defect, accepted risk, or pending information.
-
-### Gate 6
-
-**Does the option remain attractive after competent response and real operating constraints?**
-
----
-
-## Decision Point — Human Owner
-
-The Strategy Director submits:
-
-```yaml
-recommendation: ""
-superior_outcome: ""
-demand_job: ""
-constraint: ""
-causal_mechanism: ""
-chosen_option: ""
-alternatives_rejected: []
-resource_shift: ""
-reserve: ""
-plausible_reactions: []
-evidence_confidence: ""
-refutators: []
-red_team_findings: []
-residual_risk: []
-review_triggers: []
-sufficient_result: ""
-transition_owner: ""
-```
-
-The owner chooses: **proceed / stage / redesign / pause / stop**.
-
----
-
-## Phase 7 — Specialist Execution
-
-**Lead**: Marketing Strategy Orchestrator
-
-Activate only specialists whose intervention is selected.
-
-Each handoff includes:
-
-- superior outcome;
-- demand job;
-- constraint;
-- causal role;
-- audience/buying situation;
-- resources;
-- brand/legal guardrails;
-- decision rights;
-- mechanism indicators;
-- execution metrics;
-- refutators;
-- pause/stop thresholds.
-
-Channel specialists may optimize execution inside bounds. They may not silently increase scope, change the superior outcome, or reallocate strategic resources.
-
-### Example: if social is selected
-
-Social Media Strategist coordinates only the selected platforms. Platform specialists then create native plans. Content volume is determined by mechanism and resource architecture, not by a default publishing quota.
-
-### Example: if paid media is selected
-
-Paid Media agents optimize spend, queries, audiences, creative, and tracking inside the marginal-return and incrementality plan. ROAS alone does not authorize continued scale.
-
----
-
-## Phase 8 — Evidence, Adaptation, and Termination
-
-**Lead**: Marketing Evidence Lead  
-**Decision**: Marketing Strategy Director / owner
-
-Separate:
-
-### Execution metrics
-
-Did the system deliver the planned media/content/experience?
-
-### Mechanism indicators
-
-Did memory, retrieval, access, consideration, behavior, availability, or another causal state move as expected?
-
-### Business outcome
-
-Did the superior commercial result improve relative to a defensible comparison/counterfactual?
-
-### Reaction / side effects
-
-What changed in market costs, competitor behavior, trust, price expectations, service capacity, or future options?
-
-Use explicit decisions:
-
-```text
-continue | adjust | scale | maintain | pause | sunset | re-diagnose
-```
-
-Do not optimize indefinitely.
-
-## Campaign Metrics — No Universal Targets
-
-Metrics are selected by causal role and decision. Examples:
-
-| Layer | Examples | Governing question |
+| Agent | Slug | Responsibility |
 |---|---|---|
-| Business | incremental revenue/contribution, penetration, retention, cash, margin | Did the superior outcome improve? |
-| Mechanism | branded retrieval, qualified consideration, availability, trial, conversion, repeat behavior | Did the hypothesized mechanism move? |
-| Execution | reach, frequency, viewability, CTR, completion, engagement, delivery, errors | Did we execute as intended? |
+| Strategic Assurance Lead | `specialized-strategic-assurance-lead` | object/non-object, causal thesis, seven tests, stop/scale logic |
+| Agents Orchestrator | `agents-orchestrator` | execution mesh and handoffs |
+| Social Media Strategist | `marketing-social-media-strategist` | campaign/channel coordination |
+| Analytics Reporter | `support-analytics-reporter` | baseline, measurement, evidence |
 
-Targets are case-specific. Never default to fixed engagement, CTR, conversion, ROAS, follower-growth, experiment-count, or content-volume thresholds as universal success definitions.
+Campaign, platform, research, brand, growth, content, experiment, and compliance agents are activated only when the audience/channel hypothesis needs them. See `strategy/runbooks.json`.
 
-## Termination & Conservation
+---
 
-Before declaring completion, distinguish:
+## Mandatory artifacts
 
-1. campaign activity stopped;
-2. strategic priority ended or moved;
-3. capability transitioned to ordinary ownership;
-4. valuable state remains conserved.
+Before material spend/exposure:
 
-Record:
+- Strategic Decision Record;
+- Claim Register;
+- measured baseline or explicit `UNKNOWN`;
+- audience/problem evidence;
+- response hypothesis and credible alternatives;
+- channel-selection rationale;
+- budget/exposure authority;
+- brand/compliance constraints;
+- scale, pause, reallocate, and termination conditions.
 
-- sufficient result reached or not;
-- constraint migration;
-- assets to preserve;
-- data/evidence to retain;
-- recurring capability and owner;
-- obligations/tail costs;
-- restart/re-diagnosis trigger.
+---
 
-## Completion Standard
+## Campaign thesis
 
-A campaign is not “successful” merely because it shipped or beat channel benchmarks. The team must be able to explain:
+Write one causal chain per major audience/channel combination:
 
-1. which superior result it served;
-2. which constraint it targeted;
-3. which mechanism changed;
-4. what incremental evidence supports the claim;
-5. what reaction occurred;
-6. whether the next resource still belongs here;
-7. what should now be maintained, stopped, transferred, or re-diagnosed.
+```yaml
+audience: ""
+observed_need_or_state: ""
+message_or_offer: ""
+channel: ""
+expected_behavior_change: ""
+mechanism: ""
+measured_baseline: ""
+target: ""
+leading_indicator: ""
+outcome_metric: ""
+guardrail_metrics: []
+alternative_explanation: ""
+falsifier: ""
+scale_condition: ""
+stop_or_reallocate_condition: ""
+```
+
+A platform is not part of the plan merely because the catalog has a specialist for it.
+
+---
+
+## Execution pattern
+
+### 1. Establish baseline and decision metric
+
+Separate:
+
+- activity: posts, sends, impressions;
+- outputs: visits, leads, conversations;
+- effects: qualified intent, trial, conversion, retention behavior;
+- governing outcome: the commercial/behavioral result that matters.
+
+Do not let the most visible platform metric replace the result.
+
+### 2. Select channels from audience evidence
+
+For each candidate channel ask:
+
+- Is the target audience actually reachable there?
+- What behavior is plausible on that channel?
+- What evidence supports the mechanism?
+- What does the channel cost in money, creative capacity, moderation/support, and measurement complexity?
+- Does simultaneous activation help coordination or destroy attribution?
+
+### 3. Build content/offer against the hypothesis
+
+Content Creator, Brand Guardian, and platform specialists produce work against an explicit response hypothesis.
+
+Creative quantity is not a success criterion.
+
+### 4. Compliance and platform review
+
+Review applicable:
+
+- ad disclosures;
+- endorsements/influencer rules;
+- claims substantiation;
+- data/consent rules;
+- platform policies;
+- regulated product/category limits;
+- brand constraints.
+
+Do not generalize one jurisdiction/platform review to another without evidence.
+
+### 5. Controlled activation
+
+Choose a spend/exposure level that can generate decision-grade evidence while preserving reserve.
+
+Possible approaches:
+
+- one channel first;
+- small parallel cells with clear attribution;
+- audience holdout;
+- sequential creative test;
+- budget-capped multi-channel launch;
+- full coordinated campaign where simultaneity is itself part of the mechanism.
+
+### 6. Update rather than chase
+
+When results arrive, compare the causal explanations.
+
+A poor metric can mean:
+
+- wrong audience;
+- wrong message/offer;
+- wrong channel;
+- tracking failure;
+- insufficient exposure;
+- external/context change;
+- fundamentally weak product/value proposition.
+
+Do not reflexively increase spend or content cadence before identifying which explanation the evidence supports.
+
+---
+
+## Metrics
+
+This runbook contains no universal engagement, CTR, CAC, conversion, ROAS, reach, follower, or posting-frequency threshold.
+
+Every quantitative target must state:
+
+| Field | Requirement |
+|---|---|
+| Status | `MEASURED` / `TARGET` / `ESTIMATE` / `HYPOTHESIS` |
+| Baseline | measured comparator or `UNKNOWN` |
+| Window | observation period |
+| Source | analytics/ad/CRM/source-of-truth |
+| Method | attribution/calculation definition |
+| Decision use | scale / hold / stop / learn |
+| Limitations | known bias, delay, missingness |
+
+An industry benchmark may inform a hypothesis; it does not become this campaign's baseline by citation alone.
+
+---
+
+## Guardrails
+
+As applicable track:
+
+- compliance/brand incidents;
+- unsubscribe/complaint rate;
+- support burden;
+- low-quality lead share;
+- return/refund/cancellation behavior;
+- audience fatigue;
+- organic cannibalization;
+- marginal cost deterioration;
+- attribution/data-quality degradation.
+
+A campaign can improve its headline metric while harming the governing object.
+
+---
+
+## Gate / allocation decision
+
+At material budget/exposure changes apply the seven coherence tests.
+
+Possible outputs:
+
+- `PROCEED`
+- `PROCEED_WITH_CONDITIONS`
+- `HOLD`
+- `REDESIGN`
+- `REJECT`
+
+The business/marketing decision owner authorizes actual spend and publication.
+
+### Scale only when
+
+- the mechanism remains plausible;
+- outcome evidence is sufficient for the added commitment;
+- marginal economics remain within the authorized bounds;
+- guardrails remain acceptable;
+- measurement can still distinguish the relevant effects;
+- additional exposure does not consume the reserve needed to respond.
+
+### Reallocate / stop when
+
+- falsifier triggers;
+- guardrail breach makes the tactic inadmissible;
+- marginal spend/effort no longer contributes to the governing object;
+- a better channel/offer dominates under the current evidence;
+- product/offer weakness makes further media optimization strategically irrelevant;
+- required authority or platform access is withdrawn.
+
+---
+
+## Handoff / closure
+
+At campaign close preserve:
+
+- final Claim Register;
+- measured baseline vs result;
+- attribution method and limitations;
+- channel/creative hypotheses supported or rejected;
+- audience/market changes observed;
+- guardrail outcomes;
+- reusable brand/compliance learnings;
+- recommendations expressed as hypotheses with conditions, not universal rules.
+
+Expire campaign-specific access, automation, budgets, and temporary processes when their authority ends.
+
+> **Runbook success:** the organization learns which market mechanism deserves more or less investment while producing a defensible commercial/behavioral result — not merely a busier set of channels.

@@ -1,342 +1,286 @@
-# ⚡ NEXUS Quick-Start Guide
+# NEXUS v2 Quick Start
 
-> **From one specialist to a governed multi-agent team without confusing orchestration, execution, and strategy.**
+> Start with the decision, then deploy the team.
 
----
-
-## What is NEXUS?
-
-**NEXUS** (Network of EXperts, Unified in Strategy) coordinates Agency Agents into repeatable multi-agent workflows.
-
-The Agency Agents app v0.3.0 adds **Runbooks** as deployable scenario teams. `strategy/runbooks.json` is the machine-readable contract the app uses to map a scenario to real agent slugs and install the roster.
-
-NEXUS handles orchestration. The new **General Strategy Doctrine** governs material strategic choice.
-
-These are different jobs:
-
-```text
-GENERAL STRATEGY DOCTRINE
-What result? Why this mechanism? Against what reaction? With what sacrifice? Until when?
-
-NEXUS
-Who works when? What context is handed off? What quality gate controls execution?
-
-SPECIALIST AGENTS
-How is the selected intervention executed competently?
-```
-
-For material decisions, start with strategy before launching a full execution pipeline.
+NEXUS v2 separates **strategic judgment** from **orchestration** and **specialist execution**. The lifecycle playbooks still exist, but a material initiative no longer starts by blindly entering Phase 0 or Phase 1.
 
 ---
 
-## Choose the Right Entry Point
+## 1. Classify the work
 
-| Your problem | Start with | Why |
+Use the lightest governance that matches the decision.
+
+| Work | Typical mode | Strategic treatment |
 |---|---|---|
-| Material decision, unclear route, major resource commitment | **Strategic Decision & Transition Runbook** | Diagnose purpose, geometry, mechanism, reaction, allocation, evidence, and exit first |
-| Build a product from scratch | **NEXUS-Full** | Full discovery → strategy → foundation → build → harden → launch → operate |
-| Build a feature or MVP | **Startup MVP / Enterprise Feature Runbook** | Bounded execution with role-specific team and quality gates |
-| Marketing objective where the constraint is not yet proven | **Strategy-Led Marketing Campaign Runbook** | Prevents channel-first planning and KPI sovereignty |
-| Production incident | **Incident Response Runbook** | Time-critical coordinated response with verification |
-| Low-materiality specialist task | **Direct specialist activation** | Do not add strategic ceremony where it changes no decision |
+| Narrow, reversible task | NEXUS-Micro | compact record; expand if impact/uncertainty is high |
+| Multi-disciplinary feature, MVP, audit, campaign | NEXUS-Sprint | full preflight before material commitment |
+| Broad product/system transformation | NEXUS-Full | full record + periodic revalidation |
+
+Mode does not grant authority and does not guarantee a duration or agent count.
 
 ---
 
-## 🧭 Strategic Decision & Transition
+## 2. Start with Strategic Assurance
 
-Use when the question is **what should we do?** rather than merely **how do we execute an already authorized task?**
+For material work, instantiate:
 
-The runbook follows:
+- `strategy/templates/strategic-decision-record.md`
+- `strategy/templates/claim-register.yaml`
 
-```text
-DEFINE END STATE
-↓
-MAP ACTORS / AUTHORITY / DEPENDENCIES
-↓
-BUILD CAUSAL MODEL
-↓
-IDENTIFY CONTROL / DECISIVE DEPENDENCY / SCHWERPUNKT
-↓
-DESIGN REAL OPTIONS
-↓
-SUBMIT TO COMPETENT REACTION
-↓
-HUMAN DECISION
-↓
-EXECUTE WITH INTENT + RESERVE + REVIEW
-↓
-TRANSITION + CONSERVE
-```
-
-**Activation prompt:**
+Then use:
 
 ```text
-Activate the Strategic Decision & Transition runbook.
+Activate Strategic Assurance Lead.
 
-Decision required: [DECISION]
-Superior purpose: [WHY THIS MATTERS]
-Decision owner: [OWNER]
-Horizon: [TIME]
-Known hard constraints: [LEGAL / ETHICAL / FINANCIAL / TECHNICAL / INSTITUTIONAL]
-Available resources: [RESOURCES]
+Initiative: [NAME]
+Context: [PROBLEM / SPEC / LINKS]
+Decision owner: [AUTHORIZED HUMAN OR ROLE]
+Known constraints: [LEGAL / SECURITY / BUDGET / POLICY / TIME]
 
-Do not start with a preferred tool or solution.
-Use the General Strategy Doctrine.
-Separate facts, hypotheses, attributed intentions, and unknowns.
-Generate real alternatives, model competent reactions, preserve reserve,
-and define sufficient success, refutators, transition, and stopping conditions.
-Strategic Red Team review is required before irreversible commitment.
+Create or complete the Strategic Decision Record.
+State the governing object and explicit non-object.
+Build the causal hypothesis, alternatives, and falsifier.
+Separate EVIDENCE, HYPOTHESIS, ASSUMPTION, attributed intention, and UNKNOWN.
+Identify competent reaction, reversal, culmination condition, reserve, and termination.
+Apply all seven coherence tests.
+Return exactly one output:
+PROCEED / PROCEED_WITH_CONDITIONS / HOLD / REDESIGN / REJECT.
+Do not treat the output as execution authority.
 ```
 
-Governing file: `strategy/GENERAL-STRATEGY-DOCTRINE.md`  
-Runbook: `strategy/runbooks/scenario-strategic-decision.md`
+If the task is trivial and reversible, the record can be a few lines. If it is irreversible, externally consequential, security-sensitive, regulated, or expensive, the record expands.
 
 ---
 
-## 🚀 NEXUS-Full: Complete Project
-
-Use when strategic authorization exists or include the General Strategy Director in Phase 1 when the product/business route is still material and contestable.
+## 3. If permitted, activate the execution mesh
 
 ```text
-Activate Agents Orchestrator in NEXUS-Full mode.
+Activate Agents Orchestrator.
 
-Project: [PROJECT]
-Specification: [SPEC]
+Strategic Decision Record: [PATH / CONTENT]
+Claim Register: [PATH / CONTENT]
+Scenario: [RUNBOOK OR TASK]
+Current strategic output: [OUTPUT]
 
-Phase 0 — Discovery
-Research, user evidence, market/context, constraints.
-
-Phase 1 — Strategy & architecture
-General Strategy Director when the superior route remains open;
-Studio Producer / Senior PM / Product / UX / Brand / Backend / Finance as relevant.
-Run Strategic Red Team before major irreversible commitment.
-
-Phase 2 — Foundation
-Infrastructure, architecture, design systems, scaffolding.
-
-Phase 3 — Build
-Task-level developer ↔ QA loops.
-
-Phase 4 — Harden
-Reality, security, performance, API, accessibility, compliance as required.
-
-Phase 5 — Launch
-Activate only marketing/growth interventions justified by the launch strategy.
-
-Phase 6 — Operate & transition
-Measure, learn, maintain, sunset, institutionalize, re-diagnose.
-```
-
-NEXUS quality gates do not replace strategic coherence tests. A perfectly executed wrong strategy is still wrong.
-
----
-
-## 🏃 Startup MVP / Enterprise Feature
-
-Use the deployable runbooks in the app when the delivery scenario fits.
-
-### Startup MVP
-
-- rapid product build;
-- product + engineering + QA core;
-- growth activated later;
-- use General Strategy Director first if product/market/business route remains materially uncertain.
-
-Runbook: `strategy/runbooks/scenario-startup-mvp.md`
-
-### Enterprise Feature
-
-- multi-stakeholder feature delivery;
-- stronger compliance, governance, security, and quality needs;
-- escalate to Strategic Decision runbook if scope changes enterprise obligations, portfolio, or high-irreversibility architecture.
-
-Runbook: `strategy/runbooks/scenario-enterprise-feature.md`
-
----
-
-## 📢 Strategy-Led Marketing Campaign
-
-Do not activate platform specialists first for a material campaign.
-
-**Activation prompt:**
-
-```text
-Activate the Strategy-Led Marketing Campaign runbook.
-
-Superior business outcome: [OUTCOME]
-Baseline / gap: [BASELINE]
-Decision owner: [OWNER]
-Horizon: [HORIZON]
-Budget / capacity: [RESOURCES]
-Hard limits: [LIMITS]
-
-First determine whether the demand job is create, capture, or conserve.
-Map buying situations, intermediaries, availability and bottlenecks.
-Diagnose the constraint and causal mechanism before selecting channels.
-Compare non-campaign alternatives where relevant.
-Model buyer, competitor, platform, retailer and operational reactions.
-Then allocate concentration, minimum support and reserve.
-Only after human approval activate the selected channel specialists.
-Measure business outcome, mechanism and execution separately.
-Define sufficient success, refutators, constraint-migration triggers and exit.
-```
-
-The runbook can legitimately conclude **do not launch a campaign yet**.
-
-Runbook: `strategy/runbooks/scenario-marketing-campaign.md`  
-Marketing doctrine: `marketing/AGENCY_OPERATING_MODEL.md`
-
----
-
-## 🚨 Incident Response
-
-Use the app's Incident Response Runbook for production incidents where detection, authorization and effect time are compressed.
-
-Runbook: `strategy/runbooks/scenario-incident-response.md`
-
-The strategic doctrine still applies at the boundary: incident responders can execute inside emergency authority, but permanent policy, architecture, risk acceptance, or external commitments require the appropriate decision owner.
-
----
-
-## 🎯 Direct Specialist Activation
-
-Direct activation is correct when:
-
-- purpose and scope are already authorized;
-- the task is low-materiality or reversible;
-- the specialist is not being asked to redefine superior goals;
-- cross-system externalities are limited;
-- success criteria and handoff are clear.
-
-Examples:
-
-```text
-Activate API Tester to verify [ENDPOINT / CONTRACT].
-Success condition: [CONDITION].
-Evidence required: [EVIDENCE].
-Escalate if [THRESHOLD].
-```
-
-```text
-Activate UX Researcher to test [QUESTION] with [USERS].
-Decision this research informs: [DECISION].
-Do not recommend product strategy beyond the evidence; surface implications and unknowns.
-```
-
-```text
-Activate Legal Compliance Checker for [SCOPE].
-Treat legal/admissibility constraints as boundaries, not as a weighted trade-off against business upside.
+Build the smallest sufficient team.
+Preserve the governing object, non-object, accepted risks, open unknowns, falsifier, and termination trigger in every material handoff.
+Parallelize only genuinely independent work.
+Do not activate work blocked by HOLD or unsatisfied conditions.
+Return evidence to the decision record when assumptions change.
 ```
 
 ---
 
-## 🧪 Two Different Gate Systems
+## 4. Use a scenario runbook when one fits
 
-### Strategic coherence gates
+Machine-readable rosters live in `strategy/runbooks.json`.
 
-Use for material choice:
+Current scenarios:
 
-1. **Purpose** — Does the immediate result serve the superior purpose?
-2. **Causal** — Can the action produce the effect through an explicit mechanism?
-3. **Interactive** — Does it survive competent reaction/adaptation?
-4. **Conversion** — Do resources actually convert into control/effect?
-5. **Legitimacy** — Does the method preserve cooperation/authority needed to consolidate success?
-6. **Epistemic** — Are facts, hypotheses, attributed intentions and unknowns separated?
-7. **Exit** — Can we adapt, transfer, stop, terminate and conserve?
-
-These are contradiction tests, not a score.
-
-### Execution quality gates
-
-Use after a choice:
-
-- specification complete enough to execute;
-- task implementation complete;
-- QA evidence supports PASS;
-- security/performance/accessibility/compliance gates as relevant;
-- integration verified;
-- production readiness supported by evidence.
-
-Do not use an execution PASS to prove the strategy was correct.
-
----
-
-## 🔬 Evidence Rules
-
-Every material decision package preserves:
-
-- **facts** — sufficiently supported observations for the stated use;
-- **hypotheses** — explanations still open to alternatives/refutation;
-- **attributed intentions** — inferences about what another actor wants;
-- **unknowns** — material information not available.
-
-Also separate:
-
-- probability;
-- confidence;
-- impact.
-
-A dashboard does not convert an inference into a fact.
-
----
-
-## 🛑 Autonomy and Stop Authority
-
-Use the least authority required for the task.
-
-```text
-Assist
-→ Recommend
-→ Act after approval
-→ Act within explicit bounds
-→ Adapt policy within bounds
-→ Broad autonomous objective pursuit
-```
-
-Higher autonomy requires stronger purpose architecture, clearer rights, better evidence, bounded consequences, reserve, and real stop authority.
-
-Prospective claims about autonomous escalation or saturation remain hypotheses unless independently evidenced in the current case.
-
----
-
-## 📁 Strategy Documents
-
-| Document | Purpose | Location |
+| Scenario | Mode | Use |
 |---|---|---|
-| **General Strategy Doctrine** | Cross-agency purpose, power, causality, evidence, interaction and termination | `strategy/GENERAL-STRATEGY-DOCTRINE.md` |
-| **NEXUS Master Strategy** | Multi-agent orchestration doctrine | `strategy/nexus-strategy.md` |
-| **NEXUS Executive Brief** | Compact overview | `strategy/EXECUTIVE-BRIEF.md` |
-| **Strategic Decision Runbook** | Material cross-domain decision + transition | `strategy/runbooks/scenario-strategic-decision.md` |
-| **Startup MVP Runbook** | MVP delivery | `strategy/runbooks/scenario-startup-mvp.md` |
-| **Enterprise Feature Runbook** | Enterprise feature delivery | `strategy/runbooks/scenario-enterprise-feature.md` |
-| **Strategy-Led Marketing Runbook** | Demand diagnosis → selected interventions → evidence/exit | `strategy/runbooks/scenario-marketing-campaign.md` |
-| **Incident Response Runbook** | Production incident handling | `strategy/runbooks/scenario-incident-response.md` |
-| **Runbook roster contract** | App v0.3.0 one-click team deployment | `strategy/runbooks.json` |
-| **Marketing Operating Model** | Marketing specialization of general doctrine | `marketing/AGENCY_OPERATING_MODEL.md` |
-| **Activation Prompts** | Reusable NEXUS prompts | `strategy/coordination/agent-activation-prompts.md` |
-| **Handoff Templates** | Structured execution handoffs | `strategy/coordination/handoff-templates.md` |
+| Startup MVP | NEXUS-Sprint | bounded MVP from thesis to validated release |
+| Enterprise Feature | NEXUS-Sprint | material feature with compliance, security, and integration constraints |
+| Marketing Campaign | NEXUS-Sprint | coordinated campaign with evidence and brand/compliance controls |
+| Incident Response | NEXUS-Micro | bounded response, recovery, evidence, and post-incident conservation |
+| HTP Gate 0 — Solana + Arbitrum | NEXUS-Sprint | evidence-first DeFi Gate 0 with chain-specific engineering and security/legal review |
+
+Each runbook declares its governing object, non-object, decision owner, mandatory artifacts, termination criteria, and assurance role.
 
 ---
 
-## 🔑 Key Concepts in 30 Seconds
+## 5. Lifecycle playbooks are execution modules
 
-1. **Purpose before proxy** — execution metrics serve superior outcomes.
-2. **Diagnosis before tool** — available capability does not define the problem.
-3. **Mechanism before activity** — state why the action should change the result.
-4. **Reaction is part of strategy** — other actors adapt, oppose and cooperate.
-5. **Concentration + economy + reserve** — priority requires sacrifice and option value.
-6. **Evidence can defeat the plan** — facts, hypotheses, intentions and unknowns stay separate.
-7. **Intent-based delegation** — decentralize method inside clear purpose and boundaries.
-8. **Quality gates verify execution** — they do not prove strategic correctness.
-9. **Termination starts at entry** — define sufficient success and transition before scaling.
-10. **The institution should outlive the campaign** — preserve capability and learning, remove obsolete debris.
+Use the phase playbooks when their function is needed:
+
+```text
+DISCOVER → STRATEGIZE → SCAFFOLD → BUILD → HARDEN → LAUNCH → OPERATE
+```
+
+Do **not** assume the sequence is mandatory.
+
+You may:
+
+- revisit Discovery when a production observation breaks the original thesis;
+- run architecture and bounded research in parallel;
+- skip market discovery when it is already evidenced and still current;
+- return from Build to Strategy when a necessary dependency fails;
+- terminate before Launch when a falsifier destroys the value proposition;
+- move from Incident Response directly into institutional policy changes after recovery.
+
+The Strategic Decision Record explains deviations from the default lifecycle.
 
 ---
 
-<div align="center">
+## 6. Fast templates
 
-**Choose the right level first. Then choose the right agents.**
+### Feature / MVP
 
-`strategy/GENERAL-STRATEGY-DOCTRINE.md` · `strategy/nexus-strategy.md` · `strategy/runbooks.json`
+```text
+Strategic preflight for [FEATURE / MVP].
 
-</div>
+Governing object: [VALUABLE USER/BUSINESS RESULT]
+Non-object: shipping features, sprint velocity, or roadmap completion by themselves
+Decision owner: [ROLE]
+Minimum sufficient result: [OBSERVABLE CONDITION]
+Constraints: [LIST]
+
+Test the causal thesis before architecture commitment.
+If coherent, activate Agents Orchestrator with the smallest team covering product, architecture, implementation, evidence, and independent QA.
+Use reversible prototypes for unresolved high-value assumptions where feasible.
+```
+
+### Bug / reliability problem
+
+```text
+NEXUS-Micro for [BUG].
+
+Governing object: restore [USER/SYSTEM FUNCTION] without creating regression or hidden operational debt.
+Non-object: closing the ticket.
+Decision owner: [ROLE]
+
+Investigate root cause and competing explanations.
+Apply a bounded fix, verify the claimed mechanism, test regressions, preserve evidence, and define the condition for closure.
+Escalate if the repair changes security, data integrity, external behavior, or architecture materially.
+```
+
+### Marketing campaign
+
+```text
+Strategic preflight for [CAMPAIGN].
+
+Governing object: [BEHAVIORAL / COMMERCIAL RESULT]
+Non-object: impressions, post volume, follower growth, or channel activity unless causally linked to the result
+Decision owner: [ROLE]
+
+Separate measured baseline from target.
+State the audience-response hypothesis and alternatives.
+Define brand/compliance constraints, stop-loss/termination rules, and what evidence changes channel allocation.
+Then activate the campaign roster.
+```
+
+### Compliance / security audit
+
+```text
+Strategic preflight for [AUDIT].
+
+Governing object: reduce material exposure and establish an actionable evidence record.
+Non-object: maximize finding count.
+Decision owner: [ROLE]
+
+Map authority and scope first.
+Prioritize verification by impact, irreversibility, and causal centrality.
+Keep findings, exploitability, legal conclusions, and remediation status distinct.
+Do not infer permission for live changes from permission to audit.
+```
+
+### Incident response
+
+```text
+Activate the Incident Response runbook.
+
+Governing object: restore the critical service safely while preserving evidence and preventing recurrence.
+Non-object: fastest possible closure or MTTR in isolation.
+Decision owner: [INCIDENT AUTHORITY]
+
+During containment, keep authority and rollback explicit.
+After stabilization, distinguish symptom removal, root-cause correction, and conservation.
+Expire emergency access and temporary controls when their conditions end.
+```
+
+---
+
+## 7. The seven questions at every material gate
+
+1. **Governing object:** Does this result serve the higher purpose?
+2. **Causal:** Why should this action produce the claimed effect?
+3. **Interactive:** What competent reaction or adaptation matters?
+4. **Conversion:** Can available resources actually produce the needed capacity/control?
+5. **Legitimacy:** Does the method preserve cooperation and authority needed to hold the result?
+6. **Epistemic:** Are evidence, hypotheses, assumptions, intentions, and unknowns separated?
+7. **Exit:** What stops, redesigns, transfers, or terminates the action?
+
+A gate can return `HOLD` or `REDESIGN`. Passing a gate is not execution permission.
+
+---
+
+## 8. Claim discipline in 30 seconds
+
+Use the claim register.
+
+```yaml
+proposition: "NEXUS reduces rework by 30%"
+status: HYPOTHESIS
+quantitative_status: HYPOTHESIS
+source_refs: []
+baseline: "not yet measured"
+falsifier: "controlled deployments show no material reduction"
+```
+
+After measurement:
+
+```yaml
+proposition: "..."
+status: EVIDENCE
+quantitative_status: MEASURED
+source_refs: ["experiment-or-report-id"]
+observation_window: "..."
+baseline: "..."
+method: "..."
+limitations: ["..."]
+```
+
+Do not turn an aspirational number into a fact because it appears in an executive summary.
+
+---
+
+## 9. Retry rule
+
+There is no universal three-retry doctrine.
+
+Choose a retry/experiment budget from:
+
+- cost per attempt;
+- reversibility;
+- learning gained;
+- risk of repeated failure;
+- time available;
+- reserve consumed.
+
+A three-attempt limit can still be a practical scenario default. It is a parameter, not a law.
+
+---
+
+## 10. Core documents
+
+| Document | Purpose |
+|---|---|
+| `strategy/STRATEGIC-CONTROL-PLANE.md` | normative strategy and governance |
+| `strategy/nexus-strategy.md` | operating model |
+| `strategy/templates/strategic-decision-record.md` | material decision record |
+| `strategy/templates/claim-register.yaml` | evidence and uncertainty ledger |
+| `strategy/runbooks.json` | machine-readable scenario roster and strategic contract |
+| `strategy/playbooks/` | lifecycle execution modules |
+| `strategy/coordination/` | activation and handoff protocols |
+| `strategy/htp-gate0/` | bounded HTP Gate 0 artifacts and chain overlays |
+
+---
+
+## 11. The minimum rule
+
+For any material action, be able to answer in one screen:
+
+```text
+OBJECT        What valuable condition are we trying to create or preserve?
+NON-OBJECT    What tempting proxy must not replace it?
+MECHANISM     Why should our action produce the result?
+EVIDENCE      What is observed vs hypothesized vs unknown?
+AUTHORITY     Who may accept this risk and authorize commitment?
+REACTION      What changes when others or the system adapt?
+RESERVE       What remains uncommitted for surprise?
+EXIT          What makes us stop, redesign, transfer, or close?
+```
+
+Then deploy the agents.
+
+> **Orientation before speed. Evidence before claim. Authority before commitment. Termination before momentum.**

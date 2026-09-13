@@ -1,318 +1,180 @@
-# 🔄 Phase 6 Playbook — Operate & Evolve
+# Phase 6 — Operate, Conserve & Evolve
 
-> **Duration**: Ongoing | **Agents**: 12+ (rotating) | **Governance**: Studio Producer
+> **Status:** execution module subordinate to `strategy/STRATEGIC-CONTROL-PLANE.md`.
 
----
+## Function
 
-## Objective
+Maintain the valuable result under ordinary conditions, detect when the causal model or environment changes, institutionalize repeatable controls, and terminate or redesign the system when continued operation no longer serves the governing object.
 
-Sustained operations with continuous improvement. The product is live — now make it thrive. This phase has no end date; it runs as long as the product is in market.
+Operation is not an infinite phase. Products, controls, services, campaigns, integrations, and policies can be retired, transferred, narrowed, or redesigned.
 
-## Pre-Conditions
+## Governing question
 
-- [ ] Phase 5 Quality Gate passed (stable launch)
-- [ ] Phase 5 Handoff Package received
-- [ ] Operational cadences established
-- [ ] Baseline metrics documented
+> Can the result now be held with ordinary resources and authority, and what evidence would show that the operating model no longer deserves continuation?
 
-## Operational Cadences
+## Entry conditions
 
-### Continuous (Always Active)
+- operational ownership is named;
+- launch/emergency exceptions are identified for expiry or transfer;
+- project-specific SLOs/guardrails have an authoritative source;
+- critical dependencies and escalation routes are known;
+- baseline/initial operating measurements exist or their absence is explicit;
+- termination and review triggers are recorded.
 
-| Agent | Responsibility | SLA |
-|-------|---------------|-----|
-| **Infrastructure Maintainer** | System uptime, performance, security | 99.9% uptime, < 30min MTTR |
-| **Support Responder** | Customer support, issue resolution | < 4hr first response |
-| **DevOps Automator** | Deployment pipeline, hotfixes | Multiple deploys/day capability |
+## Operating model
 
-### Daily
+### 1. Conserve the result
 
-| Agent | Activity | Output |
-|-------|----------|--------|
-| **Analytics Reporter** | KPI dashboard update | Daily metrics snapshot |
-| **Support Responder** | Issue triage and resolution | Support ticket summary |
-| **Infrastructure Maintainer** | System health check | Health status report |
+Monitor the conditions that make the governing object true, not merely whether components are running.
 
-### Weekly
+Examples may include:
 
-| Agent | Activity | Output |
-|-------|----------|--------|
-| **Analytics Reporter** | Weekly performance analysis | Weekly Analytics Report |
-| **Feedback Synthesizer** | User feedback synthesis | Weekly Feedback Summary |
-| **Sprint Prioritizer** | Backlog grooming + sprint planning | Sprint Plan |
-| **Growth Hacker** | Growth channel optimization | Growth Metrics Report |
-| **Project Shepherd** | Cross-team coordination | Weekly Status Update |
+- critical user outcome;
+- service reliability;
+- security/integrity state;
+- compliance condition;
+- economic sustainability;
+- support burden;
+- model/data quality;
+- stakeholder authority or consent.
 
-### Bi-Weekly
+Choose metrics because they diagnose the result or its mechanism.
 
-| Agent | Activity | Output |
-|-------|----------|--------|
-| **Feedback Synthesizer** | Deep feedback analysis | Bi-Weekly Insights Report |
-| **Experiment Tracker** | A/B test analysis | Experiment Results Summary |
-| **Content Creator** | Content calendar execution | Published Content Report |
+### 2. Maintain the claim register
 
-### Monthly
+Material production claims can change state as evidence accumulates or becomes stale.
 
-| Agent | Activity | Output |
-|-------|----------|--------|
-| **Executive Summary Generator** | C-suite reporting | Monthly Executive Summary |
-| **Finance Tracker** | Financial performance review | Monthly Financial Report |
-| **Legal Compliance Checker** | Regulatory monitoring | Compliance Status Report |
-| **Trend Researcher** | Market intelligence update | Monthly Market Brief |
-| **Brand Guardian** | Brand consistency audit | Brand Health Report |
+Record:
 
-### Quarterly
+- source and observation window;
+- baseline;
+- drift/change;
+- known data quality limitations;
+- conditions under which a prior production finding no longer applies.
 
-| Agent | Activity | Output |
-|-------|----------|--------|
-| **Studio Producer** | Strategic portfolio review | Quarterly Strategic Review |
-| **Workflow Optimizer** | Process efficiency audit | Optimization Report |
-| **Performance Benchmarker** | Performance regression testing | Quarterly Performance Report |
-| **Tool Evaluator** | Technology stack review | Tech Debt Assessment |
+“Previously verified” is not “permanently true.”
 
-## Continuous Improvement Loop
+### 3. Detect strategic drift
 
-```
-MEASURE (Analytics Reporter)
-    │
-    ▼
-ANALYZE (Feedback Synthesizer + Analytics Reporter)
-    │
-    ▼
-PLAN (Sprint Prioritizer + Studio Producer)
-    │
-    ▼
-BUILD (Phase 3 Dev↔QA Loop — mini-cycles)
-    │
-    ▼
-VALIDATE (Evidence Collector + Reality Checker)
-    │
-    ▼
-DEPLOY (DevOps Automator)
-    │
-    ▼
-MEASURE (back to start)
-```
+Trigger review when:
 
-### Feature Development in Phase 6
+- user behavior changes materially;
+- a critical dependency changes economics, policy, reliability, or terms;
+- regulation/security constraints change;
+- the main value mechanism weakens;
+- operating burden grows faster than value;
+- a proxy metric improves while the governing outcome worsens;
+- exceptions become routine;
+- emergency/manual work becomes permanent;
+- authority or stakeholder consent changes;
+- the culmination condition is reached.
 
-New features follow a compressed NEXUS cycle:
+### 4. Institutionalize recurrent problems
 
-```
-1. Sprint Prioritizer selects feature from backlog
-2. Appropriate Developer Agent implements
-3. Evidence Collector validates (Dev↔QA loop)
-4. DevOps Automator deploys (feature flag or direct)
-5. Experiment Tracker monitors (A/B test if applicable)
-6. Analytics Reporter measures impact
-7. Feedback Synthesizer collects user response
-```
+When the same dispute or exception recurs, convert it into the minimum sufficient institutional architecture:
 
-## Incident Response Protocol
+- scope;
+- authority;
+- criteria;
+- procedure;
+- evidence;
+- exception owner;
+- appeal/correction path;
+- review date.
 
-### Severity Levels
+Do not force every unusual event into a permanent rule. Repetition and materiality justify institutionalization.
 
-| Level | Definition | Response Time | Decision Authority |
-|-------|-----------|--------------|-------------------|
-| **P0 — Critical** | Service down, data loss, security breach | Immediate | Studio Producer |
-| **P1 — High** | Major feature broken, significant degradation | < 1 hour | Project Shepherd |
-| **P2 — Medium** | Minor feature issue, workaround available | < 4 hours | Agents Orchestrator |
-| **P3 — Low** | Cosmetic issue, minor inconvenience | Next sprint | Sprint Prioritizer |
+### 5. Preserve reserve
 
-### Incident Response Sequence
+Normal operation must not consume every margin simply to maintain the appearance of normality.
 
-```
-DETECTION (Infrastructure Maintainer or Support Responder)
-    │
-    ▼
-TRIAGE (Agents Orchestrator)
-    ├── Classify severity (P0-P3)
-    ├── Assign response team
-    └── Notify stakeholders
-    │
-    ▼
-RESPONSE
-    ├── P0: Infrastructure Maintainer + DevOps Automator + Backend Architect
-    ├── P1: Relevant Developer Agent + DevOps Automator
-    ├── P2: Relevant Developer Agent
-    └── P3: Added to sprint backlog
-    │
-    ▼
-RESOLUTION
-    ├── Fix implemented and deployed
-    ├── Evidence Collector verifies fix
-    └── Infrastructure Maintainer confirms stability
-    │
-    ▼
-POST-MORTEM
-    ├── Workflow Optimizer leads retrospective
-    ├── Root cause analysis documented
-    ├── Prevention measures identified
-    └── Process improvements implemented
-```
+Monitor reserves such as:
 
-## Growth Operations
+- capacity headroom;
+- recovery resources;
+- human attention;
+- budget;
+- escalation authority;
+- vendor alternatives;
+- rollback/migration options.
 
-### Monthly Growth Review (Growth Hacker leads)
+If routine work consumes the reserve intended for failure or change, the operating design is approaching fragility.
 
-```
-1. Channel Performance Analysis
-   - Acquisition by channel (organic, paid, referral, social)
-   - CAC by channel
-   - Conversion rates by funnel stage
-   - LTV:CAC ratio trends
+## Evolution
 
-2. Experiment Results
-   - Completed A/B tests and outcomes
-   - Statistical significance validation
-   - Winner implementation status
-   - New experiment pipeline
+A change can be:
 
-3. Retention Analysis
-   - Cohort retention curves
-   - Churn risk identification
-   - Re-engagement campaign results
-   - Feature adoption metrics
+### Operational correction
+Same objective and causal model; improve execution.
 
-4. Growth Roadmap Update
-   - Next month's growth experiments
-   - Channel budget reallocation
-   - New channel exploration
-   - Viral coefficient optimization
-```
+### Design correction
+Same governing object; architecture/process needs redesign.
 
-### Content Operations (Content Creator + Social Media Strategist)
+### Strategic correction
+The causal model, minimum sufficient result, or option ranking has changed materially.
 
-```
-Weekly:
-- Content calendar execution
-- Social media engagement
-- Community management
-- Performance tracking
+### Governing-object revision
+The valuable end state itself changes. This requires the appropriate decision owner and a new/updated Strategic Decision Record.
 
-Monthly:
-- Content performance review
-- Editorial calendar planning
-- Platform algorithm updates
-- Content strategy refinement
+Do not disguise a governing-object change as backlog maintenance.
 
-Platform-Specific:
-- Twitter Engager → Daily engagement, weekly threads
-- Instagram Curator → 3-5 posts/week, daily stories
-- TikTok Strategist → 3-5 videos/week
-- Reddit Community Builder → Daily authentic engagement
-```
+## Periodic review
 
-## Financial Operations
+Review cadence is risk/context dependent rather than universally weekly, monthly, or quarterly.
 
-### Monthly Financial Review (Finance Tracker)
+A review should ask:
 
-```
-1. Revenue Analysis
-   - MRR/ARR tracking
-   - Revenue by segment/plan
-   - Expansion revenue
-   - Churn revenue impact
+1. Is the governing object still valuable and observable?
+2. Does the current system still cause the intended result?
+3. Which assumptions have become evidence, and which evidence has gone stale?
+4. What new reaction/adaptation has appeared?
+5. What critical dependency has become more concentrated or less substitutable?
+6. What exceptions are becoming the real rule?
+7. Is the reserve still real?
+8. What would justify reduction, migration, redesign, or retirement?
 
-2. Cost Analysis
-   - Infrastructure costs
-   - Marketing spend by channel
-   - Team/resource costs
-   - Tool and service costs
+## Incident relationship
 
-3. Unit Economics
-   - CAC trends
-   - LTV trends
-   - LTV:CAC ratio
-   - Payback period
+Incidents can trigger a temporary incident runbook, but normal operation must own the conservation work afterward.
 
-4. Forecasting
-   - Revenue forecast (3-month rolling)
-   - Cost forecast
-   - Cash flow projection
-   - Budget variance analysis
-```
+An incident is not closed strategically until:
 
-## Compliance Operations
+- the critical function is restored or deliberately changed;
+- residual risks have owners;
+- temporary authority/access expires or transfers;
+- recurrence prevention is assigned;
+- evidence and claim states are updated.
 
-### Monthly Compliance Check (Legal Compliance Checker)
+## Termination / retirement
 
-```
-1. Regulatory Monitoring
-   - New regulations affecting the product
-   - Existing regulation changes
-   - Enforcement actions in the industry
-   - Compliance deadline tracking
+Operation ends or transitions when one of these applies:
 
-2. Privacy Compliance
-   - Data subject request handling
-   - Consent management effectiveness
-   - Data retention policy adherence
-   - Cross-border transfer compliance
+- the governing object no longer has sufficient value;
+- the causal mechanism no longer works;
+- operating cost/risk exceeds the authorized benefit;
+- a replacement provides a better sustainable result;
+- required authority/consent is withdrawn;
+- dependency/supportability makes conservation unreasonable;
+- the service/product has reached an explicit sunset condition.
 
-3. Security Compliance
-   - Vulnerability scan results
-   - Patch management status
-   - Access control review
-   - Incident log review
+Retirement is a strategic transition, not deletion by neglect.
 
-4. Audit Readiness
-   - Documentation currency
-   - Evidence collection status
-   - Training completion rates
-   - Policy acknowledgment tracking
-```
+### Retirement package
 
-## Strategic Evolution
+As applicable:
 
-### Quarterly Strategic Review (Studio Producer)
+- stakeholder/user notice;
+- data disposition;
+- contract/vendor closure;
+- access/key revocation;
+- migration/export;
+- archival evidence;
+- operational ownership termination;
+- residual obligations;
+- final Claim Register / decision record update.
 
-```
-1. Market Position Assessment
-   - Competitive landscape changes (Trend Researcher input)
-   - Market share evolution
-   - Brand perception (Brand Guardian input)
-   - Customer satisfaction trends (Feedback Synthesizer input)
+## Exit condition
 
-2. Product Strategy
-   - Feature roadmap review
-   - Technology debt assessment (Tool Evaluator input)
-   - Platform expansion opportunities
-   - Partnership evaluation
+This module does not need to stay active forever. It is complete when responsibility is retired, transferred, or superseded and the residual obligations are explicit.
 
-3. Growth Strategy
-   - Channel effectiveness review
-   - New market opportunities
-   - Pricing strategy assessment
-   - Expansion planning
-
-4. Organizational Health
-   - Process efficiency (Workflow Optimizer input)
-   - Team performance metrics
-   - Resource allocation optimization
-   - Capability development needs
-
-Output: Quarterly Strategic Review → Updated roadmap and priorities
-```
-
-## Phase 6 Success Metrics
-
-| Category | Metric | Target | Owner |
-|----------|--------|--------|-------|
-| **Reliability** | System uptime | > 99.9% | Infrastructure Maintainer |
-| **Reliability** | MTTR | < 30 minutes | Infrastructure Maintainer |
-| **Growth** | MoM user growth | > 20% | Growth Hacker |
-| **Growth** | Activation rate | > 60% | Analytics Reporter |
-| **Retention** | Day 7 retention | > 40% | Analytics Reporter |
-| **Retention** | Day 30 retention | > 20% | Analytics Reporter |
-| **Financial** | LTV:CAC ratio | > 3:1 | Finance Tracker |
-| **Financial** | Portfolio ROI | > 25% | Studio Producer |
-| **Quality** | NPS score | > 50 | Feedback Synthesizer |
-| **Quality** | Support resolution time | < 4 hours | Support Responder |
-| **Compliance** | Regulatory adherence | > 98% | Legal Compliance Checker |
-| **Efficiency** | Deployment frequency | Multiple/day | DevOps Automator |
-| **Efficiency** | Process improvement | 20%/quarter | Workflow Optimizer |
-
----
-
-*Phase 6 has no end date. It runs as long as the product is in market, with continuous improvement cycles driving the product forward. The NEXUS pipeline can be re-activated (NEXUS-Sprint or NEXUS-Micro) for major new features or pivots.*
+> **Completion criterion:** the organization can sustain, adapt, and eventually terminate the result without recreating the extraordinary project apparatus that originally produced it.
