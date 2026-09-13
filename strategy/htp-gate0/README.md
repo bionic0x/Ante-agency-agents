@@ -32,3 +32,5 @@ This directory is the operational package for the dual-network Gate 0 runbook.
 ## Status
 
 The package is intentionally **Gate 0 pending**. Its existence does not authorize production execution. Named protocols/clients, deployed manifests, legal sign-off where required, quantitative evaluation parameters, human accountable owners, chain-specific E1↔S1 review cycles, and human governance decisions remain required before a Gate pass.
+
+The two networks share document structure, evidence vocabulary and review mechanics only. Solana evidence, security acceptance, legal classification, thresholds, metrics or Gate status do not transfer to Arbitrum One, and vice versa, without an explicit transfer proposition and chain-specific verification.
