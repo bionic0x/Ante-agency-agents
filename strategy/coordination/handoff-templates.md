@@ -1,357 +1,396 @@
-# 📋 NEXUS Handoff Templates
+# NEXUS v2 Handoff Templates
 
-> Standardized templates for every type of agent-to-agent handoff in the NEXUS pipeline. Consistent handoffs prevent context loss — the #1 cause of multi-agent coordination failure.
+> Handoffs preserve the current strategic frame, evidence state, dissent, and execution context. A shorter handoff is better than a longer one if the receiving agent can still reconstruct what matters to the decision.
 
 ---
 
-## 1. Standard Handoff Template
+## 0. Strategic Context Header — mandatory for material handoffs
 
-Use for any agent-to-agent work transfer.
+Prepend this block to material transfers, phase gates, escalations, and incident handoffs.
+
+```yaml
+governing_object: ""
+non_object: ""
+decision_owner: ""
+strategic_output: PROCEED | PROCEED_WITH_CONDITIONS | HOLD | REDESIGN | REJECT
+main_effort: ""
+critical_assumptions: []
+open_unknowns: []
+accepted_risks: []
+material_dissent: []
+falsifier: ""
+culmination_condition: ""
+termination_trigger: ""
+evidence_refs: []
+```
+
+Rules:
+
+- Do not remove an uncertainty because the document is becoming shorter.
+- Do not convert an accepted risk into a resolved issue.
+- Do not convert a hypothesis into evidence during handoff.
+- If the receiving task is blocked by `HOLD`, pass only the work explicitly allowed by the HOLD conditions.
+- Execution permission must come from the actual decision owner or system of authority, not from this header.
+
+---
+
+## 1. Standard Agent-to-Agent Handoff
 
 ```markdown
-# NEXUS Handoff Document
+# NEXUS Handoff
+
+## Strategic Context
+[Paste the Strategic Context Header]
 
 ## Metadata
 | Field | Value |
-|-------|-------|
-| **From** | [Agent Name] ([Division]) |
-| **To** | [Agent Name] ([Division]) |
-| **Phase** | Phase [N] — [Phase Name] |
-| **Task Reference** | [Task ID from Sprint Prioritizer backlog] |
-| **Priority** | [Critical / High / Medium / Low] |
-| **Timestamp** | [YYYY-MM-DDTHH:MM:SSZ] |
+|---|---|
+| From | [Agent / function] |
+| To | [Agent / function] |
+| Workstream | [Name] |
+| Task reference | [ID / link] |
+| Timestamp | [ISO-8601] |
 
-## Context
-**Project**: [Project name]
-**Current State**: [What has been completed so far — be specific]
-**Relevant Files**:
-- [file/path/1] — [what it contains]
-- [file/path/2] — [what it contains]
-**Dependencies**: [What this work depends on being complete]
-**Constraints**: [Technical, timeline, or resource constraints]
+## Current state
+**Completed:** [What is actually complete]
 
-## Deliverable Request
-**What is needed**: [Specific, measurable deliverable description]
-**Acceptance criteria**:
-- [ ] [Criterion 1 — measurable]
-- [ ] [Criterion 2 — measurable]
-- [ ] [Criterion 3 — measurable]
-**Reference materials**: [Links to specs, designs, previous work]
+**Not complete / not established:** [What remains open]
 
-## Quality Expectations
-**Must pass**: [Specific quality criteria for this deliverable]
-**Evidence required**: [What proof of completion looks like]
-**Handoff to next**: [Who receives the output and what format they need]
+**Relevant artifacts:**
+- [path/ref] — [purpose]
+
+**Dependencies:** [Inputs/decisions this work relies on]
+
+**Constraints:** [Authority, legal, technical, budget, time, security, brand, etc.]
+
+## Deliverable request
+**Decision-relevant question:** [What uncertainty or need this output resolves]
+
+**Deliverable:** [Specific output]
+
+**Acceptance criteria:**
+- [ ] [criterion]
+- [ ] [criterion]
+
+**Evidence required:** [tests, sources, screenshots, measurements, citations, logs]
+
+## Claim state
+| Proposition | Status | Evidence / source | Consequence if wrong |
+|---|---|---|---|
+| [claim] | EVIDENCE / HYPOTHESIS / ASSUMPTION / UNKNOWN | [ref] | [impact] |
+
+## Handoff back / next
+[Who receives the output, what decision it informs, and what format is required]
 ```
 
 ---
 
-## 2. QA Feedback Loop — PASS
+## 2. QA / Validation — PASS
 
-Use when Evidence Collector or other QA agent approves a task.
+A QA pass means the tested acceptance criteria passed. It does **not** mean the initiative is strategically approved or that a live action is authorized.
 
 ```markdown
-# NEXUS QA Verdict: PASS ✅
+# NEXUS Validation Verdict: PASS
+
+## Strategic Context
+[Paste the Strategic Context Header]
 
 ## Task
 | Field | Value |
-|-------|-------|
-| **Task ID** | [ID] |
-| **Task Description** | [Description] |
-| **Developer Agent** | [Agent Name] |
-| **QA Agent** | [Agent Name] |
-| **Attempt** | [N] of 3 |
-| **Timestamp** | [YYYY-MM-DDTHH:MM:SSZ] |
+|---|---|
+| Task ID | [ID] |
+| Producer | [Agent] |
+| Validator | [Agent] |
+| Attempt | [N] |
+| Retry budget | [configured budget and rationale] |
+| Timestamp | [ISO-8601] |
 
-## Verdict: PASS
+## Verdict
+PASS for the acceptance criteria below.
 
 ## Evidence
-**Screenshots**:
-- Desktop (1920x1080): [filename/path]
-- Tablet (768x1024): [filename/path]
-- Mobile (375x667): [filename/path]
+| Criterion | Result | Evidence |
+|---|---|---|
+| [criterion] | PASS | [ref] |
+| [criterion] | PASS | [ref] |
 
-**Functional Verification**:
-- [x] [Acceptance criterion 1] — verified
-- [x] [Acceptance criterion 2] — verified
-- [x] [Acceptance criterion 3] — verified
+## Limitations / untested surfaces
+- [limitation]
 
-**Brand Consistency**: Verified — colors, typography, spacing match design system
-**Accessibility**: Verified — keyboard navigation, contrast ratios, semantic HTML
-**Performance**: [Load time measured] — within acceptable range
+## Claim updates
+- [claim ID] → [new status and why]
 
-## Notes
-[Any observations, minor suggestions for future improvement, or positive callouts]
-
-## Next Action
-→ Agents Orchestrator: Mark task complete, advance to next task in backlog
+## Next action
+[Authorized next step, or return to decision/gate owner]
 ```
 
 ---
 
-## 3. QA Feedback Loop — FAIL
-
-Use when Evidence Collector or other QA agent rejects a task.
+## 3. QA / Validation — FAIL
 
 ```markdown
-# NEXUS QA Verdict: FAIL ❌
+# NEXUS Validation Verdict: FAIL
+
+## Strategic Context
+[Paste the Strategic Context Header]
 
 ## Task
 | Field | Value |
-|-------|-------|
-| **Task ID** | [ID] |
-| **Task Description** | [Description] |
-| **Developer Agent** | [Agent Name] |
-| **QA Agent** | [Agent Name] |
-| **Attempt** | [N] of 3 |
-| **Timestamp** | [YYYY-MM-DDTHH:MM:SSZ] |
+|---|---|
+| Task ID | [ID] |
+| Producer | [Agent] |
+| Validator | [Agent] |
+| Attempt | [N] |
+| Retry budget | [configured budget and rationale] |
+| Timestamp | [ISO-8601] |
 
-## Verdict: FAIL
+## Issues
 
-## Issues Found
+### [Issue ID] — [severity]
+**Expected:** [criterion]
 
-### Issue 1: [Category] — [Severity: Critical/High/Medium/Low]
-**Description**: [Exact description of the problem]
-**Expected**: [What should happen according to acceptance criteria]
-**Actual**: [What actually happens]
-**Evidence**: [Screenshot filename or test output]
-**Fix instruction**: [Specific, actionable instruction to resolve]
-**File(s) to modify**: [Exact file paths]
+**Observed:** [result]
 
-### Issue 2: [Category] — [Severity]
-**Description**: [...]
-**Expected**: [...]
-**Actual**: [...]
-**Evidence**: [...]
-**Fix instruction**: [...]
-**File(s) to modify**: [...]
+**Evidence:** [ref]
 
-[Continue for all issues found]
+**Likely cause:** [EVIDENCE / HYPOTHESIS / UNKNOWN — explanation]
 
-## Acceptance Criteria Status
-- [x] [Criterion 1] — passed
-- [ ] [Criterion 2] — FAILED (see Issue 1)
-- [ ] [Criterion 3] — FAILED (see Issue 2)
+**Fix or discrimination step:** [specific next action]
 
-## Retry Instructions
-**For Developer Agent**:
-1. Fix ONLY the issues listed above
-2. Do NOT introduce new features or changes
-3. Re-submit for QA when all issues are addressed
-4. This is attempt [N] of 3 maximum
+## Retry decision
+- [ ] retry inside existing design
+- [ ] obtain missing evidence first
+- [ ] decompose task
+- [ ] redesign approach
+- [ ] escalate because retry consumes a material reserve or crosses authority boundary
 
-**If attempt 3 fails**: Task will be escalated to Agents Orchestrator
+**Remaining retry/experiment budget:** [N / condition]
+```
+
+Retry count is a scenario parameter. Do not assume a universal three-attempt maximum.
+
+---
+
+## 4. Escalation / Repeated-Failure Report
+
+Use when repeated attempts stop generating enough learning, consume material reserve, or reveal that the design rather than implementation is failing.
+
+```markdown
+# NEXUS Escalation Report
+
+## Strategic Context
+[Paste the Strategic Context Header]
+
+## Problem
+**Task / decision:** [ID]
+
+**Escalation to:** [decision owner / orchestrator / assurance / specialist authority]
+
+**Why escalation is required now:** [trigger]
+
+## Attempt history
+| Attempt | Change made | Evidence generated | Result | What we learned |
+|---|---|---|---|---|
+| 1 | | | | |
+| 2 | | | | |
+
+## Diagnosis
+**Execution defect, design defect, or orientation defect?** [classification + rationale]
+
+**Current causal hypothesis:** [statement]
+
+**Alternative explanation:** [statement]
+
+**Falsifier / discriminator:** [what would separate them]
+
+## Reserve impact
+- time consumed:
+- capacity consumed:
+- budget consumed:
+- rollback/options lost:
+- other material reserve:
+
+## Recommended decision
+- [ ] continue with bounded retry
+- [ ] obtain evidence
+- [ ] reassign
+- [ ] decompose
+- [ ] REDESIGN
+- [ ] HOLD
+- [ ] stop / defer
+
+## Decision required
+**Owner:** [authorized owner]
+
+**Decision needed before:** [next material commitment / date]
 ```
 
 ---
 
-## 4. Escalation Report
+## 5. Strategic / Phase Gate Handoff
 
-Use when a task exceeds 3 retry attempts.
-
-```markdown
-# NEXUS Escalation Report 🚨
-
-## Task
-| Field | Value |
-|-------|-------|
-| **Task ID** | [ID] |
-| **Task Description** | [Description] |
-| **Developer Agent** | [Agent Name] |
-| **QA Agent** | [Agent Name] |
-| **Attempts Exhausted** | 3/3 |
-| **Escalation To** | [Agents Orchestrator / Studio Producer] |
-| **Timestamp** | [YYYY-MM-DDTHH:MM:SSZ] |
-
-## Failure History
-
-### Attempt 1
-- **Issues found**: [Summary]
-- **Fixes applied**: [What the developer changed]
-- **Result**: FAIL — [Why it still failed]
-
-### Attempt 2
-- **Issues found**: [Summary]
-- **Fixes applied**: [What the developer changed]
-- **Result**: FAIL — [Why it still failed]
-
-### Attempt 3
-- **Issues found**: [Summary]
-- **Fixes applied**: [What the developer changed]
-- **Result**: FAIL — [Why it still failed]
-
-## Root Cause Analysis
-**Why the task keeps failing**: [Analysis of the underlying problem]
-**Systemic issue**: [Is this a one-off or pattern?]
-**Complexity assessment**: [Was the task properly scoped?]
-
-## Recommended Resolution
-- [ ] **Reassign** to different developer agent ([recommended agent])
-- [ ] **Decompose** into smaller sub-tasks ([proposed breakdown])
-- [ ] **Revise approach** — architecture/design change needed
-- [ ] **Accept** current state with documented limitations
-- [ ] **Defer** to future sprint
-
-## Impact Assessment
-**Blocking**: [What other tasks are blocked by this]
-**Timeline Impact**: [How this affects the overall schedule]
-**Quality Impact**: [What quality compromises exist if we accept current state]
-
-## Decision Required
-**Decision maker**: [Agents Orchestrator / Studio Producer]
-**Deadline**: [When decision is needed to avoid further delays]
-```
-
----
-
-## 5. Phase Gate Handoff
-
-Use when transitioning between NEXUS phases.
+This replaces the old binary phase-gate assumption. A lifecycle phase can be complete while the strategic output is still `HOLD` or `REDESIGN`.
 
 ```markdown
-# NEXUS Phase Gate Handoff
+# NEXUS Strategic Gate Handoff
+
+## Strategic Context
+[Paste the Strategic Context Header]
 
 ## Transition
 | Field | Value |
-|-------|-------|
-| **From Phase** | Phase [N] — [Name] |
-| **To Phase** | Phase [N+1] — [Name] |
-| **Gate Keeper(s)** | [Agent Name(s)] |
-| **Gate Result** | [PASSED / FAILED] |
-| **Timestamp** | [YYYY-MM-DDTHH:MM:SSZ] |
+|---|---|
+| Current module / phase | [name] |
+| Proposed next module / commitment | [name] |
+| Decision owner | [role/person] |
+| Strategic Assurance Lead | [agent/instance] |
+| Output | PROCEED / PROCEED_WITH_CONDITIONS / HOLD / REDESIGN / REJECT |
+| Timestamp | [ISO-8601] |
 
-## Gate Criteria Results
-| # | Criterion | Threshold | Result | Evidence |
-|---|-----------|-----------|--------|----------|
-| 1 | [Criterion] | [Threshold] | ✅ PASS / ❌ FAIL | [Evidence reference] |
-| 2 | [Criterion] | [Threshold] | ✅ PASS / ❌ FAIL | [Evidence reference] |
-| 3 | [Criterion] | [Threshold] | ✅ PASS / ❌ FAIL | [Evidence reference] |
+## Seven coherence tests
+| Test | Result | Finding | Classification | Evidence / condition |
+|---|---|---|---|---|
+| Governing-object | PASS / CONDITIONAL / FAIL | | FATAL_DEFECT / ACCEPTED_RISK / PENDING_EVIDENCE | |
+| Causal | | | | |
+| Interactive | | | | |
+| Conversion | | | | |
+| Legitimacy | | | | |
+| Epistemic | | | | |
+| Exit | | | | |
 
-## Documents Carried Forward
-1. [Document name] — [Purpose for next phase]
-2. [Document name] — [Purpose for next phase]
-3. [Document name] — [Purpose for next phase]
+## Conditions before next material commitment
+1. [condition]
+2. [condition]
 
-## Key Constraints for Next Phase
-- [Constraint 1 from this phase's findings]
-- [Constraint 2 from this phase's findings]
+## Evidence carried forward
+- [ref]
 
-## Agent Activation for Next Phase
-| Agent | Role | Priority |
-|-------|------|----------|
-| [Agent 1] | [Role in next phase] | [Immediate / Day 2 / As needed] |
-| [Agent 2] | [Role in next phase] | [Immediate / Day 2 / As needed] |
+## Dissent carried forward
+- [proposition, evidence, alternative, owner]
 
-## Risks Carried Forward
-| Risk | Severity | Mitigation | Owner |
-|------|----------|------------|-------|
-| [Risk] | [P0-P3] | [Mitigation plan] | [Agent] |
+## Risks accepted by decision owner
+- [risk]
+
+## Next activation
+| Agent / function | Why needed | Activation condition |
+|---|---|---|
+| | | |
 ```
 
 ---
 
-## 6. Sprint Handoff
+## 6. Sprint / Iteration Handoff
 
-Use at sprint boundaries.
+Velocity is an execution observation, not the governing object.
 
 ```markdown
-# NEXUS Sprint Handoff
+# NEXUS Iteration Handoff
 
-## Sprint Summary
+## Strategic Context
+[Paste the Strategic Context Header]
+
+## Iteration
 | Field | Value |
-|-------|-------|
-| **Sprint** | [Number] |
-| **Duration** | [Start date] → [End date] |
-| **Sprint Goal** | [Goal statement] |
-| **Velocity** | [Planned] / [Actual] story points |
+|---|---|
+| Period | [start → end] |
+| Main effort | [single primary effort] |
+| Intended learning/result | [what should change] |
 
-## Completion Status
-| Task ID | Description | Status | QA Attempts | Notes |
-|---------|-------------|--------|-------------|-------|
-| [ID] | [Description] | ✅ Complete | [N] | [Notes] |
-| [ID] | [Description] | ✅ Complete | [N] | [Notes] |
-| [ID] | [Description] | ⚠️ Carried Over | [N] | [Reason] |
+## Delivery state
+| Task | Status | Evidence | Decision relevance |
+|---|---|---|---|
+| | | | |
 
-## Quality Metrics
-- **First-pass QA rate**: [X]%
-- **Average retries**: [N]
-- **Tasks completed**: [X/Y]
-- **Story points delivered**: [N]
+## Hypothesis update
+**What evidence strengthened the thesis:**
+- [item]
 
-## Carried Over to Next Sprint
-| Task ID | Description | Reason | Priority |
-|---------|-------------|--------|----------|
-| [ID] | [Description] | [Why not completed] | [RICE score] |
+**What weakened it:**
+- [item]
 
-## Retrospective Insights
-**What went well**: [Key successes]
-**What to improve**: [Key improvements]
-**Action items**: [Specific changes for next sprint]
+**What remains unknown:**
+- [item]
 
-## Next Sprint Preview
-**Sprint goal**: [Proposed goal]
-**Key tasks**: [Top priority items]
-**Dependencies**: [Cross-team dependencies]
+**Has the falsifier triggered?** [Yes/No + rationale]
+
+**Has the culmination condition moved closer?** [assessment]
+
+## Reserve
+**Consumed this iteration:** [time/capacity/budget/options]
+
+**Remaining:** [what is still deliberately uncommitted]
+
+## Next iteration decision
+PROCEED / PROCEED_WITH_CONDITIONS / HOLD / REDESIGN / REJECT
 ```
 
 ---
 
 ## 7. Incident Handoff
 
-Use during incident response.
-
 ```markdown
 # NEXUS Incident Handoff
 
+## Strategic Context
+[Paste the Strategic Context Header]
+
 ## Incident
 | Field | Value |
-|-------|-------|
-| **Severity** | [P0 / P1 / P2 / P3] |
-| **Detected by** | [Agent or system] |
-| **Detection time** | [Timestamp] |
-| **Assigned to** | [Agent Name] |
-| **Status** | [Investigating / Mitigating / Resolved / Post-mortem] |
+|---|---|
+| Severity | [policy-defined severity] |
+| Incident authority | [owner] |
+| Detected | [timestamp] |
+| Current state | Investigating / Containing / Recovering / Conserving / Closed |
 
-## Description
-**What happened**: [Clear description of the incident]
-**Impact**: [Who/what is affected and how severely]
-**Timeline**:
-- [HH:MM] — [Event]
-- [HH:MM] — [Event]
-- [HH:MM] — [Event]
+## Observed facts
+- [EVIDENCE: source + timestamp]
 
-## Current State
-**Systems affected**: [List]
-**Workaround available**: [Yes/No — describe if yes]
-**Estimated resolution**: [Time estimate]
+## Hypotheses
+- [HYPOTHESIS: cause / propagation explanation]
 
-## Actions Taken
-1. [Action taken and result]
-2. [Action taken and result]
+## Unknowns
+- [UNKNOWN]
 
-## Handoff Context
-**For next responder**:
-- [What's been tried]
-- [What hasn't been tried yet]
-- [Suspected root cause]
-- [Relevant logs/metrics to check]
+## Impact
+[Who/what is affected; distinguish observed impact from estimated exposure]
 
-## Stakeholder Communication
-**Last update sent**: [Timestamp]
-**Next update due**: [Timestamp]
-**Communication channel**: [Where updates are posted]
+## Actions taken
+| Time | Action | Authority | Result | Evidence |
+|---|---|---|---|---|
+| | | | | |
+
+## Current safe state / rollback
+[Describe]
+
+## Temporary authority or access
+| Grant | Owner | Scope | Expiry |
+|---|---|---|---|
+| | | | |
+
+## Next decision
+[What must be decided, by whom, and what evidence is needed]
+
+## Conservation requirements before closure
+- [ ] root-cause or best-supported causal account recorded
+- [ ] residual risks owned
+- [ ] temporary access/controls expired or transferred
+- [ ] recurrence prevention assigned
+- [ ] evidence preserved according to policy
+- [ ] governing object restored or explicitly revised
 ```
 
 ---
 
-## Usage Guide
+## Usage guide
 
-| Situation | Template to Use |
-|-----------|----------------|
-| Assigning work to another agent | Standard Handoff (#1) |
-| QA approves a task | QA PASS (#2) |
-| QA rejects a task | QA FAIL (#3) |
-| Task exceeds 3 retries | Escalation Report (#4) |
-| Moving between phases | Phase Gate Handoff (#5) |
-| End of sprint | Sprint Handoff (#6) |
-| System incident | Incident Handoff (#7) |
+| Situation | Template |
+|---|---|
+| Material context transfer | Strategic Context Header + Standard Handoff |
+| Validation succeeds | QA / Validation — PASS |
+| Validation fails | QA / Validation — FAIL |
+| Repeated attempts stop learning | Escalation / Repeated-Failure Report |
+| Material phase/commitment transition | Strategic / Phase Gate Handoff |
+| Sprint/iteration boundary | Sprint / Iteration Handoff |
+| Incident responder transfer | Incident Handoff |
+
+The purpose of the template is reconstructability, not paperwork volume. Compress it for low-impact work; expand it when uncertainty, irreversibility, or blast radius increases.
