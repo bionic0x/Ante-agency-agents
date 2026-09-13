@@ -24,6 +24,19 @@ This directory is the operational package for the dual-network Gate 0 runbook.
 5. `gate0/05-claim-registers.yaml`
 6. `gate0/06-mvp-falsifiers.md`
 
+## Concrete instances
+
+### 2026-09-13 — Kamino Lend + Aave V3.7
+
+`instances/2026-09-13-kamino-aave/`
+
+- Solana: Kamino Lend Main Market, SOL/USDC.
+- Arbitrum One: Aave V3.7, WETH/native USDC.
+- Static manifests frozen to pinned primary-source revisions.
+- First E1-SOL→S1 review: **BLOCKED** pending live reserve/oracle/account snapshot and a concrete SOL-ORD execution surface.
+- First E1-ARB→S1 review: **CHANGES_REQUESTED**; static deployment accepted, runtime risk/oracle/recovery policy still pending.
+- No production or benchmark authority granted.
+
 ## Runbook
 
 - `../runbooks/scenario-htp-gate0-solana-arbitrum.md`
@@ -31,6 +44,6 @@ This directory is the operational package for the dual-network Gate 0 runbook.
 
 ## Status
 
-The package is intentionally **Gate 0 pending**. Its existence does not authorize production execution. Named protocols/clients, deployed manifests, legal sign-off where required, quantitative evaluation parameters, human accountable owners, chain-specific E1↔S1 review cycles, and human governance decisions remain required before a Gate pass.
+The generic package remains **Gate 0 pending** until an instance satisfies its closeout requirements. The current Kamino/Aave instance is **HOLD** after the first chain-specific security handoffs.
 
 The two networks share document structure, evidence vocabulary and review mechanics only. Solana evidence, security acceptance, legal classification, thresholds, metrics or Gate status do not transfer to Arbitrum One, and vice versa, without an explicit transfer proposition and chain-specific verification.
