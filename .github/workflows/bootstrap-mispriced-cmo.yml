@@ -17,13 +17,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Reconstruct and verify patch
+      - name: Restore and verify corrected payload
         shell: bash
         run: |
           set -euo pipefail
-          cat .bootstrap/mispriced-cmo/patch.bz2.b64.* > /tmp/patch.b64
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Chunks 02 and 04 are already byte-identical to the verified package.
+          test "$(git hash-object .bootstrap/mispriced-cmo/patch.bz2.b64.02)" = "176049871db50a9a7008ad3a35807b93de0711b2"
+          test "$(git hash-object .bootstrap/mispriced-cmo/patch.bz2.b64.04)" = "78e6a1ddd27146436a131739e25243463e4a055e"
+
+          # Recover chunk 06 from the pre-overwrite Git object and remove the
+          # known 140-character append. Refuse to proceed unless the resulting
+          # blob is exactly the one independently verified from the uploaded zip.
+          git show 7939c5fb48ed06b2872c571d7c051c8cdab25514:.bootstrap/mispriced-cmo/patch.bz2.b64.06 > /tmp/chunk06.full
+          test "$(wc -c < /tmp/chunk06.full)" -eq 20140
+          head -c 20000 /tmp/chunk06.full > .bootstrap/mispriced-cmo/patch.bz2.b64.06
+          test "$(git hash-object .bootstrap/mispriced-cmo/patch.bz2.b64.06)" = "7b2670b9f8d0fb6b4501024b430d508ccb641a72"
+
+          git add .bootstrap/mispriced-cmo/patch.bz2.b64.06
+          git commit -m "fix: restore verified bootstrap chunk 06"
+
+          cat .bootstrap/mispriced-cmo/patch.bz2.b64.0[0-7] > /tmp/patch.b64
           base64 --decode /tmp/patch.b64 > /tmp/patch.bz2
           echo "6ff27affba0037405572935ca1514d9febe826c83402cc7da662f93bee4ada20  /tmp/patch.bz2" | sha256sum -c -
+          bzip2 -t /tmp/patch.bz2
           bzip2 -dc /tmp/patch.bz2 > /tmp/mispriced-cmo.patch
           echo "ab8dbf422aeb374b45dad778685c67626394ed9800397bb81fa211cd7fc5fa04  /tmp/mispriced-cmo.patch" | sha256sum -c -
           git apply --check /tmp/mispriced-cmo.patch
@@ -32,8 +51,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git am /tmp/mispriced-cmo.patch
 
       - name: Remove bootstrap material and publish clean branch
