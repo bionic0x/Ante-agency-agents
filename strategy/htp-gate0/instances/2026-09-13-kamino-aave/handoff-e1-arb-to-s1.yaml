@@ -1,0 +1,95 @@
+handoff:
+  id: hnd_gate0_arb_aave_001
+  from_seat: E1-ARB
+  from_agent: engineering-solidity-smart-contract-engineer
+  to_seat: S1
+  to_agent: security-blockchain-security-auditor
+  network_scope: arbitrum_one
+  protocol_scope: Aave_V3_7_Arbitrum_WETH_USDC
+  status: submitted
+
+  governing_object: >-
+    Review the frozen Aave V3.7 Arbitrum One deployment manifest for WETH/native
+    USDC and determine whether ARB-ORC and ARB-RES are modeled against the real
+    deployed architecture rather than legacy v3.6 sequencer-sentinel assumptions.
+
+  non_object: >-
+    Authorize liquidation, pause/unpause, transaction submission, force inclusion,
+    contract upgrade, custody, user communication, or assert that Aave currently
+    has an oracle/recovery incident.
+
+  artifact_ref: >-
+    strategy/htp-gate0/instances/2026-09-13-kamino-aave/arbitrum-aave-manifest.yaml
+  artifact_freeze_date: "2026-09-13"
+  source_revisions:
+    - repository: aave-dao/aave-address-book
+      commit: 02748a20592a019e834aee193b6c40c9bc7bd059
+    - repository: aave-dao/aave-v3-origin
+      artifact: docs/3.7/sentinel-removal.md
+
+  evidence_status: hypothesis
+  environment: documentary
+  authority_ref: null
+  requested_work: review
+
+  frozen_identifiers:
+    chain_id: 42161
+    pool_addresses_provider: 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb
+    pool_proxy: 0x794a61358D6845594F94dc1DB02A252b5b4814aD
+    pool_implementation: 0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A
+    pool_configurator_proxy: 0x8145eddDf43f50276641b55bd3AD95944510021E
+    pool_configurator_implementation: 0xFF42Ce30054dcE7dc7C1282a9a497aa58eaBCe99
+    aave_oracle: 0xb56c2F0B653B2e0b10C9b928C8580Ac5Df02C7C7
+    WETH:
+      underlying: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
+      oracle_source: 0xbD41b1548a5A06544cBcf87c0c54864312842C00
+    USDC:
+      address_book_symbol: USDCn
+      underlying: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831
+      oracle_source: 0xB0C9A7122aaB68F75CffD9851E867144DBFF113b
+
+  architecture_assertions_for_review:
+    - Aave_V3_7_does_not_use_PriceOracleSentinel_to_gate_borrow
+    - Aave_V3_7_does_not_use_PriceOracleSentinel_to_gate_liquidation
+    - ARB_RES_is_external_observation_and_recovery_exposure_not_protocol_permission
+    - RPC_health_is_separate_from_sequencer_or_chain_progress
+    - oracle_source_address_does_not_define_universal_staleness_policy
+
+  unresolved_questions:
+    - What are the exact WETH/native-USDC reserve parameters at the evaluation block?
+    - What implementation slots and oracle-source resolution are observed at that same block?
+    - What feed/provider time and validity semantics apply to each oracle source?
+    - What external chain-progress/sequencer evidence will HTP use for ARB-RES?
+    - What client policy defines RECOVERING versus READY_FOR_REVIEW versus NORMAL?
+    - What positions and executable liquidity form the eligible recovery-exposure population?
+
+  acceptance_criteria:
+    - deployed_contract_identity_pinned
+    - v3_7_sentinel_removal_reflected
+    - rpc_vs_chain_state_separated
+    - oracle_source_vs_staleness_policy_separated
+    - runtime_risk_parameters_explicit_or_changes_requested
+    - ARB_RES_never_treated_as_Aave_execution_permission
+
+  allowed_tools:
+    - repository_read
+    - contract_read
+    - read_only_rpc_snapshot
+    - fork
+    - replay
+    - simulation
+
+  prohibited_actions:
+    - production_write
+    - external_disclosure
+    - transaction_signing
+    - transaction_submission
+    - custody
+    - live_pause
+    - forced_inclusion
+    - liquidation
+    - unauthorized_upgrade
+    - live_third_party_exploitation
+
+  reviewer: S1
+  expires_at: runtime_manifest_revision_or_gate0_decision
