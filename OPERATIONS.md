@@ -84,3 +84,36 @@ or successfully executed a specialist. Restart the host and verify the selected
 profiles there. Claude's current loading rules are documented in its
 [subagent reference](https://code.claude.com/docs/en/sub-agents);
 Copilot's are in its [configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
+
+## Review evidence and upstream updates
+
+The validation dependencies and Hermes/catalog implementations are checked in:
+
+- [requirements-validation.txt](scripts/requirements-validation.txt)
+- [check-hermes-plugin.py](scripts/check-hermes-plugin.py)
+- [test-hermes-plugin.py](scripts/test-hermes-plugin.py)
+- [build-catalog.py](scripts/build-catalog.py)
+
+Hermes lifecycle tests use a simulated lifecycle and a fresh generated plugin;
+they do not replace an authenticated host smoke test. Catalog freshness and
+converted-output drift fail CI on pull requests as well as pushes to main.
+Regenerate and commit both artifacts before merge.
+
+See the [source verification and sync policy](strategy/UPSTREAM-SYNC.md) and
+[Mispriced CMO cross-division example](examples/mispricing-cross-division.md).
+
+## Solana specialist outside HTP
+
+The Solana Program Engineer is registered in the nine-agent HTP runbook alongside
+assurance, research, product, legal and security roles. Resolution and installation
+tests verify those profiles are available; they do not certify the technical
+correctness of generated Solana code.
+
+For another project, invoke it under that project's named owner, scope and
+applicable runbook. A bounded code review can return account/CPI findings and
+tests without granting deployment authority. A material product or architecture
+decision uses the general strategic decision process; do not carry HTP's
+14-day horizon, network scope, or Gate 0 decision rights into unrelated work.
+The profile's technical vocabulary about signer or upgrade authority does not
+confer business authority. When the owner or authorization is unresolved, return
+the technical analysis and escalate the pending decision.

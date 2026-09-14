@@ -33,20 +33,11 @@ jobs:
         run: bash scripts/test-convert-frontmatter.sh
 
       - name: Validate converted outputs (round-trip, strict parse, counts, drift)
-        # Drift is advisory on pull requests (agent PRs always move their own manifest line;
-        # maintainers regenerate at landing) and enforced on pushes to main.
-        run: bash scripts/test-convert-outputs.sh ${{ github.event_name == 'pull_request' && '--drift=advisory' || '' }}
+        # Commit regenerated outputs with profile/converter changes; enforce drift on PRs too.
+        run: bash scripts/test-convert-outputs.sh
 
       - name: Validate agent selection (install.sh --agent / --agents-file)
         run: bash scripts/test-agent-selection.sh
 
       - name: Validate generated catalog (CATALOG.md)
-        # Advisory on pull requests (contributors need not regenerate); enforced on pushes to main.
-        run: |
-          if ! python3 scripts/build-catalog.py --check; then
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              echo "::warning::CATALOG.md is stale — maintainers regenerate with: python3 scripts/build-catalog.py"
-            else
-              exit 1
-            fi
-          fi
+        run: python3 scripts/build-catalog.py --check
