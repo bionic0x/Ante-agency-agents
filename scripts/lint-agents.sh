@@ -37,15 +37,6 @@ classify_header_target() {
   fi
 }
 
-frontmatter_field_present() {
-  case "$1" in
-    name)        (( AGENT_HAS_NAME )) ;;
-    description) (( AGENT_HAS_DESCRIPTION )) ;;
-    color)       (( AGENT_HAS_COLOR )) ;;
-    *)           return 1 ;;
-  esac
-}
-
 lint_file() {
   local file="$1"
 
@@ -56,30 +47,49 @@ lint_file() {
   fi
 
   # 0. Reject CRLF line endings (repo standard is LF — see .gitattributes).
+  # A trailing \r otherwise makes the frontmatter check below fail with a
+  # confusing "missing frontmatter ---" even when the file clearly starts ---.
   if LC_ALL=C grep -q $'\r' "$file"; then
     echo "ERROR $file: CRLF line endings detected — convert to LF (e.g. 'perl -i -pe \"s/\\r\$//\" $file'); repo uses LF per .gitattributes"
     errors=$((errors + 1))
     return
   fi
 
-  # 1. Parse frontmatter and body once with the same semantics used by convert.sh.
-  if ! load_agent "$file"; then
-    echo "ERROR $file: missing or malformed frontmatter delimiters"
+  # 1. Check frontmatter delimiters
+  local first_line
+  first_line=$(head -1 "$file")
+  if [[ "$first_line" != "---" ]]; then
+    echo "ERROR $file: missing frontmatter opening ---"
     errors=$((errors + 1))
     return
   fi
 
-  # 2. Check required frontmatter fields.
-  local field
+  # Extract frontmatter (between first and second ---)
+  local frontmatter
+  frontmatter=$(awk 'NR==1{next} /^---$/{exit} {print}' "$file")
+
+  if [[ -z "$frontmatter" ]]; then
+    echo "ERROR $file: empty or malformed frontmatter"
+    errors=$((errors + 1))
+    return
+  fi
+
+  # 2. Check required frontmatter fields
   for field in "${REQUIRED_FRONTMATTER[@]}"; do
-    if ! frontmatter_field_present "$field"; then
+    if ! grep -qE -- "^${field}:" <<<"$frontmatter"; then
       echo "ERROR $file: missing frontmatter field '${field}'"
       errors=$((errors + 1))
     fi
   done
 
-  # 3. Check recommended sections (warn only).
-  local body="$AGENT_BODY"
+  # 3. Check recommended sections (warn only)
+  local body
+  body=$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2{print}' "$file")
+
+  # Feed grep from a herestring, not a pipe: `grep -q` exits at the first match
+  # without draining its input, which kills a piping `echo` with SIGPIPE. Under
+  # `set -o pipefail` that 141 becomes the pipeline's status and is indistinguishable
+  # from "no match", so a large body raced its way to a spurious WARN.
   for section in "${RECOMMENDED_SECTIONS[@]}"; do
     if ! grep -qi -- "$section" <<<"$body"; then
       echo "WARN  $file: missing recommended section '${section}'"
@@ -87,7 +97,7 @@ lint_file() {
     fi
   done
 
-  # 4. Check file has meaningful content (awk strips wc's leading whitespace on macOS/BSD).
+  # 4. Check file has meaningful content (awk strips wc's leading whitespace on macOS/BSD)
   local word_count
   word_count=$(echo "$body" | wc -w | awk '{print $1}')
   if [[ "${word_count:-0}" -lt 50 ]]; then
@@ -139,7 +149,7 @@ lint_file() {
   fi
 }
 
-# Collect files to lint.
+# Collect files to lint
 files=()
 if [[ $# -gt 0 ]]; then
   files=("$@")
