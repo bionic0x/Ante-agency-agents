@@ -66,14 +66,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUT_DIR="$REPO_ROOT/integrations"
 TODAY="$(date +%Y-%m-%d)"
 
-# Shared helpers (get_field, get_body, slugify, ...)
+# Shared helpers (get_field, get_body, slugify, load_agent, ...)
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
-
-AGENT_DIRS=(
-  academic design engineering finance game-development gis healthcare marketing mispriced-cmo paid-media product project-management
-  research sales security spatial-computing specialized support testing
-)
 
 # --- Usage ---
 usage() {
@@ -646,6 +641,7 @@ clean_tool_output() {
 run_conversions() {
   local tool="$1"
   local count=0
+  local divisions
 
   if [[ "$tool" == "hermes" ]]; then
     clean_tool_output "$tool"
@@ -654,20 +650,18 @@ run_conversions() {
   fi
 
   clean_tool_output "$tool"
+  divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
 
-  for dir in "${AGENT_DIRS[@]}"; do
+  while IFS= read -r dir; do
+    [[ -n "$dir" ]] || continue
     local dirpath="$REPO_ROOT/$dir"
     [[ -d "$dirpath" ]] || continue
 
     while IFS= read -r -d '' file; do
-      # Skip files without frontmatter (non-agent docs like QUICKSTART.md)
-      local first_line
-      first_line="$(head -1 "$file")"
-      [[ "$first_line" == "---" ]] || continue
-
-      local name
-      name="$(get_field "name" "$file")"
-      [[ -n "$name" ]] || continue
+      # One parse per source file. Existing renderer calls to get_field/get_body
+      # are served from load_agent's in-memory cache without reopening the file.
+      load_agent "$file" || continue
+      [[ -n "$AGENT_NAME" ]] || continue
 
       case "$tool" in
         antigravity) convert_antigravity "$file" ;;
@@ -687,7 +681,7 @@ run_conversions() {
 
       (( count++ )) || true
     done < <(find "$dirpath" -name "*.md" -type f -print0 | sort -z)
-  done
+  done <<< "$divisions"
 
   echo "$count"
 }
