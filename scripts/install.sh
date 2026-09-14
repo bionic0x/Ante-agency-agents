@@ -121,7 +121,7 @@ box_row() {
 box_blank() { printf "  |%*s|\n" $BOX_INNER ''; }
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths + canonical registries
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -131,21 +131,22 @@ INTEGRATIONS="$REPO_ROOT/integrations"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-ALL_TOOLS=(claude-code copilot antigravity gemini-cli opencode openclaw cursor aider windsurf qwen zcode kimi codex osaurus hermes vibe)
-
-# The division set is derived from divisions.json (the single source of truth)
-# so the installer cannot drift from the catalog. Parse JSON independently
-# of indentation and line breaks (Python standard library, no jq).
-divisions_from_json() {
-  local json="$REPO_ROOT/divisions.json"
-  [[ -f "$json" ]] || { err "divisions.json not found at $json"; exit 1; }
-  command -v python3 >/dev/null 2>&1 || { err "python3 is required for the agent registry"; exit 1; }
-  python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["divisions"]))' "$json"
+registry_keys() {
+  local section="$1" json="$REPO_ROOT/$1.json"
+  [[ -f "$json" ]] || { err "$json not found"; exit 1; }
+  command -v python3 >/dev/null 2>&1 || { err "python3 is required for the repository registries"; exit 1; }
+  python3 "$SCRIPT_DIR/registry.py" "$section" "$json"
 }
 
-# Selectable divisions = exactly the divisions.json entries.
+# Tool order and division membership come from their canonical JSON registries.
+# The explicit detect/install dispatch below is implementation coverage, not a
+# second supported-tool list; scripts/check-tools.sh enforces 1:1 coverage.
+ALL_TOOLS=()
+while IFS= read -r _tool; do [[ -n "$_tool" ]] && ALL_TOOLS+=("$_tool"); done < <(registry_keys tools)
+[[ ${#ALL_TOOLS[@]} -gt 0 ]] || { err "no tools parsed from tools.json"; exit 1; }
+
 ALL_DIVISIONS=()
-while IFS= read -r _div; do [[ -n "$_div" ]] && ALL_DIVISIONS+=("$_div"); done < <(divisions_from_json)
+while IFS= read -r _div; do [[ -n "$_div" ]] && ALL_DIVISIONS+=("$_div"); done < <(registry_keys divisions)
 [[ ${#ALL_DIVISIONS[@]} -gt 0 ]] || { err "no divisions parsed from divisions.json"; exit 1; }
 
 # Directories scanned for installable agents = the divisions plus strategy/.

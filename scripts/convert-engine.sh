@@ -145,7 +145,7 @@ convert_osaurus() {
   slug="agency-$(slugify "$name")"
   body="$(get_body "$file")"
 
-  # Stage one dir per skill (install.sh copies into ~/.osaurus/skills/<name>/).
+  # Stage one dir per skill (install.sh copies into ~/.osaurus/skills/<slug>/).
   outdir="$OUT_DIR/osaurus/$slug"
   outfile="$outdir/SKILL.md"
   mkdir -p "$outdir"
@@ -658,11 +658,11 @@ run_conversions() {
     [[ -d "$dirpath" ]] || continue
 
     while IFS= read -r -d '' file; do
-      # One parse per source file. Existing renderer calls to get_field/get_body
-      # are served from load_agent's in-memory cache without reopening the file.
       load_agent "$file" || continue
       [[ -n "$AGENT_NAME" ]] || continue
 
+      # Renderer dispatch stays explicit by design. scripts/check-tools.sh checks
+      # that its labels exactly cover every non-identity tool in tools.json.
       case "$tool" in
         antigravity) convert_antigravity "$file" ;;
         codex)       convert_codex       "$file" ;;
@@ -707,11 +707,21 @@ main() {
 
   [[ "$parallel_jobs" =~ ^[1-9][0-9]*$ ]] || { error "--jobs must be a positive integer"; exit 1; }
 
-  local valid_tools=("antigravity" "gemini-cli" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "zcode" "kimi" "codex" "osaurus" "hermes" "vibe" "all")
+  local converted_tools=()
+  local t
+  while IFS= read -r t; do
+    [[ -n "$t" ]] && converted_tools+=("$t")
+  done < <(python3 "$SCRIPT_DIR/registry.py" tools "$REPO_ROOT/tools.json" --converted)
+  [[ ${#converted_tools[@]} -gt 0 ]] || { error "No converted tools found in tools.json"; exit 1; }
+
   local valid=false
-  for t in "${valid_tools[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
+  if [[ "$tool" == "all" ]]; then
+    valid=true
+  else
+    for t in "${converted_tools[@]}"; do [[ "$t" == "$tool" ]] && valid=true && break; done
+  fi
   if ! $valid; then
-    error "Unknown tool '$tool'. Valid: ${valid_tools[*]}"
+    error "Unknown tool '$tool'. Valid: ${converted_tools[*]} all"
     exit 1
   fi
 
@@ -726,18 +736,28 @@ main() {
 
   local tools_to_run=()
   if [[ "$tool" == "all" ]]; then
-    tools_to_run=("antigravity" "gemini-cli" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "zcode" "kimi" "codex" "osaurus" "hermes" "vibe")
+    tools_to_run=("${converted_tools[@]}")
   else
     tools_to_run=("$tool")
   fi
 
   local total=0
-
   local n_tools=${#tools_to_run[@]}
 
   if $use_parallel && [[ "$tool" == "all" ]]; then
-    # Tools that write to separate dirs can run in parallel; buffer output so each tool's output stays together
-    local parallel_tools=(antigravity gemini-cli opencode cursor openclaw qwen zcode kimi codex osaurus hermes vibe)
+    # Per-agent and plugin outputs are independent and may run concurrently.
+    # Roster tools intentionally stay in this process because they accumulate
+    # one shared artifact before the final copy step below.
+    local parallel_tools=() roster_tools=() kind
+    for t in "${converted_tools[@]}"; do
+      kind="$(python3 "$SCRIPT_DIR/registry.py" tool-field "$t" installKind "$REPO_ROOT/tools.json")" || return 1
+      if [[ "$kind" == "roster" ]]; then
+        roster_tools+=("$t")
+      else
+        parallel_tools+=("$t")
+      fi
+    done
+
     local parallel_out_dir
     parallel_out_dir="$(mktemp -d)"
     info "Converting: ${#parallel_tools[@]}/${n_tools} tools in parallel (output buffered per tool)..."
@@ -749,8 +769,9 @@ main() {
       [[ -f "$parallel_out_dir/$t" ]] && cat "$parallel_out_dir/$t"
     done
     rm -rf "$parallel_out_dir"
+
     local idx=$(( ${#parallel_tools[@]} + 1 ))
-    for t in aider windsurf; do
+    for t in "${roster_tools[@]}"; do
       progress_bar "$idx" "$n_tools"
       printf "\n"
       header "Converting: $t ($idx/$n_tools)"
@@ -774,7 +795,7 @@ main() {
     done
   fi
 
-  # Write single-file outputs after accumulation
+  # Write single-file outputs after accumulation.
   if [[ "$tool" == "all" || "$tool" == "aider" ]]; then
     mkdir -p "$OUT_DIR/aider"
     cp "$AIDER_TMP" "$OUT_DIR/aider/CONVENTIONS.md"

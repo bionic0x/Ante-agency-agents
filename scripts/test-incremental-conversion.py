@@ -75,8 +75,8 @@ def make_fixture(parent: Path) -> Path:
         json.dumps(
             {
                 "tools": {
-                    "codex": {"format": "codex-toml", "installKind": "per-agent"},
-                    "aider": {"format": "aider-conventions", "installKind": "roster"},
+                    "codex": {"format": "codex-toml", "installKind": "per-agent", "order": 1},
+                    "aider": {"format": "aider-conventions", "installKind": "roster", "order": 2},
                 }
             }
         ),
