@@ -96,8 +96,9 @@ registry_text = registry_path.read_text(encoding="utf-8")
 
 install_coverage = case_labels(function_body(install_text, "install_tool"))
 detect_coverage = case_labels(function_body(install_text, "is_detected"))
-render_coverage = case_labels(function_body(engine_text, "run_conversions"))
-if 'if [[ "$tool" == "hermes" ]]' in function_body(engine_text, "run_conversions"):
+run_conversions_body = function_body(engine_text, "run_conversions")
+render_coverage = case_labels(run_conversions_body)
+if re.search(r'\btool\b.*==.*["\']hermes["\']', run_conversions_body):
     render_coverage.add("hermes")
 
 for label, actual, expected in (
@@ -112,15 +113,25 @@ for label, actual, expected in (
     if extra:
         fail(f"{label} contains unregistered tool(s): {' '.join(extra)}")
 
-# Public entrypoints must consume the registry, not carry another tool array.
-if re.search(r"(?m)^ALL_TOOLS=\(", install_text):
-    fail("scripts/install.sh still defines a hard-coded ALL_TOOLS array")
+# Public entrypoints must consume the registry, not carry another supported-tool
+# array. Check the structural call sites rather than whitespace-sensitive text.
+if re.search(r"(?m)^ALL_TOOLS=\([^\n]*[a-z0-9-]", install_text):
+    fail("scripts/install.sh still defines a populated hard-coded ALL_TOOLS array")
 if re.search(r"(?m)^valid_tools=\(", wrapper_text):
     fail("scripts/convert.sh still defines a hard-coded valid_tools array")
-if "registry.py" not in install_text or " tools " not in install_text:
-    fail("scripts/install.sh does not consume the canonical tool registry")
-if "REGISTRY=" not in wrapper_text or " --converted" not in wrapper_text:
-    fail("scripts/convert.sh does not derive converted tools from the registry")
+
+registry_keys_body = function_body(install_text, "registry_keys")
+if "registry.py" not in registry_keys_body:
+    fail("scripts/install.sh registry_keys() does not invoke scripts/registry.py")
+if not re.search(r"(?m)\bregistry_keys[ \t]+tools\b", install_text):
+    fail("scripts/install.sh does not populate tools from registry_keys tools")
+if not re.search(r"(?m)\bregistry_keys[ \t]+divisions\b", install_text):
+    fail("scripts/install.sh does not populate divisions from registry_keys divisions")
+if "REGISTRY=" not in wrapper_text or not re.search(
+    r'python3\s+"\$REGISTRY"\s+tools\s+"\$REPO_ROOT/tools\.json"\s+--converted',
+    wrapper_text,
+):
+    fail("scripts/convert.sh does not derive converted tools from the canonical registry")
 
 # Registry helper itself must support the semantics consumers rely on.
 for token in ("--converted", "--install-kind", "tool-field", "order"):
