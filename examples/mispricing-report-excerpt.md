@@ -27,6 +27,9 @@ therefore starts lower than the plan assumes, before any discussion of creative.
 > unaided recall and out-of-stock rate, and then in first-time buyers. Our confidence falls if the
 > branded-search line proves incremental under a holdout test, which has never been run.
 
+`[JUDGMENT]` The €2.1m recommendation is the portion of the €3.2m reclassified movement proposed
+for immediate reallocation after retaining €1.1m in capture pending the branded-search holdout.
+
 **Three decisions available in 90 days**
 
 1. Reclassify the budget by job and adopt the ratio the reclassification reveals, not the declared one.
@@ -67,7 +70,7 @@ to the instrument used to judge it.
 | Evidence | `[FACT]` dashboard specification and 12 months of exports; `[FACT]` three of four board KPIs are click-derived; `[INFERENCE]` the allocation shift 2023→2026 tracks the metrics' visibility, not tested return |
 | Confidence | High on the mechanism, medium on the magnitude |
 | Prior | `[JUDGMENT]` The IPA Databank analyses of Binet and Field shift the burden of proof toward longer-horizon effects being under-credited by short-window attribution. A prior is not a finding about Northwind. |
-| Business implication | Allocation decisions are being made with an instrument that cannot see half the portfolio |
+| Business implication | Allocation decisions are being made with an instrument that cannot see the €6.2m Create allocation it is used to judge |
 | Recommended action | Add one incrementality test per quarter, starting with branded search; report brand and activation on separate horizons |
 | Data gap | No holdout, geo test, or MMM has ever been run. Requested; none exists. |
 
