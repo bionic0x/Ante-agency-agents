@@ -34,6 +34,9 @@ jobs:
       - name: Validate OpenClaw provenance verifier
         run: python3 scripts/test-openclaw-import-provenance.py
 
+      - name: Validate Kimi current agent contract
+        run: python3 scripts/test-kimi-adapter.py
+
       - name: Static shell analysis (errors only)
         run: shellcheck -x -S error scripts/*.sh
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Kimi Code adapter migration — 2026-09-15
+
+- Migrate Kimi from the legacy `~/.config/kimi/agents/<slug>/agent.yaml` + `system.md` adapter to current Markdown custom agents under `$KIMI_CODE_HOME/agents/` (default `~/.kimi-code/agents/`).
+- Preserve the repository privilege boundary explicitly: source agents without `tools` render `tools: []`; declared capabilities are allowlisted, `WebFetch` maps to Kimi `FetchURL`, and unknown source tokens fail conversion.
+- Add current-format renderer/installer regression coverage and advertise Kimi project scope in `tools.json`.
+
 ## Privilege and provenance hardening — 2026-09-14
 
 - Add a closed `scripts/agent-tools.json` security registry for the five tool tokens

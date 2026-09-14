@@ -23,6 +23,7 @@
 #   openclaw     -- Copy workspaces to ~/.openclaw/agency-agents/
 #   qwen         -- Copy SubAgents to ~/.qwen/agents/ (user-wide) or .qwen/agents/ (project)
 #   zcode        -- Copy agents to ~/.zcode/agents/ (global) or .zcode/agents/ (project)
+#   kimi         -- Copy agents to $KIMI_CODE_HOME/agents/ (default ~/.kimi-code/agents/)
 #   codex        -- Copy custom agent TOML files to ~/.codex/agents/
 #   osaurus      -- Copy skills to ~/.osaurus/skills/
 #   hermes       -- Copy lazy-router plugin to ~/.hermes/plugins/ and enable it
@@ -52,7 +53,7 @@
 #
 # Env: CLAUDE_CONFIG_DIR, COPILOT_AGENT_DIR, CURSOR_RULES_DIR, GEMINI_AGENTS_DIR,
 #      OPENCODE_AGENTS_DIR, OPENCLAW_DIR, QWEN_AGENTS_DIR, CODEX_AGENTS_DIR,
-#      OSAURUS_SKILLS_DIR, HERMES_HOME, HERMES_PLUGIN_DIR, VIBE_HOME
+#      OSAURUS_SKILLS_DIR, KIMI_CODE_HOME, HERMES_HOME, HERMES_PLUGIN_DIR, VIBE_HOME
 #      override default install paths (checked before hardcoded defaults).
 #
 # --- USAGE-END ---  (sentinel for usage(); do not remove)
@@ -267,6 +268,7 @@ resolve_dest() {
     openclaw)    var="OPENCLAW_DIR" ;;
     qwen)        var="QWEN_AGENTS_DIR" ;;
     zcode)       var="ZCODE_AGENTS_DIR" ;;
+    kimi)        var="KIMI_CODE_HOME" ;;
     codex)       var="CODEX_AGENTS_DIR" ;;
     osaurus)     var="OSAURUS_SKILLS_DIR" ;;
     hermes)      var="HERMES_PLUGIN_DIR" ;;
@@ -280,6 +282,10 @@ resolve_dest() {
       # so users who worked around the old bug are not double-nested.
       local cfg="${!var}"; cfg="${cfg%/}"
       if [[ "$cfg" == */agents ]]; then printf '%s' "$cfg"; else printf '%s' "$cfg/agents"; fi
+    elif [[ "$tool" == "kimi" ]]; then
+      # KIMI_CODE_HOME is Kimi Code's data root; custom agents live below agents/.
+      local cfg="${!var}"; cfg="${cfg%/}"
+      printf '%s' "$cfg/agents"
     else
       printf '%s' "${!var}"
     fi
@@ -392,7 +398,7 @@ detect_openclaw()     { command -v openclaw >/dev/null 2>&1 || [[ -d "${HOME}/.o
 detect_windsurf()     { command -v windsurf >/dev/null 2>&1 || [[ -d "${HOME}/.codeium" ]]; }
 detect_qwen()         { command -v qwen >/dev/null 2>&1 || [[ -d "${HOME}/.qwen" ]]; }
 detect_zcode()        { command -v zcode >/dev/null 2>&1 || [[ -d "${HOME}/.zcode" ]]; }
-detect_kimi()         { command -v kimi >/dev/null 2>&1; }
+detect_kimi()         { command -v kimi >/dev/null 2>&1 || [[ -d "${KIMI_CODE_HOME:-${HOME}/.kimi-code}" ]]; }
 detect_codex()        { command -v codex >/dev/null 2>&1 || [[ -d "${HOME}/.codex" ]]; }
 detect_osaurus()      { command -v osaurus >/dev/null 2>&1 || [[ -d "${HOME}/.osaurus" ]]; }
 detect_hermes()       { command -v hermes >/dev/null 2>&1 || [[ -d "${HERMES_HOME:-${HOME}/.hermes}" ]]; }
@@ -434,7 +440,7 @@ tool_label() {
     windsurf)    printf "%-14s  %s" "Windsurf"     "(.windsurfrules)"        ;;
     qwen)        printf "%-14s  %s" "Qwen Code"    "(~/.qwen/agents)"        ;;
     zcode)       printf "%-14s  %s" "ZCode"        "(~/.zcode/agents)" ;;
-    kimi)        printf "%-14s  %s" "Kimi Code"    "(~/.config/kimi/agents)" ;;
+    kimi)        printf "%-14s  %s" "Kimi Code"    "(~/.kimi-code/agents)" ;;
     codex)       printf "%-14s  %s" "Codex"        "(~/.codex/agents)"       ;;
     osaurus)     printf "%-14s  %s" "Osaurus"      "(~/.osaurus/skills)"     ;;
     hermes)      printf "%-14s  %s" "Hermes"       "(~/.hermes/plugins)"     ;;
@@ -960,27 +966,24 @@ install_zcode() {
 }
 
 install_kimi() {
-  local src="$INTEGRATIONS/kimi"
-  local dest; dest="$(resolve_dest kimi "${HOME}/.config/kimi/agents")"
+  local src="$INTEGRATIONS/kimi/agents"
+  local default_home="${KIMI_CODE_HOME:-${HOME}/.kimi-code}"
+  local dest; dest="$(resolve_dest kimi "${default_home%/}/agents")"
   local count=0
 
-  [[ -d "$src" ]] || { err "integrations/kimi missing. Run convert.sh first."; return 1; }
-
+  [[ -d "$src" ]] || { err "integrations/kimi/agents missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest"
 
-  local d
-  while IFS= read -r -d '' d; do
-    local name; name="$(basename "$d")"
-    slug_allowed "$name" || continue
-    mkdir -p "$dest/$name"
-    install_file "$d/agent.yaml" "$dest/$name/agent.yaml"
-    install_file "$d/system.md" "$dest/$name/system.md"
+  local f
+  while IFS= read -r -d '' f; do
+    slug_allowed "$(basename "$f" .md)" || continue
+    install_file "$f" "$dest/"
     incr count
-  done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
 
   verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Kimi Code: installed $count agents to $dest"
-  ok "Usage: kimi --agent-file ~/.config/kimi/agents/<agent-name>/agent.yaml"
+  ok "Usage: kimi --agent <agent-name>"
 }
 
 install_codex() {

@@ -11,6 +11,7 @@ python3 scripts/test-changed-agent-files.py
 python3 scripts/test-agent-privileges.py
 python3 scripts/check-agent-privileges.py
 python3 scripts/test-openclaw-import-provenance.py
+python3 scripts/test-kimi-adapter.py
 for check in lint-agents check-divisions check-tools check-runbooks check-hermes-config-rewrite; do
   bash "scripts/$check.sh"
 done
