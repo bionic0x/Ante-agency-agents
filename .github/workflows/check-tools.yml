@@ -29,6 +29,9 @@ jobs:
       - name: Validate Hermes lifecycle behavior from a clean build
         run: python3 scripts/test-hermes-plugin.py
 
+      - name: Validate incremental conversion state and pruning
+        run: python3 scripts/test-incremental-conversion.py
+
       - name: Validate converted YAML frontmatter
         run: bash scripts/test-convert-frontmatter.sh
 
