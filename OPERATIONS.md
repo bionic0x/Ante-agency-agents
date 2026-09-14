@@ -1,6 +1,6 @@
 # Operating this repository
 
-This repository provides 487 agent profiles, 19 divisions, eight NEXUS runbooks,
+This repository provides 490 agent profiles, 19 divisions, eight NEXUS runbooks,
 and adapters for 16 AI tools. It is a catalog and installation system. The host
 tool supplies the model, execution loop, authentication, and external access.
 
@@ -64,10 +64,11 @@ python3 -m pip install -r scripts/requirements-validation.txt
 bash scripts/verify-release.sh
 ```
 
-The gate checks registry consistency, agent lint, all runbook resolutions,
-catalog freshness, Hermes routing and lifecycle behavior, installer regressions,
-all 16 installation routes in isolated fixtures, and strict parsing, counts and
-drift for every agent across the 14 converted formats.
+The gate checks registry consistency, changed-agent discovery, full agent lint,
+all runbook resolutions, catalog freshness, Hermes routing and lifecycle
+behavior, installer regressions, all 16 installation routes in isolated fixtures,
+and strict parsing, counts and drift for every agent across the 14 converted
+formats. Pull-request CI also exercises Linux and macOS installation behavior.
 
 After intentional profile or converter changes:
 
@@ -76,14 +77,15 @@ python3 scripts/build-catalog.py
 bash scripts/test-convert-outputs.sh --update
 ```
 
-Commit the regenerated catalog and hash manifest with the change. CI runs the
-installer suites on Linux and macOS. The public upstream desktop app and live
-host/model sessions are separate compatibility surfaces: file installation and
-offline validation do not establish that a host has authenticated, discovered,
-or successfully executed a specialist. Restart the host and verify the selected
+Commit the regenerated catalog and hash manifest with the change. Do not update
+a golden hash to hide a converter, registry, or contract drift: inspect the
+manifest delta first. The public upstream desktop app and live host/model
+sessions are separate compatibility surfaces: file installation and offline
+validation do not establish that a host has authenticated, discovered, or
+successfully executed a specialist. Restart the host and verify the selected
 profiles there. Claude's current loading rules are documented in its
-[subagent reference](https://code.claude.com/docs/en/sub-agents);
-Copilot's are in its [configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
+[subagent reference](https://code.claude.com/docs/en/sub-agents); Copilot's are
+in its [configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
 
 ## Doctrine alignment and closure review
 
@@ -91,19 +93,50 @@ The claim register distinguishes `ATTRIBUTED_INTENT`; the assurance profile
 retains all fourteen strategic pathologies. Coherence tests may declare
 `NOT_APPLICABLE` with a reason, except for the Epistemic and Exit tests.
 
-`check-runbooks.sh` rejects placeholder termination criteria and validates
-structured `termination_contract` fields when supplied. Absence is advisory;
-an explicit null, incomplete object, unknown key, or invalid optional field is
-an error. This checks structure, not the adequacy of a closure decision.
-The mispricing diagnostic and manuscript runbooks carry contracts (2/8);
-the other six retain their existing criteria pending owner-authored contracts.
-Thresholds in a domain contract are scoped to that runbook, not universal rules.
+Every registered runbook now carries a structured `termination_contract`.
+`check-runbooks.sh` requires all eight contracts and rejects missing fields,
+placeholder values, unknown keys, malformed optional fields and unresolved
+artifact/roster references. The contract answers what was achieved, what remains
+outstanding, who is accountable and what happens on breach. Optional conservation
+and revision fields remain scoped extensions; their thresholds are runbook-local,
+not universal doctrine. Structural validity does not establish that a real closure
+decision was adequate.
 
 Before release or a governance change, the release owner records the
 [institutional self-test](strategy/INSTITUTIONAL-SELF-TEST.md), with evidence,
 scope, unresolved gaps and accountability. CI cannot certify independence or
 institutional functioning. The baseline records those predicates as
-`NOT_DEMONSTRATED`; it does not invent completed governance exercises.
+`NOT_DEMONSTRATED`; it does not invent completed governance exercises. The dated
+[institutional exercise plan](strategy/INSTITUTIONAL-SELF-TEST-EXERCISE-2026-09.md)
+is a plan for collecting that evidence, not a certificate or score.
+
+## Repository ruleset — Admin-required enforcement
+
+Repository settings are part of the release boundary. At the 2026-09-14 review,
+the active ruleset `mAIN` (ID `23156139`) targeted `~ALL`, blocked ordinary
+updates to feature branches, and did not require pull requests or CI checks on
+`main`. This was observed directly when a temporary PR #16 generation job was
+rejected with `GH013: Cannot update this protected ref` on a feature branch.
+
+This cannot be repaired from repository contents alone. An administrator must
+edit **Settings → Rules → Rulesets** so that the protection targets `main` (not
+all branches), blocks deletion and force-push there, requires a pull request, and
+requires these current job contexts before merge:
+
+- `Validate agent frontmatter and structure`
+- `divisions.json is the single source of truth`
+- `runbook rosters reference real agent slugs`
+- `tools.json is the single source of truth`
+- `install.sh hermes config rewrite`
+- `install.sh behavior (ubuntu-latest)`
+- `install.sh behavior (macos-latest)`
+
+Broad always-bypass roles/integrations should be removed unless they have a
+named emergency or release purpose. Acceptance is operational, not textual:
+an ordinary feature branch must be creatable/updatable/deletable without bypass;
+a PR to `main` must remain unmergeable while a required check is pending/failing;
+and direct force-push/delete/update of `main` must remain blocked for ordinary
+actors. Do not treat this section as evidence that the setting has been changed.
 
 ## Validation implementations and upstream updates
 
@@ -113,6 +146,8 @@ The validation dependencies and Hermes/catalog implementations are checked in:
 - [check-hermes-plugin.py](scripts/check-hermes-plugin.py)
 - [test-hermes-plugin.py](scripts/test-hermes-plugin.py)
 - [build-catalog.py](scripts/build-catalog.py)
+- [list-changed-agent-files.py](scripts/list-changed-agent-files.py)
+- [test-changed-agent-files.py](scripts/test-changed-agent-files.py)
 
 Hermes lifecycle tests use a simulated lifecycle and a fresh generated plugin;
 they do not replace an authenticated host smoke test. Catalog freshness and
