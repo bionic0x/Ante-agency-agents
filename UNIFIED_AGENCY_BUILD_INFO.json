@@ -1,34 +1,39 @@
 {
+  "schema_version": 2,
   "package": "Unified Agency",
   "repository": "bionic0x/Ante-agency-agents",
-  "branch": "upstream-2026-09-strategy-doctrine",
-  "canonical_consolidated_commit": "941377a9d78a5e82ac89b693ff963aad44875bf0",
-  "pull_request": 2,
-  "agency_agents_upstream_commit": "6d29a9b08785a0e49ffc9818bbdd381164c2df5f",
-  "openclaw_source": "mergisi/awesome-openclaw-agents",
-  "openclaw_source_commit": "05820c51125e86a979432e21651d34dc9b14621f",
-  "canonical_agent_count": 487,
-  "openclaw_discovered_soul_files": 196,
-  "openclaw_imported_agents": 186,
-  "openclaw_aliases": 10,
+  "canonical_branch": "main",
+  "metadata_role": "Versioned snapshot metadata. This file records the validated repository state at the named content baseline; it is not a live pointer to the current HEAD and does not certify authenticated host execution.",
+  "snapshot": {
+    "date": "2026-09-14",
+    "content_baseline_commit": "0427cf240e8db33d30b966092cd00dee14069d85",
+    "basis": "main after PR #16, including PR #15 termination-contract completion and PR #17 lint-discovery hardening",
+    "canonical_agent_count": 490,
+    "division_count": 19,
+    "runbook_count": 8,
+    "termination_contract_count": 8,
+    "tool_count": 16,
+    "converted_format_count": 14,
+    "last_full_pr_validation_head": "355597eaec381cea36dbad2c14ff1c6fff976c0f",
+    "validation_summary": "Six pull-request workflows green; strict conversion 27/27 over 490 roster agents x 14 converted tools; installer suites green on Ubuntu and macOS; lint and originality executed for the three new domain agents."
+  },
+  "source_provenance": {
+    "agency_agents_upstream_commit": "6d29a9b08785a0e49ffc9818bbdd381164c2df5f",
+    "openclaw_source": "mergisi/awesome-openclaw-agents",
+    "openclaw_source_commit": "05820c51125e86a979432e21651d34dc9b14621f",
+    "openclaw_discovered_soul_files": 196,
+    "openclaw_imported_agents": 186,
+    "openclaw_aliases": 10,
+    "verification_policy": "strategy/UPSTREAM-SYNC.md"
+  },
   "architecture": "one doctrine, one canonical catalog, one NEXUS/runbook registry, multiple tool adapters",
-  "division_count": 19,
-  "runbook_count": 8,
-  "revision": {
-    "date": "2026-09-13",
-    "base": "main @ 2d4bff0 (post PR #4)",
-    "agent_count_at_base": 476,
-    "changes": [
-      "Moved non-agent doctrine marketing/AGENCY_OPERATING_MODEL.md to strategy/MARKETING-OPERATING-MODEL.md and updated every reference",
-      "Resolved 61 recommended-section lint warnings across 37 agents",
-      "Repaired UTF-16-damaged emoji section headings in engineering-mobile-app-builder.md and marketing-app-store-optimizer.md",
-      "Regenerated integrations/hermes/README.md agent count (was stale at 279)",
-      "check-agent-originality.sh scores imported agents on their capability notes instead of the shared import wrapper (max similarity 38.5% -> 4.7%)",
-      "Added mispriced-cmo division (11 agents) and 2 runbooks: marketing-mispricing-diagnostic, boring-wins-manuscript, both carrying the NEXUS v2 strategic contract fields",
-      "Renamed the division's Proposition & Citation Auditor to Mispricing Claim Auditor to avoid a display-name collision with research-proposition-citation-auditor",
-      "lint-agents.sh no longer treats a division README.md as an agent file (marketing/README.md was failing lint on main)",
-      "Added scripts/build-catalog.py and generated CATALOG.md (complete roster; README omitted 194 agents)",
-      "Regenerated integration outputs and scripts/convert-outputs.sha256"
-    ]
-  }
+  "recent_hardening": [
+    "PR #11 reduced conversion subprocess overhead without changing generated adapter contracts.",
+    "PR #12 added reproducible conversion benchmarking and canonical division discovery.",
+    "PR #13 added granular per-agent incremental conversion state with clean fallback semantics.",
+    "PR #14 made tools.json authoritative for supported-tool membership/order and hardened CI actions/permissions.",
+    "PR #15 completed structured termination contracts across all eight runbooks and made absence a CI failure.",
+    "PR #17 fixed changed-agent discovery so root-level division agents cannot silently skip lint/originality checks.",
+    "PR #16 added bounded nowcasting, labor/employment litigation and ES/EN localization specialists and refreshed the 490-agent catalog/manifest."
+  ]
 }
