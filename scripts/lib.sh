@@ -135,6 +135,18 @@ is_agent_file() {
   [[ "$first" == '---' ]]
 }
 
+# load_agent <file> — lightweight conversion-loop probe. It intentionally does
+# not cache the whole body: benchmark evidence showed that concatenating large
+# Markdown bodies in Bash can erase the subprocess savings. The richer
+# normalized representation remains a separately benchmarked future change.
+AGENT_NAME=""
+load_agent() {
+  AGENT_NAME=""
+  is_agent_file "$1" || return 1
+  AGENT_NAME="$(get_field name "$1")"
+  return 0
+}
+
 # ---------------------------------------------------------------------------
 # 1b. Markdown fenced-code-block helpers (issue #849)
 # ---------------------------------------------------------------------------
