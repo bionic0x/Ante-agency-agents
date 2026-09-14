@@ -6,36 +6,15 @@
 #   3. File must have meaningful content
 #
 # Usage: ./scripts/lint-agents.sh [file ...]
-#   If no files given, scans all agent directories.
+#   If no files given, scans all agent directories from divisions.json.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
-
-# Keep in sync with AGENT_DIRS in scripts/convert.sh
-AGENT_DIRS=(
-  academic
-  design
-  engineering
-  finance
-  game-development
-  gis
-  healthcare
-  marketing
-  mispriced-cmo
-  paid-media
-  product
-  project-management
-  research
-  sales
-  security
-  spatial-computing
-  specialized
-  support
-  testing
-)
+cd "$REPO_ROOT"
 
 REQUIRED_FRONTMATTER=("name" "description" "color")
 RECOMMENDED_SECTIONS=("Identity" "Core Mission" "Critical Rules")
@@ -175,13 +154,15 @@ files=()
 if [[ $# -gt 0 ]]; then
   files=("$@")
 else
-  for dir in "${AGENT_DIRS[@]}"; do
+  divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || exit 1
+  while IFS= read -r dir; do
+    [[ -n "$dir" ]] || continue
     if [[ -d "$dir" ]]; then
       while IFS= read -r f; do
         files+=("$f")
       done < <(find "$dir" -name "*.md" -type f ! -name "README.md" | sort)
     fi
-  done
+  done <<< "$divisions"
 fi
 
 if [[ ${#files[@]} -eq 0 ]]; then

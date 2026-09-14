@@ -22,6 +22,10 @@ on:
       - "support/**"
       - "spatial-computing/**"
       - "specialized/**"
+      - "divisions.json"
+      - "scripts/lib.sh"
+      - "scripts/lint-agents.sh"
+      - "scripts/registry.py"
 
 jobs:
   lint:
@@ -31,33 +35,51 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Get changed agent files
+      - name: Get changed agent and lint-infrastructure files
         id: changed
         run: |
           FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
             'academic/**/*.md' 'design/**/*.md' 'engineering/**/*.md' 'finance/**/*.md' 'game-development/**/*.md' 'gis/**/*.md' 'healthcare/**/*.md' 'marketing/**/*.md' 'mispriced-cmo/**/*.md' 'paid-media/**/*.md' 'sales/**/*.md' 'security/**/*.md' 'product/**/*.md' \
             'project-management/**/*.md' 'research/**/*.md' 'testing/**/*.md' 'support/**/*.md' \
             'spatial-computing/**/*.md' 'specialized/**/*.md')
+          INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
+            divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py)
           {
             echo "files<<ENDOFLIST"
             echo "$FILES"
             echo "ENDOFLIST"
+            if [ -n "$INFRA" ]; then
+              echo "full=true"
+            else
+              echo "full=false"
+            fi
           } >> "$GITHUB_OUTPUT"
-          if [ -z "$FILES" ]; then
-            echo "No agent files changed."
-          else
-            echo "Changed files:"
+          if [ -n "$INFRA" ]; then
+            echo "Lint infrastructure changed; full roster lint required:"
+            echo "$INFRA"
+          elif [ -n "$FILES" ]; then
+            echo "Changed agent files:"
             echo "$FILES"
+          else
+            echo "No agent files changed."
           fi
 
       - name: Run agent linter
-        if: steps.changed.outputs.files != ''
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.files != ''
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          FULL_LINT: ${{ steps.changed.outputs.full }}
         run: |
           chmod +x scripts/lint-agents.sh
-          ./scripts/lint-agents.sh $CHANGED_FILES
+          if [ "$FULL_LINT" = "true" ]; then
+            ./scripts/lint-agents.sh
+          else
+            ./scripts/lint-agents.sh $CHANGED_FILES
+          fi
 
       - name: Check agent originality
         if: steps.changed.outputs.files != ''
