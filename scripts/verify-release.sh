@@ -7,6 +7,7 @@ python3 -c 'import yaml, tomllib' || {
   exit 1
 }
 for script in scripts/*.sh; do bash -n "$script"; done
+python3 scripts/test-changed-agent-files.py
 for check in lint-agents check-divisions check-tools check-runbooks check-hermes-config-rewrite; do
   bash "scripts/$check.sh"
 done
