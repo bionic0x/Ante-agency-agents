@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python3 -m pip install -r scripts/requirements-validation.txt
 
       - name: Validate tool set
         run: |
@@ -21,6 +25,9 @@ jobs:
 
       - name: Validate generated Hermes plugin
         run: python3 scripts/check-hermes-plugin.py
+
+      - name: Validate Hermes lifecycle behavior from a clean build
+        run: python3 scripts/test-hermes-plugin.py
 
       - name: Validate converted YAML frontmatter
         run: bash scripts/test-convert-frontmatter.sh

@@ -31,30 +31,40 @@ Born from a Reddit thread and months of iteration, **The Agency** is a growing c
 
 ## ⚡ Quick Start
 
-### Option 1: Install the app (Recommended)
+### Install this fork with Claude Code
 
-The fastest way in — no clone, no terminal. [**Agency Agents**](https://agencyagents.app) is a native desktop app (macOS · Linux · Windows) that browses the whole roster and installs agents into Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Qwen, and Osaurus for you, then keeps them up to date.
-
-**[⬇ Download the latest release](https://github.com/msitarzewski/agency-agents-app/releases/latest)** — or on a Mac:
-
-```bash
-brew install --cask msitarzewski/agency-agents/agency-agents
-```
-
-Prefer the command line? The script-based options below install the same agents.
-
-### Option 2: Use with Claude Code
+Requirements: Git, Bash 3.2+, Python 3 and standard Unix tools (including Perl for
+converted formats). On Windows use WSL or Git Bash with Python available as
+`python3`. Install and authenticate your chosen AI tool separately.
 
 ```bash
-# Install all agents to your Claude Code directory
-./scripts/install.sh --tool claude-code
+git clone https://github.com/bionic0x/Ante-agency-agents.git
+cd Ante-agency-agents
 
-# Or manually copy a category if you only want one division
-cp engineering/*.md ~/.claude/agents/
+# Discover the eight available workflows
+bash scripts/install.sh --list runbooks
 
-# Then activate any agent in your Claude Code sessions:
-# "Hey Claude, activate Frontend Developer mode and help me build a React component"
+# Preview and install the Solana + Arbitrum Gate 0 team (nine agents)
+bash scripts/install.sh --tool claude-code --runbook htp-gate0-solana-arbitrum --dry-run
+bash scripts/install.sh --tool claude-code --runbook htp-gate0-solana-arbitrum
+
+# Or select a division or a canonical catalog agent
+bash scripts/install.sh --tool claude-code --division mispriced-cmo
+bash scripts/install.sh --tool claude-code --agent specialized-strategic-assurance-lead
 ```
+
+Start Claude Code from this repository so the agents can read `strategy/` and its
+referenced templates. Ask it to use
+`strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md`, apply both network overlays,
+and report the unresolved Gate 0 inputs. Installation makes profiles available;
+the host controls invocation and tools. It does not close Gate 0 or launch a DeFi
+monitoring service. See [OPERATIONS.md](OPERATIONS.md) for verification and other adapters.
+
+### Upstream desktop app
+
+The linked desktop app is maintained upstream. Its inclusion of this fork's
+Mispriced CMO division and HTP runbooks has not been verified. Use the checkout
+above to install this repository's exact roster.
 
 ### Option 3: Use as Reference
 
@@ -752,7 +762,7 @@ Each agent is designed with:
 ## 📊 Stats
 
 - 🎭 **480+ Specialized Agents** across 19 divisions — full list in [CATALOG.md](CATALOG.md)
-- 🧭 **7 NEXUS runbooks** with one-click team rosters in `strategy/runbooks.json`
+- 🧭 **8 NEXUS runbooks** with one-click team rosters in `strategy/runbooks.json`
 - 📝 **10,000+ lines** of personality, process, and code examples
 - ⏱️ **Months of iteration** from real-world usage
 - 🌟 **Battle-tested** in production environments

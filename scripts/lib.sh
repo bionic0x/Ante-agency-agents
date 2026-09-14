@@ -42,7 +42,7 @@ get_field() {
 
 # get_body <file> — file contents with the leading frontmatter block stripped.
 get_body() {
-  awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$1"
+  awk 'BEGIN{fm=0} fm<2 && /^---$/{fm++; next} fm>=2{print}' "$1"
 }
 
 # slugify <string> — "Frontend Developer" -> "frontend-developer"
