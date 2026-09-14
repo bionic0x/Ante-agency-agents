@@ -17,14 +17,15 @@
 #   5. strategic metadata is missing or empty
 #   6. the Strategic Assurance Lead is absent from a runbook roster
 #   7. termination_criteria is a placeholder rather than a criterion
-#   8. a termination_contract, where present, does not answer all four questions
+#   8. a runbook lacks a structured termination_contract answering all four
+#      closure questions, or the contract is malformed
 #
 # On termination: a non-empty string is not a termination criterion. The source
 # doctrine (Marco Teorico General de la Estrategia, XII.9) holds that before
 # closing, the authority must be able to say what was achieved, what remains
-# outstanding, who answers for it, and what happens on breach. runbooks may carry
-# that as a structured `termination_contract`; runbooks without one are reported
-# as advisory so the contract can be adopted without breaking existing scenarios.
+# outstanding, who answers for it, and what happens on breach. Every runbook
+# therefore carries those four answers as a structured `termination_contract`.
+# `conservation_resources` and `revision_conditions` are supported extensions.
 #
 # Uses python3; no jq required.
 
@@ -87,16 +88,17 @@ required_fields = (
     "decision_owner",
     "required_artifacts",
     "termination_criteria",
+    "termination_contract",
     "roster",
 )
 
 PLACEHOLDERS = {"", "tbd", "todo", "n/a", "na", "none", "-", "--", "pending", "unknown"}
 TERMINATION_KEYS = ("achieved", "outstanding", "accountable", "on_breach")
+OPTIONAL_TERMINATION_KEYS = ("conservation_resources", "revision_conditions")
 
 seen_slugs = set()
 total_refs = 0
 total_artifacts = 0
-advisories = []
 contracts = 0
 
 for rb in runbooks:
@@ -192,16 +194,14 @@ for rb in runbooks:
 
     contract = rb.get("termination_contract")
     if "termination_contract" not in rb:
-        advisories.append(
-            f"runbook '{rid}': no termination_contract — closure questions "
-            f"({', '.join(TERMINATION_KEYS)}) have no structured record"
-        )
+        # required_fields already records the missing field; keep one structural
+        # error per omission rather than adding a second error for the same defect.
+        pass
     elif not isinstance(contract, dict):
         errors.append(f"runbook '{rid}': termination_contract must be an object")
     else:
         contracts += 1
-        optional_keys = ("conservation_resources", "revision_conditions")
-        for key in (*TERMINATION_KEYS, *(key for key in optional_keys if key in contract)):
+        for key in (*TERMINATION_KEYS, *(key for key in OPTIONAL_TERMINATION_KEYS if key in contract)):
             value = contract.get(key)
             if key not in contract:
                 errors.append(f"runbook '{rid}': termination_contract is missing {key!r}")
@@ -209,7 +209,7 @@ for rb in runbooks:
                 errors.append(
                     f"runbook '{rid}': termination_contract.{key} must be a non-placeholder string"
                 )
-        unknown = set(contract) - set(TERMINATION_KEYS) - {"conservation_resources", "revision_conditions"}
+        unknown = set(contract) - set(TERMINATION_KEYS) - set(OPTIONAL_TERMINATION_KEYS)
         if unknown:
             errors.append(
                 f"runbook '{rid}': termination_contract has unknown key(s): {', '.join(sorted(unknown))}"
@@ -229,12 +229,6 @@ if errors:
     for error in errors:
         print(f"  ERROR {error}")
     sys.exit(1)
-
-if advisories:
-    print("ADVISORY (not a failure):")
-    for advisory in advisories:
-        print(f"  {advisory}")
-    print()
 
 print(
     f"PASSED: {len(runbooks)} runbooks, {total_refs} agent slug references, "

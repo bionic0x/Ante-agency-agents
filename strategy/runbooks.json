@@ -16,6 +16,14 @@
         "strategy/templates/claim-register.yaml"
       ],
       "termination_criteria": "Close the strategic decision cycle when the authorized owner records a bounded decision and review/termination conditions, or terminate/redesign when a fatal authority, admissibility, causal, evidence, or conservation defect remains unresolved.",
+      "termination_contract": {
+        "achieved": "The authorized decision owner has recorded proceed, stage, redesign, pause, or stop together with the superior purpose, minimum acceptable result, chosen mechanism, critical assumptions, Red Team findings, resource shift and reserve, refutators, residual risks, review trigger, and termination condition; any transition required by the decision has an explicit ordinary owner.",
+        "outstanding": "Accepted risks, pending information, open obligations, unresolved dependencies, and any condition not yet conserved are recorded explicitly with the evidence or action needed to close them; none is converted into implied completion by the decision itself.",
+        "accountable": "The named human or institutional decision owner remains accountable for the material choice and accepted residual risk; after transition, the named permanent institutional owner answers for conservation. Agents diagnose, challenge, recommend, and execute bounded work but do not inherit decision authority.",
+        "on_breach": "If a declared refutator, hard legal/ethical limit, authority defect, fatal Red Team finding, or termination trigger is reached, the current course is paused or stopped and returned to the decision owner for redesign or a new bounded decision; an executor may not waive the trigger by continuing execution.",
+        "conservation_resources": "A permanent owner, ordinary budget/capacity, verification procedure, retained decision/evidence record, and an exception path sufficient to keep the result functioning after extraordinary attention and reserve are withdrawn.",
+        "revision_conditions": "Reopen the decision when a refutator fires, actor authority or a decisive dependency materially changes, reserve falls below the level assumed by the choice, the initiative reaches culmination, or transition evidence shows that the result cannot be conserved under ordinary conditions."
+      },
       "doc": "strategy/runbooks/scenario-strategic-decision.md",
       "roster": [
         {
@@ -63,6 +71,14 @@
         "strategy/templates/claim-register.yaml"
       ],
       "termination_criteria": "Close, redesign, or narrow the initiative when the declared falsifier is met, required authority/resources cannot be obtained, or the minimum sufficient result is achieved and transferred to ordinary ownership.",
+      "termination_contract": {
+        "achieved": "The bounded MVP has generated decision-grade evidence against the declared product thesis, the decision owner has recorded PROCEED, PROCEED_WITH_CONDITIONS, HOLD, REDESIGN, or REJECT for the next material commitment, and any surviving product has an identified ordinary product/operations owner rather than remaining an experiment by inertia.",
+        "outstanding": "Untested or weakly tested problem, product, willingness-to-use/pay, acquisition/distribution, and operational-supportability hypotheses remain named in the Claim Register together with relevant UNKNOWN surfaces, intentionally deferred architecture, and the evidence needed before they can support a larger commitment.",
+        "accountable": "The authorized founder, product owner, or executive owns the next material investment and accepted residual risk; after transfer, the named product/operations owner answers for serviceability and controls. Strategic Assurance and orchestration roles do not acquire that authority.",
+        "on_breach": "If the declared falsifier is met, required authority/resources cannot be obtained, supportability becomes unacceptable, or the MVP stops generating decision value relative to cost, work is narrowed, redesigned, held, or rejected rather than extended because of launch dates, sunk cost, or prior sprint success.",
+        "conservation_resources": "A named operational owner, evidence-derived SLOs and constraints, ordinary support capacity, the preserved Claim Register, and repeatable controls/tests sufficient to operate the surviving product without temporary MVP access or process.",
+        "revision_conditions": "Reopen the thesis before material scale expansion when evidence weakens the user problem or causal mechanism, acquisition or support economics change materially, a critical dependency/constraint changes, or the next exposure would exceed the authority and blast radius tested by the MVP."
+      },
       "doc": "strategy/runbooks/scenario-startup-mvp.md",
       "roster": [
         {
@@ -124,6 +140,14 @@
         "strategy/templates/claim-register.yaml"
       ],
       "termination_criteria": "Stop or redesign when a fatal security/compliance/architecture condition emerges, the causal benefit thesis is falsified, or the validated capability is transferred to normal product and operations ownership.",
+      "termination_contract": {
+        "achieved": "The declared enterprise capability has evidence for its user/business mechanism, material requirements trace to authoritative sources, required integration/migration and project-specific quality evidence is sufficient, applicable security/compliance conditions are satisfied or explicitly accepted by their competent authorities, rollback/isolation is understood, and ordinary product/operations/support ownership has accepted the capability.",
+        "outstanding": "All remaining UNKNOWN and NOT_TESTED surfaces, conditional approvals, deferred requirements, migration liabilities, external dependencies, and operational burdens are recorded with owners and the evidence or decision required; roadmap completion does not erase them.",
+        "accountable": "The authorized product/program owner owns the business commitment; security, compliance, legal, data, architecture, and operational authorities retain their non-transferable decision rights; after release, the named ordinary product/operations owner answers for sustainment.",
+        "on_breach": "If the benefit thesis is falsified, a mandatory legal/security/control condition cannot be satisfied, integration becomes materially incompatible, operational burden exceeds authorized benefit, or safe operating reserve is consumed, exposure is held, rolled back where appropriate, or redesigned; schedule pressure and executive visibility cannot waive the affected authority's gate.",
+        "conservation_resources": "Named product/operations/support ownership, sufficient ordinary support capacity, outcome and technical monitoring, tested rollback/isolation where required, and the preserved decision/evidence record needed to sustain the capability after project staffing ends.",
+        "revision_conditions": "Open a new decision record when the user/business objective, authoritative requirement, architecture, control perimeter, material dependency, deployment population, or accepted risk changes enough that the prior evidence no longer supports the current exposure."
+      },
       "doc": "strategy/runbooks/scenario-enterprise-feature.md",
       "roster": [
         {
@@ -189,6 +213,14 @@
         "strategy/templates/claim-register.yaml"
       ],
       "termination_criteria": "Stop, reallocate, redesign, or re-diagnose when the demand/causal hypothesis is falsified, marginal effort no longer contributes to the governing object, a hard constraint is breached, or the sufficient result is reached and conserved.",
+      "termination_contract": {
+        "achieved": "The campaign's defined commercial or behavioral result is reported against its measured baseline or explicit UNKNOWN, the final Claim Register distinguishes supported and rejected audience/channel/creative hypotheses, attribution method and limitations are recorded, guardrail outcomes are visible, and the authorized owner has made the close, scale, hold, redesign, or reallocation decision.",
+        "outstanding": "Unresolved attribution limits, data-quality gaps, unsupported hypotheses, audience or market unknowns, guardrail issues, and any temporary platform/access/process obligations are recorded rather than converted into a universal channel or creative rule.",
+        "accountable": "The authorized marketing/business owner remains accountable for budget, publication, and material allocation; compliance, brand, platform, and legal authorities retain their respective rights. Named ordinary owners receive any learning or process that survives the campaign.",
+        "on_breach": "A falsifier, inadmissible guardrail breach, withdrawal of authority/platform access, or evidence that marginal spend/effort no longer contributes to the governing object triggers pause, reallocation, redesign, or stop; the team may not answer the breach by reflexively increasing spend, content cadence, or channel count.",
+        "conservation_resources": "The final Claim Register, baseline-versus-result record, attribution method and limitations, reusable brand/compliance learnings, and named owners for any retained capability; campaign-specific budgets, automation, access, and temporary processes expire when their authority ends.",
+        "revision_conditions": "Re-diagnose when the target audience, product/value proposition, platform access or policy, measurement model, market context, marginal economics, or material guardrails change enough that the prior causal allocation no longer explains the expected result."
+      },
       "doc": "strategy/runbooks/scenario-marketing-campaign.md",
       "roster": [
         {
@@ -257,6 +289,14 @@
         "strategy/templates/claim-register.yaml"
       ],
       "termination_criteria": "End emergency mode only when containment and recovery criteria are met, residual risks have owners, temporary authority/access is expired or transferred, and conservation actions are assigned to ordinary ownership.",
+      "termination_contract": {
+        "achieved": "The critical function is restored to the declared safe/supportable condition or deliberately changed by the authorized incident owner, material evidence is preserved, residual risks and durable remediation have named owners, stakeholder obligations are addressed, temporary emergency authority/access has expired or transferred, and monitoring/verification can show whether recovery is conserved.",
+        "outstanding": "Remaining residual risks, UNKNOWN and NOT_TESTED surfaces, durable remediation, regression/control tests, dependency or vendor follow-up, data/user remediation, and security/compliance/legal follow-up are recorded with owners and review dates; emergency closure does not imply that this work is complete.",
+        "accountable": "The named incident authority alone closes or changes emergency mode under organizational policy; each durable remediation has an ordinary owner after transfer. Technical access and agent participation do not create authority to accept degraded service or residual risk.",
+        "on_breach": "If the original mechanism recurs, a recovery guardrail or data/integrity condition fails, material evidence contradicts the closure basis, or an emergency bypass/elevated access persists without transfer, the incident is reopened or escalated to the authorized owner and the unsafe temporary state is not normalized by silence.",
+        "conservation_resources": "Named ordinary owners for durable remediation, regression/control tests and monitoring; preserved incident evidence and post-incident decision record; and removal or governed transfer of elevated access, temporary credentials, feature flags, bypasses, routing, and emergency process.",
+        "revision_conditions": "Reopen the incident analysis when recurrence reveals the same propagation mechanism, new evidence changes the causal account, a temporary workaround becomes a persistent dependency, or a control expected to prevent recurrence fails under ordinary operation."
+      },
       "doc": "strategy/runbooks/scenario-incident-response.md",
       "roster": [
         {
@@ -311,6 +351,14 @@
         "strategy/htp-gate0/gate0/06-mvp-falsifiers.md"
       ],
       "termination_criteria": "Gate 0 closes with PROCEED, PROCEED_WITH_CONDITIONS, REDESIGN, or REJECT once the bounded artifacts and evidence are sufficient; HOLD persists only while a named evidence/authority condition remains unresolved. No Gate 0 result authorizes live offensive or executing capability.",
+      "termination_contract": {
+        "achieved": "For each network separately, all six Gate 0 artifacts and the final chain-specific E1↔S1 disposition are recorded, required competent legal-review status and named human product/security/governance owners are visible, and human governance has issued PASS_TO_EVIDENCE_FOUNDATION, REDESIGN, HOLD, or STOP without importing the other network's validation. A pass authorizes only the next bounded evidence stage, not production execution.",
+        "outstanding": "Every HOLD or incomplete condition is listed by network — including missing client/protocol scope, deployed manifest/adapters, quantitative evaluation parameters, competent legal sign-off, accountable human owner/reviewer, unresolved E1↔S1 finding, or evidence gap — and remains unresolved rather than being silently converted into a pass.",
+        "accountable": "Named human HTP governance decides each network's Gate 0 state; G1 owns package integrity and escalation, competent human/legal authority owns legal sign-off where required, and named technical/product reviewers own their decisions. No document author or agent may self-issue PASS_TO_EVIDENCE_FOUNDATION or live execution authority.",
+        "on_breach": "Any production write, real transaction/signing/custody action, unauthorized third-party interaction, unsupported empirical claim/status upgrade, cross-network evidence leakage, or material departure from the bounded object invalidates the affected Gate basis: stop the unauthorized path and return that network to HOLD, REDESIGN, or STOP until human governance records a new decision.",
+        "conservation_resources": "Immutable/versioned Gate artifacts, independent network claim registers, final manifests and evaluation parameters frozen before benchmark/shadow work, recorded E1↔S1 dispositions, and named human owners/review dates sufficient to preserve scope and evidence status after the Gate meeting ends.",
+        "revision_conditions": "Reopen the affected network Gate when the named protocol/market/program/feed manifest changes materially, threat definitions or observability assumptions change, the planned activity or jurisdiction/legal status changes, a client or accountable owner changes, or new evidence invalidates the scope, falsifier, or handoff disposition that supported the prior Gate decision."
+      },
       "doc": "strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md",
       "roster": [
         {
