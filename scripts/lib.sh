@@ -16,13 +16,10 @@
 # 1. Frontmatter / slug helpers
 # ---------------------------------------------------------------------------
 
-# _emit_yaml_scalar <value> — normalize the small YAML scalar subset used by
-# agent frontmatter. This deliberately mirrors the previous awk implementation:
-# trim outer padding, strip one matching quote pair, unescape \" / \\ in double
-# quotes and doubled apostrophes in single quotes. It is pure bash so repeated
-# metadata lookups do not fork awk thousands of times during full conversion.
-_emit_yaml_scalar() {
-  local v="$1"
+# _set_yaml_scalar <varname> <value> — normalize the small YAML scalar subset
+# used by agent frontmatter and assign it without a command-substitution fork.
+_set_yaml_scalar() {
+  local target="$1" v="$2"
   while [[ "$v" == ' '* || "$v" == $'\t'* ]]; do v="${v#?}"; done
   while [[ "$v" == *' ' || "$v" == *$'\t' ]]; do v="${v%?}"; done
 
@@ -35,7 +32,114 @@ _emit_yaml_scalar() {
     v="${v:1:n-2}"
     v="${v//\'\'/\'}"
   fi
-  printf '%s\n' "$v"
+  printf -v "$target" '%s' "$v"
+}
+
+# _emit_yaml_scalar <value> — stdout wrapper retained for existing callers.
+_emit_yaml_scalar() {
+  local value
+  _set_yaml_scalar value "$1"
+  printf '%s\n' "$value"
+}
+
+# Per-agent cache. load_agent populates these in one pass; get_field/get_body
+# transparently serve current converter calls from the cache, preserving their
+# public interface for installer and test callers that still parse ad hoc.
+AGENT_CACHE_FILE=""
+AGENT_NAME=""
+AGENT_DESCRIPTION=""
+AGENT_COLOR=""
+AGENT_EMOJI=""
+AGENT_VIBE=""
+AGENT_TOOLS=""
+AGENT_BODY=""
+AGENT_HAS_NAME=0
+AGENT_HAS_DESCRIPTION=0
+AGENT_HAS_COLOR=0
+AGENT_HAS_EMOJI=0
+AGENT_HAS_VIBE=0
+AGENT_HAS_TOOLS=0
+
+# load_agent <file> — parse supported frontmatter fields and body in one file
+# pass. Returns non-zero when the file is not an agent (no opening/closing YAML
+# fence). Body semantics match $(get_body ...): trailing newlines are stripped.
+load_agent() {
+  local file="$1" line cont current="" fm=0
+  local raw_name="" raw_description="" raw_color="" raw_emoji="" raw_vibe="" raw_tools=""
+
+  AGENT_CACHE_FILE=""
+  AGENT_NAME=""; AGENT_DESCRIPTION=""; AGENT_COLOR=""; AGENT_EMOJI=""; AGENT_VIBE=""; AGENT_TOOLS=""; AGENT_BODY=""
+  AGENT_HAS_NAME=0; AGENT_HAS_DESCRIPTION=0; AGENT_HAS_COLOR=0
+  AGENT_HAS_EMOJI=0; AGENT_HAS_VIBE=0; AGENT_HAS_TOOLS=0
+
+  [[ -f "$file" ]] || return 1
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if (( fm == 0 )); then
+      [[ "$line" == '---' ]] || return 1
+      fm=1
+      continue
+    fi
+
+    if (( fm == 1 )); then
+      if [[ "$line" == '---' ]]; then
+        fm=2
+        current=""
+        continue
+      fi
+
+      if [[ "$line" == ' '* || "$line" == $'\t'* ]]; then
+        if [[ -n "$current" ]]; then
+          cont="$line"
+          while [[ "$cont" == ' '* || "$cont" == $'\t'* ]]; do cont="${cont#?}"; done
+          if [[ -n "$cont" ]]; then
+            case "$current" in
+              name)        raw_name="$raw_name $cont" ;;
+              description) raw_description="$raw_description $cont" ;;
+              color)       raw_color="$raw_color $cont" ;;
+              emoji)       raw_emoji="$raw_emoji $cont" ;;
+              vibe)        raw_vibe="$raw_vibe $cont" ;;
+              tools)       raw_tools="$raw_tools $cont" ;;
+            esac
+            continue
+          fi
+        fi
+        current=""
+        continue
+      fi
+
+      current=""
+      case "$line" in
+        "name: "*)
+          raw_name="${line#"name: "}"; AGENT_HAS_NAME=1; current=name ;;
+        "description: "*)
+          raw_description="${line#"description: "}"; AGENT_HAS_DESCRIPTION=1; current=description ;;
+        "color: "*)
+          raw_color="${line#"color: "}"; AGENT_HAS_COLOR=1; current=color ;;
+        "emoji: "*)
+          raw_emoji="${line#"emoji: "}"; AGENT_HAS_EMOJI=1; current=emoji ;;
+        "vibe: "*)
+          raw_vibe="${line#"vibe: "}"; AGENT_HAS_VIBE=1; current=vibe ;;
+        "tools: "*)
+          raw_tools="${line#"tools: "}"; AGENT_HAS_TOOLS=1; current=tools ;;
+      esac
+      continue
+    fi
+
+    AGENT_BODY+="$line"$'\n'
+  done < "$file"
+
+  (( fm >= 2 )) || return 1
+
+  while [[ "$AGENT_BODY" == *$'\n' ]]; do AGENT_BODY="${AGENT_BODY%$'\n'}"; done
+  (( AGENT_HAS_NAME )) && _set_yaml_scalar AGENT_NAME "$raw_name"
+  (( AGENT_HAS_DESCRIPTION )) && _set_yaml_scalar AGENT_DESCRIPTION "$raw_description"
+  (( AGENT_HAS_COLOR )) && _set_yaml_scalar AGENT_COLOR "$raw_color"
+  (( AGENT_HAS_EMOJI )) && _set_yaml_scalar AGENT_EMOJI "$raw_emoji"
+  (( AGENT_HAS_VIBE )) && _set_yaml_scalar AGENT_VIBE "$raw_vibe"
+  (( AGENT_HAS_TOOLS )) && _set_yaml_scalar AGENT_TOOLS "$raw_tools"
+  AGENT_CACHE_FILE="$file"
+  return 0
 }
 
 # get_field <field> <file> — value of a YAML frontmatter field (first match).
@@ -45,6 +149,17 @@ get_field() {
   local field="$1" file="$2" line val="" cont
   local fm=0 found=0
   [[ -f "$file" ]] || return 0
+
+  if [[ "${AGENT_CACHE_FILE:-}" == "$file" ]]; then
+    case "$field" in
+      name)        (( AGENT_HAS_NAME ))        && printf '%s\n' "$AGENT_NAME" ; return 0 ;;
+      description) (( AGENT_HAS_DESCRIPTION )) && printf '%s\n' "$AGENT_DESCRIPTION" ; return 0 ;;
+      color)       (( AGENT_HAS_COLOR ))       && printf '%s\n' "$AGENT_COLOR" ; return 0 ;;
+      emoji)       (( AGENT_HAS_EMOJI ))       && printf '%s\n' "$AGENT_EMOJI" ; return 0 ;;
+      vibe)        (( AGENT_HAS_VIBE ))        && printf '%s\n' "$AGENT_VIBE" ; return 0 ;;
+      tools)       (( AGENT_HAS_TOOLS ))       && printf '%s\n' "$AGENT_TOOLS" ; return 0 ;;
+    esac
+  fi
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ "$line" == '---' ]]; then
@@ -85,6 +200,10 @@ get_field() {
 get_body() {
   local line fm=0
   [[ -f "$1" ]] || return 0
+  if [[ "${AGENT_CACHE_FILE:-}" == "$1" ]]; then
+    printf '%s\n' "$AGENT_BODY"
+    return 0
+  fi
   while IFS= read -r line || [[ -n "$line" ]]; do
     if (( fm < 2 )) && [[ "$line" == '---' ]]; then
       fm=$(( fm + 1 ))
