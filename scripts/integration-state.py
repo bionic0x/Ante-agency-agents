@@ -143,7 +143,6 @@ def renderer_hash(tool: str, spec: dict[str, Any], divisions: dict[str, Any]) ->
         paths.append(ROOT / "scripts/build-hermes-plugin.py")
     parts = [(p.relative_to(ROOT).as_posix(), p.read_bytes()) for p in paths]
     parts.append(("tool-spec", json.dumps(spec, sort_keys=True, separators=(",", ":")).encode()))
-    # Only division membership affects discovery; explanatory metadata does not.
     parts.append(("division-keys", json.dumps(list(divisions), separators=(",", ":")).encode()))
     return stable_hash_parts(parts)
 
@@ -220,8 +219,6 @@ def build_state(tool: str) -> tuple[dict[str, Any], list[str], dict[str, str]]:
         }
         return state, sorted(missing), extras
 
-    # Roster/plugin outputs are aggregate by design. They retain a full-source
-    # digest because one changed agent can alter the single combined artifact.
     source_parts = [(path, bytes.fromhex(record["source_hash"])) for path, record in agents.items()]
     state = {
         "version": STATE_VERSION,
@@ -313,7 +310,9 @@ def safe_remove(rel: str, tool: str) -> None:
 
 
 def full_convert(tool: str) -> None:
-    completed = subprocess.run([str(ROOT / "scripts/convert.sh"), "--tool", tool], cwd=ROOT)
+    completed = subprocess.run(
+        [str(ROOT / "scripts/convert.sh"), "--tool", tool, "--force-full"], cwd=ROOT
+    )
     if completed.returncode:
         raise StateError(f"full conversion failed for {tool} ({completed.returncode})")
 
@@ -329,7 +328,7 @@ def incremental_convert(tool: str, sources: list[str]) -> None:
 
 
 def sync(tool: str, force: bool = False) -> str:
-    divisions, tools = registries()
+    _divisions, tools = registries()
     if tool not in tools:
         raise StateError(f"unknown registered tool: {tool}")
     spec = tools[tool]
@@ -380,8 +379,6 @@ def sync(tool: str, force: bool = False) -> str:
                 changed.append(source)
                 break
 
-    # Remove outputs owned by deleted/renamed/changed old records first so slug
-    # changes cannot leave stale adapters behind. Remove unowned extras as well.
     for source in removed + changed:
         old = old_sources.get(source)
         if isinstance(old, dict) and isinstance(old.get("outputs"), dict):
