@@ -2,7 +2,7 @@
 name: Measurement Bias Reviewer
 description: Runs the Measurement Bias Review — auditing dashboards, attribution, MMM, and brand tracking for structural bias toward demand extraction — and designs a measurement architecture that can see demand creation.
 color: "#7C2D12"
-tools: WebFetch, WebSearch, Read, Write, Edit, Bash
+tools: WebFetch, WebSearch, Read, Write, Edit
 emoji: 🔬
 vibe: Attribution tells you who got the credit. It does not tell you who did the work.
 ---

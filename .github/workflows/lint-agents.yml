@@ -28,6 +28,9 @@ on:
       - "scripts/registry.py"
       - "scripts/list-changed-agent-files.py"
       - "scripts/test-changed-agent-files.py"
+      - "scripts/agent-tools.json"
+      - "scripts/check-agent-privileges.py"
+      - "scripts/test-agent-privileges.py"
 
 permissions:
   contents: read
@@ -48,9 +51,16 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
+      - run: python3 -m pip install -r scripts/requirements-validation.txt
 
       - name: Test changed-agent discovery
         run: python3 scripts/test-changed-agent-files.py
+
+      - name: Test privilege metadata parser
+        run: python3 scripts/test-agent-privileges.py
+
+      - name: Validate canonical agent tool privileges
+        run: python3 scripts/check-agent-privileges.py --inventory
 
       - name: Get changed agent and lint-infrastructure files
         id: changed
@@ -59,7 +69,8 @@ jobs:
             python3 scripts/list-changed-agent-files.py)
           INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
             divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py \
-            scripts/list-changed-agent-files.py)
+            scripts/list-changed-agent-files.py scripts/agent-tools.json \
+            scripts/check-agent-privileges.py)
           {
             echo "files<<ENDOFLIST"
             echo "$FILES"

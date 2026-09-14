@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, collections, json, os, re, urllib.request
+import argparse, collections, hashlib, json, os, re, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -10,6 +10,7 @@ DEFAULT_SOURCE_REF = "05820c51125e86a979432e21651d34dc9b14621f"
 SOURCE_LICENSE = "MIT"
 SOURCE_NOTICE = "Copyright (c) 2025 OpenClaw Community"
 DEFAULT_WORKERS = 8
+FULL_GIT_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 
 CATEGORY_MAP = {
     "automation":"specialized","business":"specialized","creative":"design","data":"research",
@@ -41,15 +42,36 @@ CURATED_ALIASES = {
     "productivity/orion":"project-manager-senior",
     "security/security-auditor":"security-security-auditor",
 }
-UA = "Agency-Agents-Unified-Importer/1.0"
+UA = "Agency-Agents-Unified-Importer/1.1"
 
-def http_text(url:str)->str:
+def http_bytes(url:str)->bytes:
     req=urllib.request.Request(url,headers={"User-Agent":UA,"Accept":"application/vnd.github+json"})
     with urllib.request.urlopen(req,timeout=60) as resp:
-        return resp.read().decode("utf-8")
+        return resp.read()
+
+def http_text(url:str)->str:
+    return http_bytes(url).decode("utf-8")
 
 def http_json(url:str)->Any:
     return json.loads(http_text(url))
+
+def git_blob_sha(data:bytes)->str:
+    payload=b"blob "+str(len(data)).encode("ascii")+b"\0"+data
+    try:
+        return hashlib.sha1(payload,usedforsecurity=False).hexdigest()
+    except TypeError:
+        return hashlib.sha1(payload).hexdigest()
+
+def verified_blob_text(url:str,expected_blob:str)->str:
+    if not re.fullmatch(r"[0-9a-fA-F]{40}",expected_blob):
+        raise ValueError(f"invalid expected Git blob SHA: {expected_blob!r}")
+    data=http_bytes(url); actual=git_blob_sha(data)
+    if actual.lower()!=expected_blob.lower():
+        raise ValueError(f"Git blob mismatch: expected {expected_blob}, got {actual}")
+    return data.decode("utf-8")
+
+def immutable_source_ref(value:str)->bool:
+    return bool(FULL_GIT_SHA_RE.fullmatch(value))
 
 def slugify(v:str)->str:
     return re.sub(r"[^a-z0-9]+","-",v.lower().strip()).strip("-")
@@ -187,14 +209,14 @@ This normalized file is part of the **single Agency catalog**. It is not a secon
 '''
 
 def fetch_source_texts(discovered:list[dict[str,Any]],source_ref:str,workers:int)->tuple[dict[str,str],list[dict[str,str]]]:
-    """Fetch independent SOUL.md files concurrently while preserving deterministic output order later."""
+    """Fetch SOUL.md files and verify exact bytes against the pinned Git tree."""
     texts:dict[str,str]={}
     errors:list[dict[str,str]]=[]
 
     def fetch_one(item:dict[str,Any])->tuple[str,str]:
         path=item["source_path"]
         url=f"https://raw.githubusercontent.com/{SOURCE_REPO}/{source_ref}/{path}"
-        return path,http_text(url)
+        return path,verified_blob_text(url,item["source_blob"])
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
         future_paths={pool.submit(fetch_one,item):item["source_path"] for item in discovered}
@@ -218,6 +240,8 @@ def main()->int:
     args=ap.parse_args()
     if args.workers < 1:
         ap.error("--workers must be >= 1")
+    if not immutable_source_ref(args.source_ref):
+        ap.error("--source-ref must be an immutable full 40-hex Git commit SHA")
     root=Path(args.root).resolve()
     divisions_doc=json.loads((root/"divisions.json").read_text(encoding="utf-8"))
     divisions=divisions_doc["divisions"]
@@ -226,8 +250,9 @@ def main()->int:
     commit=http_json(f"https://api.github.com/repos/{SOURCE_REPO}/git/commits/{args.source_ref}")
     tree_sha=commit["tree"]["sha"]
     tree=http_json(f"https://api.github.com/repos/{SOURCE_REPO}/git/trees/{tree_sha}?recursive=1")
-    source_blobs={i["path"]:i["sha"] for i in tree.get("tree",[])
-                  if i.get("type")=="blob" and i["path"].startswith("agents/") and i["path"].endswith("/SOUL.md")}
+    all_blobs={i["path"]:i["sha"] for i in tree.get("tree",[]) if i.get("type")=="blob"}
+    source_blobs={path:sha for path,sha in all_blobs.items()
+                  if path.startswith("agents/") and path.endswith("/SOUL.md")}
     discovered=[]; id_counts=collections.Counter()
     for path in sorted(source_blobs):
         parts=path.split("/")
@@ -236,18 +261,30 @@ def main()->int:
         id_counts[sid]+=1
         discovered.append({"source_path":path,"source_category":category,"source_id":sid,"source_blob":source_blobs[path]})
 
-    source_manifest=json.loads(http_text(f"https://raw.githubusercontent.com/{SOURCE_REPO}/{args.source_ref}/agents.json"))
+    manifest_blob=all_blobs.get("agents.json")
+    if not manifest_blob:
+        print("ERROR: pinned source tree does not contain agents.json",file=sys.stderr)
+        return 1
+    try:
+        source_manifest=json.loads(verified_blob_text(
+            f"https://raw.githubusercontent.com/{SOURCE_REPO}/{args.source_ref}/agents.json",manifest_blob))
+    except (UnicodeError,ValueError,json.JSONDecodeError) as exc:
+        print(f"ERROR: cannot verify pinned agents.json: {exc}",file=sys.stderr)
+        return 1
     manifest_agents=source_manifest.get("agents",[])
     manifest_paths={a.get("path") for a in manifest_agents if a.get("path")}
     tree_paths={x["source_path"] for x in discovered}
 
     source_texts,errors=fetch_source_texts(discovered,args.source_ref,args.workers)
+    if errors:
+        print("ERROR: source verification failed; no repository files were written.",file=sys.stderr)
+        for error in errors:
+            print(f"ERROR {error['source_path']}: {error['error']}",file=sys.stderr)
+        return 1
     generated_paths=set(); entries=[]; alias_count=import_count=0
     for item in discovered:
         path=item["source_path"]; category=item["source_category"]; sid=item["source_id"]; key=f"{category}/{sid}"
-        source_text=source_texts.get(path)
-        if source_text is None:
-            continue
+        source_text=source_texts[path]
         name,role=source_identity(source_text,sid); capability=first_capability(source_text)
         alias,reason=resolve_alias(key,sid,name,canonical_slugs,canonical_names)
         if alias:
@@ -281,20 +318,24 @@ def main()->int:
          "architecture":"strategy/UNIFIED-AGENCY-ARCHITECTURE.md",
          "source":{"repository":SOURCE_REPO,"commit":args.source_ref,"license":SOURCE_LICENSE,
                    "license_notice":SOURCE_NOTICE,"declared_total":source_manifest.get("total"),
-                   "manifest_entries":len(manifest_agents),"discovered_soul_files":len(discovered)},
-         "reconciliation":{"aliases":alias_count,"imports":import_count,"errors":len(errors),"stale_removed":len(stale),
+                   "manifest_entries":len(manifest_agents),"discovered_soul_files":len(discovered),
+                   "verification":{"source_ref_immutable":True,"manifest_blob":manifest_blob,
+                                   "verified_soul_blobs":len(discovered),
+                                   "method":"Git blob SHA-1 over exact downloaded bytes before UTF-8 decoding"}},
+         "reconciliation":{"aliases":alias_count,"imports":import_count,"errors":0,"stale_removed":len(stale),
                            "manifest_paths_missing_from_tree":sorted(manifest_paths-tree_paths),
                            "tree_paths_missing_from_manifest":sorted(tree_paths-manifest_paths),
                            "unknown_source_categories":sorted({x["source_category"] for x in discovered if x["source_category"] not in CATEGORY_MAP})},
          "category_map":CATEGORY_MAP,"division_overrides":DIVISION_OVERRIDES,"curated_aliases":CURATED_ALIASES,
-         "errors":errors,"stale_removed":stale,"entries":sorted(entries,key=lambda x:x["source_path"])}
+         "errors":[],"stale_removed":stale,"entries":sorted(entries,key=lambda x:x["source_path"])}
     if not args.dry_run:
         (root/"strategy"/"unified-agency-sources.json").write_text(json.dumps(reg,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
     print(json.dumps({"source_commit":args.source_ref,"declared_total":source_manifest.get("total"),
                       "manifest_entries":len(manifest_agents),"discovered_soul_files":len(discovered),
-                      "aliases":alias_count,"imports":import_count,"errors":len(errors),"stale_removed":len(stale),
+                      "verified_soul_blobs":len(discovered),"manifest_blob_verified":True,
+                      "aliases":alias_count,"imports":import_count,"errors":0,"stale_removed":len(stale),
                       "tree_not_manifest":len(tree_paths-manifest_paths),"manifest_not_tree":len(manifest_paths-tree_paths),
                       "workers":args.workers},indent=2))
-    return 1 if errors else 0
+    return 0
 
 if __name__=="__main__": raise SystemExit(main())
