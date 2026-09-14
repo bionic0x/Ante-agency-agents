@@ -298,17 +298,15 @@ for tool in TOOLS:
 SPLIT_FENCE = re.compile(r"^(`{3,}|~{3,})")
 
 def body_lines(text):
-    """Mirror lib.sh's get_body, including `$(...)`'s trailing-newline strip."""
-    out, fm = [], 0
-    for line in text.split("\n"):
-        if line == "---":
-            fm += 1
-            continue
-        if fm >= 2:
-            out.append(line)
-    while out and out[-1] == "":
-        out.pop()
-    return out
+    """Compare against the actual source body, preserving Markdown separators."""
+    # Parse only the leading frontmatter; do not repeat the old converter bug
+    # that stripped every --- line, including lines inside fenced examples.
+    if not text.startswith("---\n"):
+        raise ValueError("source has no leading frontmatter")
+    _, separator, body = text.partition("\n---\n")
+    if not separator:
+        raise ValueError("source frontmatter is not closed")
+    return body.rstrip("\n").split("\n")
 
 def fence_blocks(lines):
     """Inclusive (opener, closer) index pairs; closer = last line if unterminated."""

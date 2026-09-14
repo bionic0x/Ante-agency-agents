@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Reproduce the release gate locally. Requires Python 3.11+ and PyYAML.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+python3 -c 'import yaml, tomllib' || {
+  echo 'Use Python 3.11+ and: python3 -m pip install -r scripts/requirements-validation.txt' >&2
+  exit 1
+}
+for script in scripts/*.sh; do bash -n "$script"; done
+for check in lint-agents check-divisions check-tools check-runbooks check-hermes-config-rewrite; do
+  bash "scripts/$check.sh"
+done
+python3 scripts/build-catalog.py --check
+python3 scripts/check-hermes-plugin.py
+python3 scripts/test-hermes-plugin.py
+bash scripts/test-convert-frontmatter.sh
+bash scripts/test-agent-selection.sh
+python3 scripts/test-install-functional.py
+bash scripts/test-install.sh
+bash scripts/test-convert-outputs.sh "$@"
+echo 'PASSED: complete release gate'

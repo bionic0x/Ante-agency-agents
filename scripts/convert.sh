@@ -683,7 +683,7 @@ run_conversions() {
         vibe)        convert_vibe        "$file" ;;
         aider)       accumulate_aider    "$file" ;;
         windsurf)    accumulate_windsurf "$file" ;;
-      esac
+      esac || return 1
 
       (( count++ )) || true
     done < <(find "$dirpath" -name "*.md" -type f -print0 | sort -z)
@@ -707,9 +707,11 @@ main() {
       --parallel) use_parallel=true; shift ;;
       --jobs)     parallel_jobs="${2:?'--jobs requires a value'}"; shift 2 ;;
       --help|-h)  usage ;;
-      *)          error "Unknown option: $1"; usage ;;
+      *)          error "Unknown option: $1"; exit 1 ;;
     esac
   done
+
+  [[ "$parallel_jobs" =~ ^[1-9][0-9]*$ ]] || { error "--jobs must be a positive integer"; exit 1; }
 
   local valid_tools=("antigravity" "gemini-cli" "opencode" "cursor" "aider" "windsurf" "openclaw" "qwen" "zcode" "kimi" "codex" "osaurus" "hermes" "vibe" "all")
   local valid=false
@@ -759,7 +761,7 @@ main() {
       printf "\n"
       header "Converting: $t ($idx/$n_tools)"
       local count
-      count="$(run_conversions "$t")"
+      count="$(run_conversions "$t")" || return 1
       total=$(( total + count ))
       info "Converted $count agents for $t"
       (( idx++ )) || true
@@ -772,7 +774,7 @@ main() {
       printf "\n"
       header "Converting: $t ($i/$n_tools)"
       local count
-      count="$(run_conversions "$t")"
+      count="$(run_conversions "$t")" || return 1
       total=$(( total + count ))
       info "Converted $count agents for $t"
     done
