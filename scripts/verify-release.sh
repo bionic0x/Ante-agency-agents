@@ -11,6 +11,7 @@ for check in lint-agents check-divisions check-tools check-runbooks check-hermes
   bash "scripts/$check.sh"
 done
 python3 scripts/build-catalog.py --check
+python3 scripts/test-runbook-contracts.py
 python3 scripts/check-hermes-plugin.py
 python3 scripts/test-hermes-plugin.py
 bash scripts/test-convert-frontmatter.sh

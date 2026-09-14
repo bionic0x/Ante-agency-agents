@@ -104,11 +104,15 @@ Include the option to wait, reduce scope, consolidate, or stop when it is genuin
 
 Use the claim register for detail. Summarize only decision-critical items here.
 
-| Proposition | Status (`EVIDENCE` / `HYPOTHESIS` / `ASSUMPTION` / `UNKNOWN`) | Provenance | Confidence | Decision consequence if wrong |
+| Proposition | Status (`EVIDENCE` / `HYPOTHESIS` / `ASSUMPTION` / `ATTRIBUTED_INTENT` / `UNKNOWN`) | Provenance | Confidence | Decision consequence if wrong |
 |---|---|---|---|---|
 | | | | | |
 
-**Attributed intentions (kept separate from facts):**
+Probability, confidence, and impact are three separate judgements. Probability is how likely the event is; confidence is how solid the evidence and reasoning are; impact is what follows if it happens. Confidence never substitutes for impact. Where a verbal term carries weight, pair it with an interval or state which observation would move the judgement.
+
+Verification intensity rises with irreversibility, impact, and causal dependency — and also when many inferences rest on a single datum, which is the point to corroborate first. Corroboration means checking independence, access, and temporal compatibility: ten reports can repeat one source.
+
+**Attributed intentions — record as `ATTRIBUTED_INTENT`, with capability and volition stated separately:**
 
 **Unknowns worth resolving before commitment:**
 
@@ -139,7 +143,7 @@ Use the claim register for detail. Summarize only decision-critical items here.
 
 ## 8. Seven coherence tests
 
-| Test | Result (`PASS` / `CONDITIONAL` / `FAIL`) | Finding | Classification (`FATAL_DEFECT` / `ACCEPTED_RISK` / `PENDING_EVIDENCE`) | Owner / condition |
+| Test | Result (`PASS` / `CONDITIONAL` / `FAIL` / `NOT_APPLICABLE`) | Finding | Classification (`FATAL_DEFECT` / `ACCEPTED_RISK` / `PENDING_EVIDENCE` / `NOT_APPLICABLE`) | Owner / condition |
 |---|---|---|---|---|
 | Governing-object | | | | |
 | Causal | | | | |
@@ -149,7 +153,9 @@ Use the claim register for detail. Summarize only decision-critical items here.
 | Epistemic | | | | |
 | Exit | | | | |
 
-A single `FATAL_DEFECT` prevents `PROCEED`.
+A single `FATAL_DEFECT` prevents `PROCEED`. These tests are not additive: severity, dependency between failures, and correctability matter more than the count.
+
+`NOT_APPLICABLE` requires a stated reason in the Finding column. It is never valid for the Epistemic or Exit test.
 
 ---
 

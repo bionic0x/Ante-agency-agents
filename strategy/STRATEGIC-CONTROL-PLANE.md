@@ -25,6 +25,15 @@ A technically successful deliverable can still be strategic failure when it opti
 | How should context move between agents? | `strategy/coordination/` |
 | What does a specialist know how to do? | The specialist agent file |
 | What evidence supports an external or internal claim? | Claim register + underlying evidence |
+| Can this organization still hear a warning? | `strategy/INSTITUTIONAL-SELF-TEST.md` |
+
+### Precedence
+
+When two artifacts conflict, the earlier link governs:
+
+**applicable law and platform policy / authorized human decision owner → `GENERAL-STRATEGY-DOCTRINE.md` → `STRATEGIC-CONTROL-PLANE.md` → domain operating model → NEXUS orchestration → runbook → specialist agent → tool adapter.**
+
+`GENERAL-STRATEGY-DOCTRINE.md` states what strategy *is* and is derived from a dated external source; this document states how that doctrine is *operated here*. A document may narrow what precedes it and may not expand it. Where this control plane appears to grant more scope, authority, or acceptable risk than the doctrine, the doctrine wins and this file is the one to fix.
 
 Lower-level artifacts may **narrow** scope or authority. They may not silently expand the governing object, execution permission, or acceptable risk.
 
@@ -38,7 +47,18 @@ Strategy documentation does not create legal, production, financial, security, o
 The accountable human or authorized role that sets the governing object, accepts residual risk, and authorizes material commitments.
 
 ### Strategic Assurance Lead
-An independent coherence function. It tests the plan and may return `PROCEED`, `PROCEED_WITH_CONDITIONS`, `HOLD`, `REDESIGN`, or `REJECT`. Its judgment does not itself grant execution authority.
+A coherence function held **separate from the decision owner and from the orchestrator**. It tests the plan and may return `PROCEED`, `PROCEED_WITH_CONDITIONS`, `HOLD`, `REDESIGN`, or `REJECT`. Its judgment does not itself grant execution authority.
+
+Separation of role does not establish independence of judgment. Assess access, authority, incentives, and the capacity to impose a costly pause. Shared operator, model, context, or evidence selection can create correlated errors; record those dependencies rather than inferring independence from role names or a different model.
+
+Treat the output as structured challenge until a functioning review barrier is demonstrated. Record:
+
+- who selects the evidence and whether the reviewer can independently seek contrary evidence;
+- who can pause the work, who may clear a `HOLD`, and whether the author can bypass that pause;
+- incentives, reporting dependencies, and relevant separation of operator, model, and context;
+- a dated instance or exercise showing that contrary evidence reached the decision owner before commitment and could change or pause the decision.
+
+A different operator/model/context, additional evidence access, or separate human clearance may strengthen review. None alone proves independence across all four dimensions. Where the author can dissolve a `HOLD` by rewording a prompt, disclose that limit and escalate material unresolved findings to the accountable human.
 
 ### Agents Orchestrator
 The execution coordinator. It activates agents, preserves context, manages dependencies and handoffs, and reports state. It **does not define its own governing object** and does not overrule unresolved authority or evidence conditions.
@@ -58,6 +78,7 @@ Every material proposition used to justify a decision is tagged as one of:
 - **EVIDENCE** — sufficiently supported for the declared use, with provenance and date.
 - **HYPOTHESIS** — plausible explanation that must compete with alternatives.
 - **ASSUMPTION** — temporarily accepted premise required to plan or test.
+- **ATTRIBUTED_INTENT** — an inference about another party's intention, motive, or state of mind. State capability and volition separately; an actor who *can* do something has not thereby been shown to *intend* it. This status never converts to `EVIDENCE` through repetition; a change of status requires new, discriminating evidence sufficient for the stated use, with the original status and reason for revision preserved.
 - **UNKNOWN** — relevant information not currently available.
 
 For quantitative performance statements, use `MEASURED`, `TARGET`, `ESTIMATE`, or `HYPOTHESIS` in addition to provenance. A percentage without a measurement window, source, baseline, and method is not a production fact.
@@ -129,15 +150,18 @@ A proposal must survive all seven tests before an irreversible commitment. These
 | Interactive | What competent reaction or adaptation changes the plan? | The environment is treated as passive |
 | Conversion | Can available resources become the required control/capacity? | Inventory is counted as usable capability |
 | Legitimacy | Does the method preserve necessary cooperation and authority? | The means damage the conditions required to hold the result |
-| Epistemic | Are evidence, hypotheses, assumptions, intentions, and unknowns separated? | Inference becomes fact during synthesis |
+| Epistemic | Are evidence, hypotheses, assumptions, attributed intentions, and unknowns separated, and does the separation survive the summary? | Inference becomes fact during synthesis |
 | Exit | What stops, transfers, or changes the action? | Every observation becomes a reason to continue |
 
 Classify findings as:
 - `FATAL_DEFECT`
 - `ACCEPTED_RISK`
 - `PENDING_EVIDENCE`
+- `NOT_APPLICABLE`
 
 An accepted risk requires an owner and a reason. Pending evidence requires a date, trigger, or explicit decision not to obtain it.
+
+`NOT_APPLICABLE` exists so that a test which does not bear on the case can be declared instead of answered. It requires a stated reason — for example, the adversarial-reaction dimension of the Interactive test may not apply to a bounded task after checking for relevant adaptive actors; diminishing returns and exit conditions still matter — and it is the only permitted way to leave a test unanswered. Without it, the seven tests are completed ritually: every row acquires a sentence, and a form that always passes has stopped testing anything. `NOT_APPLICABLE` on the Exit or Epistemic test is never valid.
 
 ---
 

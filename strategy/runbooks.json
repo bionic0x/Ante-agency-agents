@@ -354,9 +354,18 @@
       "required_artifacts": [
         "strategy/templates/strategic-decision-record.md",
         "strategy/templates/claim-register.yaml",
-        "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md"
+        "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md",
+        "strategy/INSTITUTIONAL-SELF-TEST.md"
       ],
       "termination_criteria": "The diagnostic closes when the Availability Ledger, the nine modules, and the Repricing Memo are delivered with every material claim graded [FACT]/[INFERENCE]/[HYPOTHESIS]/[JUDGMENT] and every gap named. It terminates early, with findings stated as incomplete, if budget, spend or measurement data sufficient to separate creation from extraction cannot be obtained. No output authorizes a reallocation the client's own governance has not approved.",
+      "termination_contract": {
+        "achieved": "The Availability Ledger classifies the period's marketing capital by job, the nine modules are graded, and the Repricing Memo states the reallocation the evidence supports.",
+        "outstanding": "Every module the data could not close is listed by name with the data that would close it — not omitted and not softened into a judgement.",
+        "accountable": "The client-side sponsor named in the Strategic Decision Record owns the reallocation after handover; the engagement lead owns the findings and their evidence grades.",
+        "on_breach": "If the client presents a graded claim at a higher status than the register records, or attributes a reallocation to this work that the memo does not support, the engagement lead corrects the record in writing and the diagnostic is not cited as its basis.",
+        "conservation_resources": "A named owner for the Ratio Covenant and quarterly access to spend and measurement data; without both, the reallocation decays back to the prior split.",
+        "revision_conditions": "Revisit when the brand/activation split moves more than ten points, the measurement model changes, or a distinctive asset is retired or redesigned."
+      },
       "doc": "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md",
       "roster": [
         {
@@ -412,9 +421,18 @@
       "decision_owner": "Author (Javier Peiro Rius)",
       "required_artifacts": [
         "strategy/templates/claim-register.yaml",
-        "strategy/runbooks/scenario-boring-wins-manuscript.md"
+        "strategy/runbooks/scenario-boring-wins-manuscript.md",
+        "strategy/INSTITUTIONAL-SELF-TEST.md"
       ],
       "termination_criteria": "A chapter closes when its claims are registered and sourced, its tensions with the rest of the manuscript are recorded or resolved, and the author accepts the draft. It stops short of that when a load-bearing citation cannot be verified: the claim is cut or demoted to [HYPOTHESIS] rather than shipped as fact.",
+      "termination_contract": {
+        "achieved": "The chapter's claims are registered and sourced, its tensions with the rest of the manuscript are recorded or resolved, and the author has accepted the draft.",
+        "outstanding": "Claims demoted for want of a verifiable source stay in the register at their real status, with the source that would restore them.",
+        "accountable": "The author. Editorial agents hold no authority over what ships.",
+        "on_breach": "If a figure or citation is found unverifiable after acceptance, the claim is cut or demoted in the register and every downstream deliverable quoting it is corrected — the book, the framework, and any client material that inherited it.",
+        "conservation_resources": "The proposition register outlives the chapter; it is the artifact that keeps the manuscript and the commercial layer telling the same story.",
+        "revision_conditions": "Revisit when a cited source is superseded, when a chapter's argument changes upstream, or when the same claim appears at two different statuses in two documents."
+      },
       "doc": "strategy/runbooks/scenario-boring-wins-manuscript.md",
       "roster": [
         {
