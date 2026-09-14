@@ -14,6 +14,7 @@ python3 scripts/build-catalog.py --check
 python3 scripts/test-runbook-contracts.py
 python3 scripts/check-hermes-plugin.py
 python3 scripts/test-hermes-plugin.py
+python3 scripts/test-incremental-conversion.py
 bash scripts/test-convert-frontmatter.sh
 bash scripts/test-agent-selection.sh
 python3 scripts/test-install-functional.py
