@@ -163,7 +163,7 @@ def output_relpaths(tool: str, spec: dict[str, Any], slug: str) -> list[str]:
     root = Path("integrations") / tool
     if fmt == "codex-toml":
         paths = [root / "agents" / f"{slug}.toml"]
-    elif fmt in {"gemini-md", "opencode-md", "qwen-md", "zcode-md"}:
+    elif fmt in {"gemini-md", "opencode-md", "qwen-md", "zcode-md", "kimi-md"}:
         paths = [root / "agents" / f"{slug}.md"]
     elif fmt == "cursor-mdc":
         paths = [root / "rules" / f"{slug}.mdc"]
