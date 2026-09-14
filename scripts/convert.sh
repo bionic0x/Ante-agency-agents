@@ -7,7 +7,7 @@
 # integration files after adding or modifying agents.
 #
 # Usage:
-#   ./scripts/convert.sh [--tool <name>] [--out <dir>] [--parallel] [--jobs N] [--help]
+#   ./scripts/convert.sh [--tool <name>] [--out <dir>] [--source <agent.md>] [--parallel] [--jobs N] [--help]
 #
 # Tools:
 #   antigravity  — Antigravity skill files (~/.gemini/config/skills/)
@@ -29,6 +29,8 @@
 # Output is written to integrations/<tool>/ relative to the repo root.
 # This script never touches user config dirs — see install.sh for that.
 #
+#   --source FILE    Convert one canonical source agent without cleaning other outputs.
+#                    Requires one per-agent --tool; used by integration-state incremental sync.
 #   --parallel       When tool is 'all', run independent tools in parallel (output order may vary).
 #   --jobs N         Max parallel jobs when using --parallel (default: nproc or 4).
 
@@ -72,7 +74,7 @@ TODAY="$(date +%Y-%m-%d)"
 
 # --- Usage ---
 usage() {
-  sed -n '3,27p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '3,31p' "$0" | sed 's/^# \{0,1\}//'
   exit 0
 }
 
@@ -123,10 +125,6 @@ convert_antigravity() {
   outfile="$outdir/SKILL.md"
   mkdir -p "$outdir"
 
-  # Antigravity Agent-Skills SKILL.md — name + description frontmatter and the
-  # persona as the body, installed into ~/.gemini/config/skills/ (global) or
-  # <project>/.agents/skills/ (project). Standard fields only, so it stays a
-  # valid Agent-Skills skill for any host (and deterministic — no date stamp).
   cat > "$outfile" <<HEREDOC
 ---
 name: $(yaml_quote "$slug")
@@ -145,15 +143,10 @@ convert_osaurus() {
   slug="agency-$(slugify "$name")"
   body="$(get_body "$file")"
 
-  # Stage one dir per skill (install.sh copies into ~/.osaurus/skills/<name>/).
   outdir="$OUT_DIR/osaurus/$slug"
   outfile="$outdir/SKILL.md"
   mkdir -p "$outdir"
 
-  # Osaurus skill format: the Anthropic "Agent Skills" SKILL.md — a directory
-  # named for the skill containing a SKILL.md with name + description frontmatter
-  # and the persona as the instruction body. Installs into ~/.osaurus/skills/.
-  # Kept to the standard fields so it stays compatible with any Agent-Skills host.
   cat > "$outfile" <<HEREDOC
 ---
 name: $(yaml_quote "$slug")
@@ -175,9 +168,6 @@ convert_codex() {
   outfile="$OUT_DIR/codex/agents/${slug}.toml"
   mkdir -p "$(dirname "$outfile")"
 
-  # Codex custom agent format: one TOML file per agent with minimal required
-  # fields only. Use a TOML basic string so control characters in the source
-  # body are encoded safely instead of producing invalid TOML.
   cat > "$outfile" <<HEREDOC
 name = "$(toml_escape_string "$name")"
 description = "$(toml_escape_string "$description")"
@@ -194,7 +184,6 @@ convert_gemini_cli() {
   slug="$(slugify "$name")"
   body="$(get_body "$file")"
 
-  # Gemini CLI subagent format: .md file in ~/.gemini/agents/
   outdir="$OUT_DIR/gemini-cli/agents"
   outfile="$outdir/${slug}.md"
   mkdir -p "$outdir"
@@ -208,7 +197,6 @@ ${body}
 HEREDOC
 }
 
-# Map known color names and normalize to OpenCode-safe #RRGGBB values.
 resolve_opencode_color() {
   local c="$1"
   local mapped
@@ -265,8 +253,6 @@ convert_opencode() {
   outfile="$OUT_DIR/opencode/agents/${slug}.md"
   mkdir -p "$OUT_DIR/opencode/agents"
 
-  # OpenCode agent format: .md with YAML frontmatter in .opencode/agents/.
-  # Named colors are resolved to hex via resolve_opencode_color().
   cat > "$outfile" <<HEREDOC
 ---
 name: $(yaml_quote "$name")
@@ -290,7 +276,6 @@ convert_cursor() {
   outfile="$OUT_DIR/cursor/rules/${slug}.mdc"
   mkdir -p "$OUT_DIR/cursor/rules"
 
-  # Cursor .mdc format: description + globs + alwaysApply frontmatter
   cat > "$outfile" <<HEREDOC
 ---
 description: $(yaml_quote "$description")
@@ -314,17 +299,8 @@ convert_openclaw() {
   outdir="$OUT_DIR/openclaw/$slug"
   mkdir -p "$outdir"
 
-  # Split body sections into SOUL.md (persona) vs AGENTS.md (operations)
-  # by matching ## header keywords. Unmatched sections go to AGENTS.md.
-  #
-  # SOUL keywords: identity, learning & memory, communication, style,
-  #   critical rules, rules you must follow
-  # AGENTS keywords: everything else (mission, deliverables, workflow, etc.)
-
-  local current_target="agents"  # default bucket
+  local current_target="agents"
   local current_section=""
-  # While fence_marker is set, ## lines are code content, not section
-  # boundaries (issue #849). See lib.sh fence_open_p / fence_closes_p.
   local fence_marker="" fence_len=0 fence_indent=0
 
   while IFS= read -r line; do
@@ -346,9 +322,7 @@ convert_openclaw() {
       continue
     fi
 
-    # Detect ## headers (with or without emoji prefixes)
     if [[ "$line" =~ ^##[[:space:]] ]]; then
-      # Flush previous section
       if [[ -n "$current_section" ]]; then
         if [[ "$current_target" == "soul" ]]; then
           soul_content+="$current_section"
@@ -358,7 +332,6 @@ convert_openclaw() {
       fi
       current_section=""
 
-      # Classify this header by keyword (case-insensitive)
       local header_lower
       header_lower="$(echo "$line" | tr '[:upper:]' '[:lower:]')"
 
@@ -377,7 +350,6 @@ convert_openclaw() {
     current_section+="$line"$'\n'
   done <<< "$body"
 
-  # Flush final section
   if [[ -n "$current_section" ]]; then
     if [[ "$current_target" == "soul" ]]; then
       soul_content+="$current_section"
@@ -386,17 +358,14 @@ convert_openclaw() {
     fi
   fi
 
-  # Write SOUL.md — persona, tone, boundaries
   cat > "$outdir/SOUL.md" <<HEREDOC
 ${soul_content}
 HEREDOC
 
-  # Write AGENTS.md — mission, deliverables, workflow
   cat > "$outdir/AGENTS.md" <<HEREDOC
 ${agents_content}
 HEREDOC
 
-  # Write IDENTITY.md — emoji + name + vibe from frontmatter, fallback to description
   local emoji vibe
   emoji="$(get_field "emoji" "$file")"
   vibe="$(get_field "vibe" "$file")"
@@ -427,8 +396,6 @@ convert_qwen() {
   outfile="$OUT_DIR/qwen/agents/${slug}.md"
   mkdir -p "$(dirname "$outfile")"
 
-  # Qwen Code SubAgent format: .md with YAML frontmatter in ~/.qwen/agents/
-  # name and description required; tools optional (only if present in source)
   if [[ -n "$tools" ]]; then
     cat > "$outfile" <<HEREDOC
 ---
@@ -462,10 +429,6 @@ convert_zcode() {
   outfile="$OUT_DIR/zcode/agents/${slug}.md"
   mkdir -p "$(dirname "$outfile")"
 
-  # ZCode agent format (Z.ai GLM harness): .md with YAML frontmatter in
-  # .zcode/agents/ (project) or ~/.config/zcode/agents/ (global). name and
-  # description required; tools optional (only if present in source). Byte-
-  # identical to the qwen-md shape, which the Agency Agents app renders natively.
   if [[ -n "$tools" ]]; then
     cat > "$outfile" <<HEREDOC
 ---
@@ -499,8 +462,6 @@ convert_kimi() {
   agent_file="$outdir/agent.yaml"
   mkdir -p "$outdir"
 
-  # Kimi Code CLI agent format: YAML with separate system prompt file
-  # Uses extend: default to inherit Kimi's default toolset
   cat > "$agent_file" <<HEREDOC
 version: 1
 agent:
@@ -509,7 +470,6 @@ agent:
   system_prompt_path: ./system.md
 HEREDOC
 
-  # Write system prompt to separate file
   cat > "$outdir/system.md" <<HEREDOC
 # ${name}
 
@@ -528,22 +488,16 @@ convert_vibe() {
   slug="$(slugify "$name")"
   body="$(get_body "$file")"
 
-  # Mistral Vibe uses two files per agent:
-  # 1. A TOML configuration file in ~/.vibe/agents/<slug>.toml
-  # 2. A markdown prompt file in ~/.vibe/prompts/<slug>.md
-
   outdir="$OUT_DIR/vibe"
   agent_file="$outdir/agents/${slug}.toml"
   prompt_file="$outdir/prompts/${slug}.md"
   mkdir -p "$outdir/agents" "$outdir/prompts"
 
-  # Write the TOML agent configuration
   cat > "$agent_file" <<HEREDOC
 agent_type = "agent"
 system_prompt_id = "${slug}"
 HEREDOC
 
-  # Write the markdown prompt file
   cat > "$prompt_file" <<HEREDOC
 # ${name}
 
@@ -553,13 +507,10 @@ ${body}
 HEREDOC
 }
 
-# Aider and Windsurf are single-file formats — accumulate into temp files
-# then write at the end.
 AIDER_TMP="$(mktemp)"
 WINDSURF_TMP="$(mktemp)"
 trap 'rm -f "$AIDER_TMP" "$WINDSURF_TMP"' EXIT
 
-# Write Aider/Windsurf headers once
 cat > "$AIDER_TMP" <<'HEREDOC'
 # The Agency — AI Agent Conventions
 #
@@ -625,23 +576,64 @@ HEREDOC
 
 # --- Main loop ---
 
-# Remove a tool's previously-generated output before regenerating, so renamed or
-# deleted agents don't leave orphan files behind (convert.sh overwrites in place
-# but never pruned stale output). Preserves the committed README.md — the only
-# tracked file under integrations/<tool>/ for conversion targets.
 clean_tool_output() {
-  # Defensive: tool names are plain slugs; refuse anything else so a future
-  # caller can never steer this rm -rf outside $OUT_DIR via "../" or "/".
   [[ "$1" =~ ^[a-z0-9-]+$ ]] || { echo "ERROR: clean_tool_output: refusing non-slug tool name '$1'" >&2; return 1; }
   local dir="$OUT_DIR/$1"
   [[ -d "$dir" ]] || return 0
   find "$dir" -mindepth 1 -maxdepth 1 ! -name 'README.md' -exec rm -rf {} +
 }
 
+convert_one_source() {
+  local tool="$1" source="$2" rel="" divisions d allowed=false
+  [[ "$tool" != "aider" && "$tool" != "windsurf" && "$tool" != "hermes" ]] || {
+    error "--source is only valid for per-agent converter tools (not $tool)"
+    return 1
+  }
+
+  if [[ "$source" == /* ]]; then
+    [[ "$source" == "$REPO_ROOT/"* ]] || { error "--source must be inside the repository"; return 1; }
+  else
+    source="$REPO_ROOT/$source"
+  fi
+  [[ -f "$source" ]] || { error "--source does not exist: $source"; return 1; }
+  rel="${source#"$REPO_ROOT/"}"
+
+  divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
+  while IFS= read -r d; do
+    [[ -n "$d" ]] || continue
+    if [[ "$rel" == "$d/"* ]]; then allowed=true; break; fi
+  done <<< "$divisions"
+  $allowed || { error "--source is not inside a registered division: $rel"; return 1; }
+
+  load_agent "$source" || { error "--source is not an agent file: $rel"; return 1; }
+  [[ -n "$AGENT_NAME" ]] || { error "--source has no name frontmatter: $rel"; return 1; }
+
+  case "$tool" in
+    antigravity) convert_antigravity "$source" ;;
+    codex)       convert_codex       "$source" ;;
+    gemini-cli)  convert_gemini_cli  "$source" ;;
+    opencode)    convert_opencode    "$source" ;;
+    cursor)      convert_cursor      "$source" ;;
+    openclaw)    convert_openclaw    "$source" ;;
+    qwen)        convert_qwen        "$source" ;;
+    zcode)       convert_zcode       "$source" ;;
+    kimi)        convert_kimi        "$source" ;;
+    osaurus)     convert_osaurus     "$source" ;;
+    vibe)        convert_vibe        "$source" ;;
+    *) error "--source unsupported for tool '$tool'"; return 1 ;;
+  esac
+}
+
 run_conversions() {
-  local tool="$1"
+  local tool="$1" source="${2:-}"
   local count=0
   local divisions
+
+  if [[ -n "$source" ]]; then
+    convert_one_source "$tool" "$source" || return 1
+    echo 1
+    return 0
+  fi
 
   if [[ "$tool" == "hermes" ]]; then
     clean_tool_output "$tool"
@@ -658,8 +650,6 @@ run_conversions() {
     [[ -d "$dirpath" ]] || continue
 
     while IFS= read -r -d '' file; do
-      # One parse per source file. Existing renderer calls to get_field/get_body
-      # are served from load_agent's in-memory cache without reopening the file.
       load_agent "$file" || continue
       [[ -n "$AGENT_NAME" ]] || continue
 
@@ -690,6 +680,7 @@ run_conversions() {
 
 main() {
   local tool="all"
+  local source=""
   local use_parallel=false
   local parallel_jobs
   parallel_jobs="$(parallel_jobs_default)"
@@ -698,6 +689,7 @@ main() {
     case "$1" in
       --tool)     tool="${2:?'--tool requires a value'}"; shift 2 ;;
       --out)      OUT_DIR="${2:?'--out requires a value'}"; shift 2 ;;
+      --source)   source="${2:?'--source requires a value'}"; shift 2 ;;
       --parallel) use_parallel=true; shift ;;
       --jobs)     parallel_jobs="${2:?'--jobs requires a value'}"; shift 2 ;;
       --help|-h)  usage ;;
@@ -714,11 +706,16 @@ main() {
     error "Unknown tool '$tool'. Valid: ${valid_tools[*]}"
     exit 1
   fi
+  if [[ -n "$source" ]]; then
+    [[ "$tool" != "all" ]] || { error "--source requires one explicit --tool"; exit 1; }
+    ! $use_parallel || { error "--source cannot be combined with --parallel"; exit 1; }
+  fi
 
   header "The Agency -- Converting agents to tool-specific formats"
   echo "  Repo:   $REPO_ROOT"
   echo "  Output: $OUT_DIR"
   echo "  Tool:   $tool"
+  [[ -n "$source" ]] && echo "  Source: $source"
   echo "  Date:   $TODAY"
   if $use_parallel && [[ "$tool" == "all" ]]; then
     info "Parallel mode: output buffered so each tool's output stays together."
@@ -732,11 +729,9 @@ main() {
   fi
 
   local total=0
-
   local n_tools=${#tools_to_run[@]}
 
   if $use_parallel && [[ "$tool" == "all" ]]; then
-    # Tools that write to separate dirs can run in parallel; buffer output so each tool's output stays together
     local parallel_tools=(antigravity gemini-cli opencode cursor openclaw qwen zcode kimi codex osaurus hermes vibe)
     local parallel_out_dir
     parallel_out_dir="$(mktemp -d)"
@@ -768,19 +763,18 @@ main() {
       printf "\n"
       header "Converting: $t ($i/$n_tools)"
       local count
-      count="$(run_conversions "$t")" || return 1
+      count="$(run_conversions "$t" "$source")" || return 1
       total=$(( total + count ))
       info "Converted $count agents for $t"
     done
   fi
 
-  # Write single-file outputs after accumulation
-  if [[ "$tool" == "all" || "$tool" == "aider" ]]; then
+  if [[ -z "$source" && ( "$tool" == "all" || "$tool" == "aider" ) ]]; then
     mkdir -p "$OUT_DIR/aider"
     cp "$AIDER_TMP" "$OUT_DIR/aider/CONVENTIONS.md"
     info "Wrote integrations/aider/CONVENTIONS.md"
   fi
-  if [[ "$tool" == "all" || "$tool" == "windsurf" ]]; then
+  if [[ -z "$source" && ( "$tool" == "all" || "$tool" == "windsurf" ) ]]; then
     mkdir -p "$OUT_DIR/windsurf"
     cp "$WINDSURF_TMP" "$OUT_DIR/windsurf/.windsurfrules"
     info "Wrote integrations/windsurf/.windsurfrules"
