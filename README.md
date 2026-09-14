@@ -117,6 +117,54 @@ See the [Multi-Tool Integrations](#-multi-tool-integrations) section below for f
 
 ---
 
+## Consolidation snapshot
+
+Historical comparison: `2d4bff0` (before PR #6) to `6a506f1` (after PR #7).
+These are release counts; [CATALOG.md](CATALOG.md) remains the live generated roster.
+
+| Division | Before | After |
+|---|---:|---:|
+| Academic | 14 | 14 |
+| Design | 19 | 19 |
+| Engineering | 85 | 85 |
+| Finance | 15 | 15 |
+| Game Development | 21 | 21 |
+| GIS | 13 | 13 |
+| Healthcare | 10 | 10 |
+| Marketing | 77 | 77 |
+| Mispriced CMO | 0 | 11 |
+| Paid Media | 7 | 7 |
+| Product | 11 | 11 |
+| Project Management | 14 | 14 |
+| Research | 12 | 12 |
+| Sales | 27 | 27 |
+| Security | 19 | 19 |
+| Spatial Computing | 6 | 6 |
+| Specialized | 89 | 89 |
+| Support | 27 | 27 |
+| Testing | 10 | 10 |
+| **Total** | **476** | **487** |
+
+The consolidation includes **186 normalized OpenClaw community profiles** and
+**10 aliases** from **196 discovered agent templates**, pinned to commit
+`05820c51125e86a979432e21651d34dc9b14621f`. Those imports predate PR #6;
+the 11-agent increase above is Mispriced CMO. See the
+[verification record and sync policy](strategy/UPSTREAM-SYNC.md).
+
+| Runbook | Purpose |
+|---|---|
+| [Strategic Decision & Transition](strategy/runbooks/scenario-strategic-decision.md) | Frame a material decision and its transition. |
+| [Startup MVP Build](strategy/runbooks/scenario-startup-mvp.md) | Test a product thesis with a bounded MVP. |
+| [Enterprise Feature Development](strategy/runbooks/scenario-enterprise-feature.md) | Deliver a governed enterprise capability. |
+| [Strategy-Led Marketing Campaign](strategy/runbooks/scenario-marketing-campaign.md) | Select and test interventions after demand diagnosis. |
+| [Incident Response](strategy/runbooks/scenario-incident-response.md) | Contain, recover, preserve evidence and transfer ownership. |
+| [HTP Gate 0 — Solana + Arbitrum](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) | Evaluate a non-executing, chain-specific Gate 0. |
+| [The Marketing Mispricing Diagnostic](strategy/runbooks/scenario-marketing-mispricing-diagnostic.md) | Diagnose marketing capital allocation and evidence quality. |
+| [BORING WINS Chapter Production](strategy/runbooks/scenario-boring-wins-manuscript.md) | Verify claims and edit a manuscript chapter. |
+
+For a concrete Mispriced CMO → marketing, sales and product handoff, including
+authority boundaries, see the [cross-division example](examples/mispricing-cross-division.md).
+
 ## 🎨 The Agency Roster
 
 > The tables below are curated highlights. **[CATALOG.md](CATALOG.md) is the complete, generated roster** — every agent in every division (including the agents normalized from the OpenClaw community source and the strategic control layer) plus all NEXUS runbooks. Regenerate it with `python3 scripts/build-catalog.py`.

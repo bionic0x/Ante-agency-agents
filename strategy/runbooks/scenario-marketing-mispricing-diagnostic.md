@@ -204,3 +204,10 @@ The diagnostic is complete when the decision owner can state:
 5. what signal should appear first, and when;
 6. what would make them reverse;
 7. what must be protected.
+
+## Cross-division handoff example
+
+See the [worked marketing, sales and product example](../../examples/mispricing-cross-division.md)
+for an evidence-graded handoff, the control hierarchy, installation commands,
+receiving-owner acceptance and stopping conditions. It composes this diagnostic
+with the existing campaign runbook and does not create another decision owner.
