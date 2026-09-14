@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise runbook closure validation in a disposable Git fixture."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -18,7 +19,9 @@ class TerminationContractTests(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'scripts').mkdir()
         shutil.copy2(ROOT / 'scripts/check-runbooks.sh', self.root / 'scripts')
-        self.data = json.loads((ROOT / 'strategy/runbooks.json').read_text())
+        registry_bytes = (ROOT / 'strategy/runbooks.json').read_bytes().replace(b'\r\n', b'\n')
+        self.registry_sha256 = hashlib.sha256(registry_bytes).hexdigest()
+        self.data = json.loads(registry_bytes)
         # Keep the real registry's references; only their existence matters here.
         for rb in self.data['runbooks']:
             for path in [rb['doc'], *rb['required_artifacts']]:
@@ -49,6 +52,7 @@ class TerminationContractTests(unittest.TestCase):
         self.assertIn(message, result.stdout)
 
     def test_registry_has_eight_substantive_contracts(self):
+        print(f'runbooks.json sha256={self.registry_sha256}')
         self.assertEqual(8, len(self.data['runbooks']))
         required = {'achieved', 'outstanding', 'accountable', 'on_breach'}
         for rb in self.data['runbooks']:
