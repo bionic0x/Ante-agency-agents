@@ -1,6 +1,6 @@
 # General Strategy Doctrine
 
-> **Status**: Cross-agency operating doctrine derived from the *Marco Teórico General de la Estrategia* (developed edition, 10 September 2026). It governs strategic work across divisions. It is not a substitute for domain expertise, evidence, law, ethics, or the human decision owner.
+> **Status**: Cross-agency operating doctrine derived from the *Marco Teórico General de la Estrategia* (developed edition, 12 September 2026). It governs strategic work across divisions. It is not a substitute for domain expertise, evidence, law, ethics, or the human decision owner.
 
 ## 1. Constitutional thesis
 

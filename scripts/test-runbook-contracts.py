@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Exercise runbook closure validation in a disposable Git fixture."""
+import copy
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class TerminationContractTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        (self.root / 'scripts').mkdir()
+        shutil.copy2(ROOT / 'scripts/check-runbooks.sh', self.root / 'scripts')
+        self.data = json.loads((ROOT / 'strategy/runbooks.json').read_text())
+        # Keep the real registry's references; only their existence matters here.
+        for rb in self.data['runbooks']:
+            for path in [rb['doc'], *rb['required_artifacts']]:
+                dest = self.root / path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.touch()
+            for group in rb['roster']:
+                for slug in group['agents']:
+                    dest = self.root / 'specialized' / (slug + '.md')
+                    dest.parent.mkdir(exist_ok=True)
+                    dest.touch()
+        subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
+        subprocess.run(['git', 'add', '.'], cwd=self.root, check=True)
+        self.index = next(i for i, rb in enumerate(self.data['runbooks'])
+                          if rb['slug'] == 'marketing-mispricing-diagnostic')
+
+    def check(self, value, expected, message, *, field='termination_contract', omit=False):
+        data = copy.deepcopy(self.data)
+        rb = data['runbooks'][self.index]
+        if omit:
+            rb.pop(field, None)
+        else:
+            rb[field] = value
+        (self.root / 'strategy/runbooks.json').write_text(json.dumps(data))
+        result = subprocess.run(['bash', 'scripts/check-runbooks.sh'], cwd=self.root,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+        self.assertIn(message, result.stdout)
+
+    def test_valid_contract_and_absent_contract(self):
+        self.check(self.data['runbooks'][self.index]['termination_contract'], 0, '2/8 termination contracts')
+        self.check(None, 0, '1/8 termination contracts', omit=True)
+
+    def test_explicit_invalid_contract_is_not_advisory(self):
+        for value in (None, [], '', 'TBD', 4):
+            with self.subTest(value=value):
+                self.check(value, 1, 'termination_contract must be an object')
+
+    def test_required_fields_and_unknown_keys(self):
+        valid = self.data['runbooks'][self.index]['termination_contract']
+        for key in ('achieved', 'outstanding', 'accountable', 'on_breach'):
+            with self.subTest(key=key):
+                contract = dict(valid)
+                del contract[key]
+                self.check(contract, 1, f"missing {key!r}")
+                contract[key] = '  TbD  '
+                self.check(contract, 1, f'termination_contract.{key}')
+        self.check({**valid, 'achived': 'Typo'}, 1, 'unknown key(s): achived')
+
+    def test_optional_fields_are_validated_when_present(self):
+        valid = self.data['runbooks'][self.index]['termination_contract']
+        required = {k: v for k, v in valid.items() if k not in ('conservation_resources', 'revision_conditions')}
+        self.check(required, 0, '2/8 termination contracts')
+        for key in ('conservation_resources', 'revision_conditions'):
+            for value in (None, [], '  ', 'pending'):
+                with self.subTest(key=key, value=value):
+                    self.check({**valid, key: value}, 1, f'termination_contract.{key}')
+
+    def test_criteria_reject_placeholders_without_a_word_count_rule(self):
+        for value in ('TBD', '  unknown  ', 'N/A', '--', 'None'):
+            with self.subTest(value=value):
+                self.check(value, 1, 'termination_criteria is a placeholder', field='termination_criteria')
+        self.check('Stop when funds expire.', 0, 'PASSED:', field='termination_criteria')
+
+
+if __name__ == '__main__':
+    unittest.main()

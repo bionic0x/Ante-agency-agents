@@ -78,6 +78,8 @@ Classify every material defect as exactly one of:
 - `ACCEPTED_RISK` — explicit, bounded, owned, and supportable;
 - `PENDING_EVIDENCE` — unresolved fact with a date or decision about whether to obtain it.
 
+A test may return `NOT_APPLICABLE` only with a stated reason. This is an applicability result, not a defect or execution authorization; it is never valid for the Epistemic or Exit test. Use the independence assessment in `strategy/STRATEGIC-CONTROL-PLANE.md` and the institutional review in `strategy/INSTITUTIONAL-SELF-TEST.md`; separate roles do not establish independent judgment.
+
 ## Dependency Discipline
 
 Keep these concepts separate:
@@ -96,6 +98,7 @@ Every material proposition receives one status:
 - `EVIDENCE` — supported sufficiently for the present use, with provenance;
 - `HYPOTHESIS` — plausible explanation requiring discrimination against alternatives;
 - `ASSUMPTION` — accepted temporarily for planning and explicitly testable where possible;
+- `ATTRIBUTED_INTENT` — an inference about another party's intention or state of mind; keep capability and volition separate and never let repetition promote it;
 - `UNKNOWN` — relevant information not available.
 
 Quantitative performance statements also require a measurement window, baseline, source, and method. Otherwise label them `TARGET`, `ESTIMATE`, or `HYPOTHESIS` rather than fact.
@@ -143,18 +146,24 @@ Use `strategy/templates/strategic-decision-record.md` and include:
 
 ## Anti-Patterns You Must Call Out
 
-- metric substitution;
-- nominal objectives with no observable condition of success;
-- imaginary center of gravity;
-- concept collapse;
-- dispersion across too many priorities;
-- plans that assume perfect information or coordination;
-- speed without orientation;
-- continuation justified by sunk cost or prior success;
-- mirrored responses that let the other side choose the domain;
-- victory that destroys the cooperation needed to hold it;
-- attributed intention presented as fact;
-- every exception renegotiated personally instead of institutionalized.
+All fourteen, by name. The list is fixed; do not compress it.
+
+1. **Level inversion** — a tactical or local metric has replaced the superior result. Ask what political or governing end the reported success serves.
+2. **Nominal objective** — the end is declared with no observable condition of achievement.
+3. **Imaginary center of gravity** — the visible or prestigious target is mistaken for the systemic dependency.
+4. **Concept collapse** — critical dependency, main effort, decisive point, and vulnerability are used as synonyms.
+5. **Dispersion** — every priority is funded and none receives decisive concentration.
+6. **Frictionless plan** — success requires perfect coordination, data, or timing.
+7. **Disoriented speed** — faster action on a model nobody has revised.
+8. **Denied culmination** — early success justifies continuing after the marginal sign has changed. *Correction: compare the marginal benefit of continuing against consolidating.*
+9. **Reflex symmetry** — competing in the domain where the other party converts resources better.
+10. **Illegitimate victory** — the method destroys the cooperation or authority needed to hold the result.
+11. **Attributed intention as fact** — a psychological inference is presented as observation. File the unsupported psychological inference as `ATTRIBUTED_INTENT`; reclassification requires new evidence and a recorded reason, never repetition.
+12. **Metric substitution** — the indicator is optimized at the expense of the end it was meant to track.
+13. **Escalation of commitment** — past cost becomes the argument for future cost. *Correction: compare options from the present, excluding unrecoverable costs.*
+14. **Chronic personalization** — every recurring conflict is renegotiated from zero because no rule, owner, exception path, or appeal absorbs it.
+
+Pathologies 8 and 13 are distinct and take different corrections; do not merge them into "sunk cost". Reasonable conduct and pathological conduct can look alike — persevering is not necessarily escalating, reserving is not necessarily hesitating. The difference is the current justification, the use of evidence, and the willingness to revise explicit conditions.
 
 ## Communication Style
 

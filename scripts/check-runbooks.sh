@@ -6,7 +6,7 @@
 # The Agency Agents app reads strategy/runbooks.json to turn a scenario into a
 # one-click team deploy. A deployable scenario must not be only a list of agents:
 # it must state the governing object, explicit non-object, accountable decision
-# owner, mandatory artifacts, termination criteria, and an independent Strategic
+# owner, mandatory artifacts, termination criteria, and a separate Strategic
 # Assurance Lead.
 #
 # This check fails when:
@@ -16,6 +16,15 @@
 #   4. a runbook slug is duplicated
 #   5. strategic metadata is missing or empty
 #   6. the Strategic Assurance Lead is absent from a runbook roster
+#   7. termination_criteria is a placeholder rather than a criterion
+#   8. a termination_contract, where present, does not answer all four questions
+#
+# On termination: a non-empty string is not a termination criterion. The source
+# doctrine (Marco Teorico General de la Estrategia, XII.9) holds that before
+# closing, the authority must be able to say what was achieved, what remains
+# outstanding, who answers for it, and what happens on breach. runbooks may carry
+# that as a structured `termination_contract`; runbooks without one are reported
+# as advisory so the contract can be adopted without breaking existing scenarios.
 #
 # Uses python3; no jq required.
 
@@ -81,9 +90,14 @@ required_fields = (
     "roster",
 )
 
+PLACEHOLDERS = {"", "tbd", "todo", "n/a", "na", "none", "-", "--", "pending", "unknown"}
+TERMINATION_KEYS = ("achieved", "outstanding", "accountable", "on_breach")
+
 seen_slugs = set()
 total_refs = 0
 total_artifacts = 0
+advisories = []
+contracts = 0
 
 for rb in runbooks:
     if not isinstance(rb, dict):
@@ -167,6 +181,40 @@ for rb in runbooks:
 
     # Catch the most obvious objective-proxy mistake mechanically. This is not
     # a semantic strategy validator; it simply prevents empty or identical framing.
+    # A termination criterion that says nothing is worse than a missing field: it
+    # passes the check and reports closure discipline the runbook does not have.
+    term = rb.get("termination_criteria")
+    if isinstance(term, str):
+        if term.strip().casefold() in PLACEHOLDERS:
+            errors.append(
+                f"runbook '{rid}': termination_criteria is a placeholder ({term.strip()!r}), not a criterion"
+            )
+
+    contract = rb.get("termination_contract")
+    if "termination_contract" not in rb:
+        advisories.append(
+            f"runbook '{rid}': no termination_contract — closure questions "
+            f"({', '.join(TERMINATION_KEYS)}) have no structured record"
+        )
+    elif not isinstance(contract, dict):
+        errors.append(f"runbook '{rid}': termination_contract must be an object")
+    else:
+        contracts += 1
+        optional_keys = ("conservation_resources", "revision_conditions")
+        for key in (*TERMINATION_KEYS, *(key for key in optional_keys if key in contract)):
+            value = contract.get(key)
+            if key not in contract:
+                errors.append(f"runbook '{rid}': termination_contract is missing {key!r}")
+            elif not isinstance(value, str) or value.strip().casefold() in PLACEHOLDERS:
+                errors.append(
+                    f"runbook '{rid}': termination_contract.{key} must be a non-placeholder string"
+                )
+        unknown = set(contract) - set(TERMINATION_KEYS) - {"conservation_resources", "revision_conditions"}
+        if unknown:
+            errors.append(
+                f"runbook '{rid}': termination_contract has unknown key(s): {', '.join(sorted(unknown))}"
+            )
+
     obj = rb.get("governing_object")
     non = rb.get("non_object")
     if isinstance(obj, str) and isinstance(non, str):
@@ -182,9 +230,15 @@ if errors:
         print(f"  ERROR {error}")
     sys.exit(1)
 
+if advisories:
+    print("ADVISORY (not a failure):")
+    for advisory in advisories:
+        print(f"  {advisory}")
+    print()
+
 print(
     f"PASSED: {len(runbooks)} runbooks, {total_refs} agent slug references, "
-    f"{total_artifacts} required artifacts — all resolve and every runbook "
-    f"satisfies the NEXUS v2 strategic contract."
+    f"{total_artifacts} required artifacts, {contracts}/{len(runbooks)} termination contracts "
+    f"— references and required metadata are structurally valid; closure adequacy requires human review."
 )
 PYEOF

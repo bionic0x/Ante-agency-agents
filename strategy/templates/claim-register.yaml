@@ -3,6 +3,8 @@
 # Copy this file into the working project. Keep decision-critical claims small,
 # explicit, sourced, and versioned. Empty registers are valid at project start.
 # A claim without adequate support does not disappear; its status changes.
+# For ATTRIBUTED_INTENT, use notes to distinguish observed capability from
+# inferred volition. Preserve the original status and evidence for any revision.
 
 schema_version: "1.0"
 initiative: ""
@@ -13,6 +15,7 @@ allowed_status:
   - EVIDENCE
   - HYPOTHESIS
   - ASSUMPTION
+  - ATTRIBUTED_INTENT
   - UNKNOWN
 
 allowed_quantitative_status:

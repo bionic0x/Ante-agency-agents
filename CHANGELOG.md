@@ -1,5 +1,19 @@
 # Changelog
 
+## Doctrine alignment — 2026-09-14
+
+- Integrate the supplied doctrine patch on top of PR #8, preserving all 487
+  agents and the existing installer and CI fixes.
+- Add attributed-intent status, fourteen named pathologies, scoped test
+  inapplicability, explicit precedence, and evidence requirements for independence.
+- Add two structured closure contracts and reject malformed contracts and
+  placeholder criteria; retain advisory adoption for the other six runbooks.
+- Add contract regression tests to CI and the release gate.
+- Add an institutional self-test that distinguishes demonstrated results from
+  missing evidence. Correct unsupported historical conclusions in the supplied
+  patch; a template field or different model does not certify functioning.
+- Regenerate the conversion manifest from the current source tree.
+
 ## Review follow-up — 2026-09-14
 
 - Make stale catalog and converted-output manifests fail pull-request CI, matching

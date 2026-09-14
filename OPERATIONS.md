@@ -85,7 +85,27 @@ profiles there. Claude's current loading rules are documented in its
 [subagent reference](https://code.claude.com/docs/en/sub-agents);
 Copilot's are in its [configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
 
-## Review evidence and upstream updates
+## Doctrine alignment and closure review
+
+The claim register distinguishes `ATTRIBUTED_INTENT`; the assurance profile
+retains all fourteen strategic pathologies. Coherence tests may declare
+`NOT_APPLICABLE` with a reason, except for the Epistemic and Exit tests.
+
+`check-runbooks.sh` rejects placeholder termination criteria and validates
+structured `termination_contract` fields when supplied. Absence is advisory;
+an explicit null, incomplete object, unknown key, or invalid optional field is
+an error. This checks structure, not the adequacy of a closure decision.
+The mispricing diagnostic and manuscript runbooks carry contracts (2/8);
+the other six retain their existing criteria pending owner-authored contracts.
+Thresholds in a domain contract are scoped to that runbook, not universal rules.
+
+Before release or a governance change, the release owner records the
+[institutional self-test](strategy/INSTITUTIONAL-SELF-TEST.md), with evidence,
+scope, unresolved gaps and accountability. CI cannot certify independence or
+institutional functioning. The baseline records those predicates as
+`NOT_DEMONSTRATED`; it does not invent completed governance exercises.
+
+## Validation implementations and upstream updates
 
 The validation dependencies and Hermes/catalog implementations are checked in:
 
