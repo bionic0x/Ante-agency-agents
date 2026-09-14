@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 import argparse, collections, json, os, re, urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -8,6 +9,7 @@ SOURCE_REPO = "mergisi/awesome-openclaw-agents"
 DEFAULT_SOURCE_REF = "05820c51125e86a979432e21651d34dc9b14621f"
 SOURCE_LICENSE = "MIT"
 SOURCE_NOTICE = "Copyright (c) 2025 OpenClaw Community"
+DEFAULT_WORKERS = 8
 
 CATEGORY_MAP = {
     "automation":"specialized","business":"specialized","creative":"design","data":"research",
@@ -184,12 +186,38 @@ Apply this specialty when it is the selected mechanism for the current task. Pre
 This normalized file is part of the **single Agency catalog**. It is not a second OpenClaw-only agency; the same canonical agent can be converted to any supported target.
 '''
 
+def fetch_source_texts(discovered:list[dict[str,Any]],source_ref:str,workers:int)->tuple[dict[str,str],list[dict[str,str]]]:
+    """Fetch independent SOUL.md files concurrently while preserving deterministic output order later."""
+    texts:dict[str,str]={}
+    errors:list[dict[str,str]]=[]
+
+    def fetch_one(item:dict[str,Any])->tuple[str,str]:
+        path=item["source_path"]
+        url=f"https://raw.githubusercontent.com/{SOURCE_REPO}/{source_ref}/{path}"
+        return path,http_text(url)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        future_paths={pool.submit(fetch_one,item):item["source_path"] for item in discovered}
+        for future in as_completed(future_paths):
+            path=future_paths[future]
+            try:
+                fetched_path,text=future.result()
+                texts[fetched_path]=text
+            except Exception as exc:
+                errors.append({"source_path":path,"error":str(exc)})
+    errors.sort(key=lambda item:item["source_path"])
+    return texts,errors
+
 def main()->int:
     ap=argparse.ArgumentParser()
     ap.add_argument("--source-ref",default=DEFAULT_SOURCE_REF)
     ap.add_argument("--root",default=".")
+    ap.add_argument("--workers",type=int,default=DEFAULT_WORKERS,
+                    help=f"parallel raw-file fetches (default: {DEFAULT_WORKERS}; use 1 for sequential)")
     ap.add_argument("--dry-run",action="store_true")
     args=ap.parse_args()
+    if args.workers < 1:
+        ap.error("--workers must be >= 1")
     root=Path(args.root).resolve()
     divisions_doc=json.loads((root/"divisions.json").read_text(encoding="utf-8"))
     divisions=divisions_doc["divisions"]
@@ -213,13 +241,13 @@ def main()->int:
     manifest_paths={a.get("path") for a in manifest_agents if a.get("path")}
     tree_paths={x["source_path"] for x in discovered}
 
-    generated_paths=set(); entries=[]; errors=[]; alias_count=import_count=0
+    source_texts,errors=fetch_source_texts(discovered,args.source_ref,args.workers)
+    generated_paths=set(); entries=[]; alias_count=import_count=0
     for item in discovered:
         path=item["source_path"]; category=item["source_category"]; sid=item["source_id"]; key=f"{category}/{sid}"
-        try:
-            source_text=http_text(f"https://raw.githubusercontent.com/{SOURCE_REPO}/{args.source_ref}/{path}")
-        except Exception as exc:
-            errors.append({"source_path":path,"error":str(exc)}); continue
+        source_text=source_texts.get(path)
+        if source_text is None:
+            continue
         name,role=source_identity(source_text,sid); capability=first_capability(source_text)
         alias,reason=resolve_alias(key,sid,name,canonical_slugs,canonical_names)
         if alias:
@@ -265,8 +293,8 @@ def main()->int:
     print(json.dumps({"source_commit":args.source_ref,"declared_total":source_manifest.get("total"),
                       "manifest_entries":len(manifest_agents),"discovered_soul_files":len(discovered),
                       "aliases":alias_count,"imports":import_count,"errors":len(errors),"stale_removed":len(stale),
-                      "tree_not_manifest":len(tree_paths-manifest_paths),"manifest_not_tree":len(manifest_paths-tree_paths)},indent=2))
+                      "tree_not_manifest":len(tree_paths-manifest_paths),"manifest_not_tree":len(manifest_paths-tree_paths),
+                      "workers":args.workers},indent=2))
     return 1 if errors else 0
 
-if __name__=="__main__":
-    raise SystemExit(main())
+if __name__=="__main__": raise SystemExit(main())

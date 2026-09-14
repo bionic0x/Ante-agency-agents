@@ -16,39 +16,108 @@
 # 1. Frontmatter / slug helpers
 # ---------------------------------------------------------------------------
 
+# _emit_yaml_scalar <value> — normalize the small YAML scalar subset used by
+# agent frontmatter. This deliberately mirrors the previous awk implementation:
+# trim outer padding, strip one matching quote pair, unescape \" / \\ in double
+# quotes and doubled apostrophes in single quotes. It is pure bash so repeated
+# metadata lookups do not fork awk thousands of times during full conversion.
+_emit_yaml_scalar() {
+  local v="$1"
+  while [[ "$v" == ' '* || "$v" == $'\t'* ]]; do v="${v#?}"; done
+  while [[ "$v" == *' ' || "$v" == *$'\t' ]]; do v="${v%?}"; done
+
+  local n=${#v}
+  if (( n >= 2 )) && [[ "${v:0:1}" == '"' && "${v:n-1:1}" == '"' ]]; then
+    v="${v:1:n-2}"
+    v="${v//\\\"/\"}"
+    v="${v//\\\\/\\}"
+  elif (( n >= 2 )) && [[ "${v:0:1}" == "'" && "${v:n-1:1}" == "'" ]]; then
+    v="${v:1:n-2}"
+    v="${v//\'\'/\'}"
+  fi
+  printf '%s\n' "$v"
+}
+
 # get_field <field> <file> — value of a YAML frontmatter field (first match).
+# Frontmatter is intentionally parsed with bash built-ins: fields live in the
+# first --- block; indented non-empty continuation lines are folded with spaces.
 get_field() {
-  local field="$1" file="$2"
-  awk -v f="$field" '
-    # A quoted YAML scalar carries its quotes as delimiters, not content:
-    # strip one matching outer pair and unescape (\047 is a literal apostrophe;
-    # this program sits inside shell single quotes). A plain scalar may also
-    # continue onto indented lines; YAML folds those into one line joined by
-    # single spaces, and so do we — otherwise the generated description is
-    # silently truncated to its first line (three healthcare agents were).
-    function emit(v) {
-      sub(/^[ \t]+/, "", v); sub(/[ \t]+$/, "", v)   # YAML: plain-scalar padding is not content
-      if (v ~ /^".*"$/)            { v = substr(v, 2, length(v) - 2); gsub(/\\"/, "\"", v); gsub(/\\\\/, "\\", v) }
-      else if (v ~ /^\047.*\047$/) { v = substr(v, 2, length(v) - 2); gsub(/\047\047/, "\047", v) }
-      print v; printed = 1; exit
-    }
-    /^---$/ { fm++; if (fm == 2 && found) emit(val); next }
-    fm == 1 && !found && $0 ~ "^" f ": " { sub("^" f ": ", ""); val = $0; found = 1; next }
-    fm == 1 && found && /^[ \t]+[^ \t]/ { sub(/^[ \t]+/, ""); val = val " " $0; next }
-    fm == 1 && found { emit(val) }
-    END { if (found && !printed) emit(val) }
-  ' "$file"
+  local field="$1" file="$2" line val="" cont
+  local fm=0 found=0
+  [[ -f "$file" ]] || return 0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == '---' ]]; then
+      fm=$(( fm + 1 ))
+      if (( fm == 2 )); then
+        (( found )) && _emit_yaml_scalar "$val"
+        return 0
+      fi
+      continue
+    fi
+    (( fm == 1 )) || continue
+
+    if (( found )); then
+      if [[ "$line" == ' '* || "$line" == $'\t'* ]]; then
+        cont="$line"
+        while [[ "$cont" == ' '* || "$cont" == $'\t'* ]]; do cont="${cont#?}"; done
+        if [[ -n "$cont" ]]; then
+          val="$val $cont"
+          continue
+        fi
+      fi
+      _emit_yaml_scalar "$val"
+      return 0
+    fi
+
+    case "$line" in
+      "$field: "*) val="${line#"$field: "}"; found=1 ;;
+    esac
+  done < "$file"
+
+  (( found )) && _emit_yaml_scalar "$val"
 }
 
 # get_body <file> — file contents with the leading frontmatter block stripped.
+# Pure bash avoids one awk process per agent conversion while preserving the
+# command-substitution behavior callers already rely on (trailing newlines are
+# stripped by $(...) in the caller).
 get_body() {
-  awk 'BEGIN{fm=0} fm<2 && /^---$/{fm++; next} fm>=2{print}' "$1"
+  local line fm=0
+  [[ -f "$1" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if (( fm < 2 )) && [[ "$line" == '---' ]]; then
+      fm=$(( fm + 1 ))
+      continue
+    fi
+    (( fm >= 2 )) && printf '%s\n' "$line"
+  done < "$1"
 }
 
-# slugify <string> — "Frontend Developer" -> "frontend-developer"
+# slugify <string> — "Frontend Developer" -> "frontend-developer".
+# Pure bash keeps this hot-path helper fork-free. The mapping is intentionally
+# ASCII-only, matching the prior tr+sed contract: non [a-z0-9] characters become
+# separators, repeated separators collapse, and leading/trailing separators drop.
 slugify() {
-  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' \
-    | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//'
+  local s="$1" out="" ch mapped i len=${#1}
+  for (( i=0; i<len; i++ )); do
+    ch="${s:i:1}"
+    case "$ch" in
+      [Aa]) mapped=a ;; [Bb]) mapped=b ;; [Cc]) mapped=c ;; [Dd]) mapped=d ;; [Ee]) mapped=e ;;
+      [Ff]) mapped=f ;; [Gg]) mapped=g ;; [Hh]) mapped=h ;; [Ii]) mapped=i ;; [Jj]) mapped=j ;;
+      [Kk]) mapped=k ;; [Ll]) mapped=l ;; [Mm]) mapped=m ;; [Nn]) mapped=n ;; [Oo]) mapped=o ;;
+      [Pp]) mapped=p ;; [Qq]) mapped=q ;; [Rr]) mapped=r ;; [Ss]) mapped=s ;; [Tt]) mapped=t ;;
+      [Uu]) mapped=u ;; [Vv]) mapped=v ;; [Ww]) mapped=w ;; [Xx]) mapped=x ;; [Yy]) mapped=y ;;
+      [Zz]) mapped=z ;; [0-9]) mapped="$ch" ;; *) mapped=- ;;
+    esac
+    if [[ "$mapped" == '-' ]]; then
+      [[ -n "$out" && "$out" != *- ]] && out="${out}-"
+    else
+      out="${out}${mapped}"
+    fi
+  done
+  [[ "$out" == *- ]] && out="${out%-}"
+  printf '%s' "$out"
 }
 
 # agent_slug <file> — slug derived from the file's `name:` frontmatter.
@@ -60,7 +129,10 @@ agent_slug() {
 
 # is_agent_file <file> — true if the file starts with a YAML frontmatter fence.
 is_agent_file() {
-  [[ -f "$1" ]] && [[ "$(head -1 "$1")" == "---" ]]
+  local first=""
+  [[ -f "$1" ]] || return 1
+  IFS= read -r first < "$1" || true
+  [[ "$first" == '---' ]]
 }
 
 # ---------------------------------------------------------------------------
