@@ -26,6 +26,8 @@ on:
       - "scripts/lib.sh"
       - "scripts/lint-agents.sh"
       - "scripts/registry.py"
+      - "scripts/list-changed-agent-files.py"
+      - "scripts/test-changed-agent-files.py"
 
 permissions:
   contents: read
@@ -47,15 +49,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Test changed-agent discovery
+        run: python3 scripts/test-changed-agent-files.py
+
       - name: Get changed agent and lint-infrastructure files
         id: changed
         run: |
-          FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
-            'academic/**/*.md' 'design/**/*.md' 'engineering/**/*.md' 'finance/**/*.md' 'game-development/**/*.md' 'gis/**/*.md' 'healthcare/**/*.md' 'marketing/**/*.md' 'mispriced-cmo/**/*.md' 'paid-media/**/*.md' 'sales/**/*.md' 'security/**/*.md' 'product/**/*.md' \
-            'project-management/**/*.md' 'research/**/*.md' 'testing/**/*.md' 'support/**/*.md' \
-            'spatial-computing/**/*.md' 'specialized/**/*.md')
+          FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD | \
+            python3 scripts/list-changed-agent-files.py)
           INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
-            divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py)
+            divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py \
+            scripts/list-changed-agent-files.py)
           {
             echo "files<<ENDOFLIST"
             echo "$FILES"
