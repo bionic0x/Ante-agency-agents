@@ -19,6 +19,7 @@ The diagnostic does **not** assume the answer is more brand investment. Its firs
 - `strategy/GENERAL-STRATEGY-DOCTRINE.md`
 - `strategy/MARKETING-OPERATING-MODEL.md`
 - `mispriced-cmo/mispriced-cmo-diagnostic-lead.md` — module architecture and report skeleton
+- `examples/mispricing-report-excerpt.md` — worked output: evidence tagging, ledger rows, recorded dissent, and the internal/client-safe register pair
 
 ## Agent Roster
 
@@ -26,6 +27,7 @@ The diagnostic does **not** assume the answer is more brand investment. Its firs
 
 | Agent | Role |
 |---|---|
+| Strategic Assurance Lead | Separate assurance that the engagement keeps its object, non-object, decision owner, mandatory artifacts, and termination criteria |
 | Mispricing Diagnostic Lead | Mandate, engagement state, module integration, mispricing thesis, readout |
 | Availability Ledger Analyst | Quick-Win Leakage Audit · Ratio Reality Check · Ratio Covenant draft |
 | Measurement Bias Reviewer | Measurement Bias Review · Metric Register · evidence architecture |
@@ -49,7 +51,7 @@ The diagnostic does **not** assume the answer is more brand investment. Its firs
 | Agent | Role |
 |---|---|
 | Repricing Memo Writer | The Marketing Mispricing Report · The Repricing Memo |
-| Mispricing Claim Auditor | Claim and citation verification; blocks unverified external claims |
+| Mispricing Claim Auditor | Claim and citation verification plus the Register Separation Check; blocks unverified claims and register leakage |
 
 ### Commercial (internal only)
 
@@ -154,11 +156,12 @@ The red team looks for the single contradiction that would invalidate it: a cons
 - Assemble The Marketing Mispricing Report in client-safe language
 - Draft The Repricing Memo if commissioned
 - Verify every external claim and citation; nothing unverified in the body
+- Run the **Register Separation Check** on every client-bound artifact; a single internal commercial term or leaked internal pricing logic blocks the artifact until rewritten
 - Record dissent and what the client can do without further support
 
 ### Gate 5
 
-**Could a board decide from the memo, and does every recommendation have an owner, a first signal, a refutator, and a review date?**
+**Could a board decide from the memo; does every recommendation have an owner, a first signal, a refutator, and a review date; and has every client-bound artifact cleared the Register Separation Check?**
 
 ---
 
@@ -182,7 +185,18 @@ Deliver: operating doctrine, reallocated budget logic, adopted Ratio Covenant, a
 
 ## Phase 7 — Optional: The Availability Discipline Retainer
 
+**Lead**: Mispricing Diagnostic Lead  
+**Core**: Availability Ledger Analyst · Measurement Bias Reviewer  
+**Rotating**: Recognition Equity Auditor (annual asset re-audit) · ESOV & Fame Analyst (at budget setting) · Four-Year Clock & Exceptions Desk Analyst (on any change of CMO, incentive plan, or agency roster)  
+**Assurance**: Mispricing Claim Auditor · Strategic Assurance Lead
+
 Quarterly: re-run the ledger, check covenant compliance, review tests, re-diagnose whether the constraint has migrated, and confirm what should now be maintained, stopped, or transferred.
+
+Each quarter closes with a one-page note in the same client-safe register as the report: ledger movement, covenant status, tests read and tests pending, constraint verdict, and what changes next quarter.
+
+### Gate 7
+
+**Has the binding constraint moved, and does the client still need us — or is the discipline now theirs to run?** A retainer that cannot answer the second half is renewed out of habit, not evidence, and should be closed.
 
 ---
 
