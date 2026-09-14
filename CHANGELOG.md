@@ -1,5 +1,29 @@
 # Changelog
 
+## Privilege and provenance hardening — 2026-09-14
+
+- Add a closed `scripts/agent-tools.json` security registry for the five tool tokens
+  retained by the reviewed 490-agent roster. CI validates the canonical scalar
+  representation, rejects duplicate/unknown tokens, and derives the effective
+  privilege class (`read`, `network-read`, `write`; `execute` is reserved) from
+  registry data.
+- Review all 11 profiles that declared `Bash` (four Mispriced CMO and seven
+  paid-media profiles). None requires shell execution for its stated workflow;
+  remove `Bash` from all 11 and from the closed registry, leaving **zero execute
+  profiles**. Reintroduction now requires an explicit security-registry change.
+- Treat privilege-registry changes as lint infrastructure so a semantic change to
+  a tool forces a full-roster validation. Add privilege tests and the checker to
+  the local release gate.
+- Harden the OpenClaw importer so `--source-ref` must be an immutable full commit
+  SHA and exact downloaded bytes for `agents.json` and every discovered `SOUL.md`
+  must match the Git blob IDs from that pinned tree before normalization.
+- Make source verification fail closed: any missing/mismatched/unreadable source
+  aborts before agent, registry or stale-path writes. Add offline regression tests
+  for Git-object hashing, blob mismatch rejection and immutable-ref validation.
+- Correct the security documentation: agent Markdown is inert in the repository,
+  but a host may honor `tools:` as runtime capability requests; declarations do
+  not themselves grant authorization.
+
 ## Domain expansion and CI discovery hardening — 2026-09-14
 
 - PR #17 fixes changed-agent discovery in pull-request linting: agent files placed

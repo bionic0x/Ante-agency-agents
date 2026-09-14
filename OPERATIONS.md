@@ -55,6 +55,32 @@ reported cause. The installer does not remove unrelated pre-existing profiles.
 Keep the checkout at the same path. Switching back to copy mode replaces the
 link without modifying its source.
 
+## Agent tool privileges
+
+Agent `tools:` metadata is a runtime capability request, not authorization. The
+canonical source form is one comma-separated scalar because that is the contract
+consumed by `lib.sh` and the adapters that preserve tool metadata.
+
+`scripts/agent-tools.json` is the closed privilege registry. The reviewed roster
+uses exactly five registered tokens: `Read`, `WebSearch`, `WebFetch`, `Write`,
+and `Edit`. Their current effective classes are `read`, `network-read`, and
+`write`; the schema reserves `execute` as the next-higher class but **no execution
+tool is registered and no agent is classified `execute`**. The 11 profiles that
+previously declared `Bash` were individually reviewed and did not require shell
+execution for their stated workflows, so that token was removed from both those
+profiles and the registry.
+
+Unknown or malformed tokens fail CI until their security semantics are explicitly
+added to the registry. Reintroducing `Bash` or any execution capability therefore
+requires a reviewed registry change as well as the requesting profile change.
+Changing the registry is lint infrastructure and forces a full-roster privilege
+validation.
+
+The registry describes capability, not entitlement. Host sandboxing, credentials,
+the user mandate, repository policy and runbook decision rights still govern use.
+Prefer the minimum declared tool set and do not infer permission to mutate files
+or perform external I/O from the presence of a token alone.
+
 ## Verify before release
 
 Use Python 3.11+ for validation:
@@ -64,8 +90,9 @@ python3 -m pip install -r scripts/requirements-validation.txt
 bash scripts/verify-release.sh
 ```
 
-The gate checks registry consistency, changed-agent discovery, full agent lint,
-all runbook resolutions, catalog freshness, Hermes routing and lifecycle
+The gate checks registry consistency, changed-agent discovery, the closed agent
+privilege schema, full agent lint, offline OpenClaw provenance-verifier regression
+tests, all runbook resolutions, catalog freshness, Hermes routing and lifecycle
 behavior, installer regressions, all 16 installation routes in isolated fixtures,
 and strict parsing, counts and drift for every agent across the 14 converted
 formats. Pull-request CI also exercises Linux and macOS installation behavior.
@@ -140,9 +167,13 @@ actors. Do not treat this section as evidence that the setting has been changed.
 
 ## Validation implementations and upstream updates
 
-The validation dependencies and Hermes/catalog implementations are checked in:
+The validation dependencies and checked implementations include:
 
 - [requirements-validation.txt](scripts/requirements-validation.txt)
+- [agent-tools.json](scripts/agent-tools.json)
+- [check-agent-privileges.py](scripts/check-agent-privileges.py)
+- [test-agent-privileges.py](scripts/test-agent-privileges.py)
+- [test-openclaw-import-provenance.py](scripts/test-openclaw-import-provenance.py)
 - [check-hermes-plugin.py](scripts/check-hermes-plugin.py)
 - [test-hermes-plugin.py](scripts/test-hermes-plugin.py)
 - [build-catalog.py](scripts/build-catalog.py)

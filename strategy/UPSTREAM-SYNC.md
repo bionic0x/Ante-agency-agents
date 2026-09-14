@@ -35,10 +35,18 @@ importer's `agents/` discovery scope. The registry field
 `manifest_paths_missing_from_tree` records a difference against that scoped
 discovery set; it does not mean those paths are absent from the whole Git tree.
 
-This verifies source-tree reconciliation and destination existence. It does not
-prove semantic equivalence of every normalized profile, that aliases are the best
-possible semantic match, or successful authenticated OpenClaw execution.
-No original import PR is inferred from a provenance header.
+That historical review established source-tree reconciliation and canonical
+destination existence. The importer is now stricter for every future preview or
+sync: `--source-ref` must be a full 40-hex commit SHA, the recursive tree supplies
+the expected blob IDs, and the exact downloaded bytes for `agents.json` and every
+discovered `SOUL.md` must hash to those IDs using Git's blob-object format before
+UTF-8 decoding or normalization. A mismatch, failed read or decode failure aborts
+before any canonical agent, source registry or stale path is written.
+
+Byte identity with the pinned tree does not prove semantic equivalence of every
+normalized profile, that aliases are the best possible semantic match, that the
+source is safe, or successful authenticated OpenClaw execution. No original
+import PR is inferred from a provenance header.
 [PR #6](https://github.com/bionic0x/Ante-agency-agents/pull/6) added Mispriced CMO
 and catalog work; [PR #7](https://github.com/bionic0x/Ante-agency-agents/pull/7)
 hardened installation and validation. The OpenClaw import predates both.
@@ -70,9 +78,11 @@ bash scripts/test-convert-outputs.sh --update
 bash scripts/verify-release.sh
 ```
 
-Inspect the complete diff, preserve required license notices, reconcile the
-registry and build metadata with the chosen pin, and commit the generated
-catalog and manifest in the same PR. A preview is not approval of the diff.
+The preview performs the same source-byte verification as the applying run; it
+must not write canonical files. Inspect the complete diff, preserve required
+license notices, reconcile the registry and build metadata with the chosen pin,
+and commit the generated catalog and manifest in the same PR. A verified preview
+is not approval of the semantic diff.
 
 Catalog freshness and converted-output drift must pass on the PR before merge.
 Do not defer regeneration until the push to `main`. Host/runtime compatibility

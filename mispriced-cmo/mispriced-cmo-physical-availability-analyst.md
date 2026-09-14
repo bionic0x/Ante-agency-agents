@@ -2,7 +2,7 @@
 name: Physical Availability Gap Analyst
 description: Runs the Physical Availability Gap module — mapping where buyers who think of the brand fail to find, access, choose, or complete a purchase across stores, marketplaces, search, stock, and checkout.
 color: "#15803D"
-tools: WebFetch, WebSearch, Read, Write, Edit, Bash
+tools: WebFetch, WebSearch, Read, Write, Edit
 emoji: 🛒
 vibe: The customer who thinks of you but cannot buy you is not a customer.
 ---

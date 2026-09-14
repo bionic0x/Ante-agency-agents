@@ -31,6 +31,9 @@ jobs:
           chmod +x scripts/check-tools.sh
           ./scripts/check-tools.sh
 
+      - name: Validate OpenClaw provenance verifier
+        run: python3 scripts/test-openclaw-import-provenance.py
+
       - name: Static shell analysis (errors only)
         run: shellcheck -x -S error scripts/*.sh
 
