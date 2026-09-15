@@ -96,6 +96,21 @@ def validate_claim(claim):
     when(claim['expires'])
 
 
+def claim_ancestry(claims, cid):
+    """Include every premise: a shared conclusion cannot erase a scoped source."""
+    found, pending = set(), [cid]
+    while pending:
+        current = pending.pop()
+        if current not in found:
+            found.add(current)
+            pending.extend(claims[current].get('depends_on', []))
+    return found
+
+
+def expired(instance, at):
+    return when(at) >= min(when(instance['mandate']['expires']), when(instance['budget']['deadline']))
+
+
 def validate(instance):
     require(isinstance(instance, dict) and instance.get('schema_version') == 1, 'instance schema_version must be 1')
     text(instance.get('id'), 'id')
@@ -127,6 +142,7 @@ def validate(instance):
         validate_claim(claim)
     acyclic(claims, 'depends_on')
     tasks = indexed(instance['tasks'], 'tasks')
+    require(bool(tasks), 'instance requires at least one task')
     for task in tasks.values():
         require(task['agent'] in roster & catalog, 'task agent must belong to canonical runbook roster')
         require(task['level'] in VOCAB['levels'], 'unknown task level')
@@ -142,7 +158,8 @@ def validate(instance):
         require(isinstance(task['claim_revisions'], dict), 'claim_revisions must be an object')
         for cid, revision in task['claim_revisions'].items():
             require(cid in claims and type(revision) is int and revision == claims[cid]['revision'], 'unknown/stale initial claim revision')
-            require(claims[cid]['scope'] in ('shared', task['evidence_scope']), 'cross-scope evidence reuse')
+            require(all(claims[parent]['scope'] in ('shared', task['evidence_scope'])
+                        for parent in claim_ancestry(claims, cid)), 'cross-scope evidence reuse in claim ancestry')
     acyclic(tasks, 'depends_on')
     require(isinstance(instance.get('open_conditions', []), list), 'open_conditions must be an array')
     for condition in instance.get('open_conditions', []):
@@ -159,6 +176,7 @@ def initial(instance):
     validate(instance)
     return {'instance_hash': digest(instance), 'decision_state': instance['decision_state'],
             'tasks': {t['id']: {'status': 'PENDING', 'attempts': 0, 'spent': 0, 'reserved': 0,
+                              'result_revision': 0, 'dependency_revisions': {}, 'inputs_stale': False,
                               'claim_revisions': copy.deepcopy(t['claim_revisions'])} for t in instance['tasks']},
             'claims': copy.deepcopy(indexed(instance['claims'], 'claims')),
             'conditions': copy.deepcopy(indexed(instance.get('open_conditions', []), 'conditions')),
@@ -171,12 +189,16 @@ def blockers(instance, state, tid, at):
     if state['closed']: reasons.append('INSTANCE_CLOSED')
     if state['decision_state'] in ('REJECT', 'REDESIGN'): reasons.append(state['decision_state'])
     if state['decision_state'] == 'HOLD' and not state['conditions']: reasons.append('GLOBAL_HOLD')
-    if when(at) >= min(when(instance['mandate']['expires']), when(instance['budget']['deadline'])): reasons.append('EXPIRED')
+    if expired(instance, at): reasons.append('EXPIRED')
+    progress = state['tasks'][tid]
+    if progress['inputs_stale']: reasons.append('TASK_INPUT_REVIEW')
     for c in state['conditions'].values():
         if tid in c['task_ids']: reasons.append('HOLD:' + c['id'])
     for parent in task.get('depends_on', []):
         if state['tasks'][parent]['status'] != 'SUCCEEDED': reasons.append('DEPENDENCY:' + parent)
         elif blockers(instance, state, parent, at): reasons.append('DEPENDENCY_REVIEW:' + parent)
+        if parent in progress['dependency_revisions'] and progress['dependency_revisions'][parent] != state['tasks'][parent]['result_revision']:
+            reasons.append('DEPENDENCY_REVISION:' + parent)
     def claim_expired(cid):
         c = state['claims'][cid]
         return when(c['expires']) <= when(at) or any(claim_expired(parent) for parent in c.get('depends_on', []))
@@ -184,7 +206,8 @@ def blockers(instance, state, tid, at):
         claim = state['claims'][cid]
         if claim['revision'] != revision or cid in state['review_required']: reasons.append('CLAIM_REVIEW:' + cid)
         if claim_expired(cid): reasons.append('CLAIM_EXPIRED:' + cid)
-        if claim['scope'] not in ('shared', task['evidence_scope']): reasons.append('CLAIM_SCOPE:' + cid)
+        for parent in claim_ancestry(state['claims'], cid):
+            if state['claims'][parent]['scope'] not in ('shared', task['evidence_scope']): reasons.append('CLAIM_SCOPE:' + parent)
     if state['tasks'][tid]['spent'] > task['cost_limit']: reasons.append('TASK_COST_OVERRUN')
     if state['spent'] > instance['budget']['cost_limit'] - instance['budget']['reserve']: reasons.append('BUDGET_OVERRUN')
     return sorted(set(reasons))
@@ -228,6 +251,8 @@ def apply(instance, prior, event):
             for other, p in state['tasks'].items():
                 require(p['status'] != 'RUNNING' or not set(task['resource_scope']).intersection(tasks[other]['resource_scope']), 'shared resource already owned')
             progress.update(status='RUNNING', attempts=progress['attempts'] + 1, reserved=reserved)
+            progress['dependency_revisions'] = {parent: state['tasks'][parent]['result_revision']
+                                                for parent in task.get('depends_on', [])}
         else:
             require(progress['status'] == 'RUNNING', 'task not running')
             cost = number(event['actual_cost'], 'actual_cost')
@@ -241,6 +266,7 @@ def apply(instance, prior, event):
             progress['spent'] += cost; state['spent'] += cost; progress['reserved'] = 0
             progress['status'] = 'SUCCEEDED' if event['accepted'] else 'FAILED'
             progress['evidence_refs'] = evidence
+            if event['accepted']: progress['result_revision'] += 1
     elif kind == 'hold':
         require(issuer in [owner, *reviewers], 'hold requires named owner/reviewer')
         c = event['condition']; text(c['id'], 'condition id')
@@ -282,6 +308,13 @@ def apply(instance, prior, event):
         text(event['reason'], 'rebinding reason')
         state['tasks'][tid]['claim_revisions'] = copy.deepcopy(revisions)
         state['tasks'][tid]['status'] = 'PENDING'
+        state['tasks'][tid]['inputs_stale'] = False
+        state['tasks'][tid]['dependency_revisions'] = {}
+        # Retain accounting and prior results, but never silently reuse consumers.
+        # Running consumers must still finish to reconcile their actual cost.
+        for child in descendants(tasks, tid):
+            if state['tasks'][child]['status'] != 'PENDING':
+                state['tasks'][child]['inputs_stale'] = True
     elif kind == 'dissent':
         require(issuer in [owner, *reviewers], 'unknown dissent reviewer')
         text(event['objection'], 'objection'); text(event['risk_owner'], 'risk_owner')
@@ -301,6 +334,8 @@ def apply(instance, prior, event):
             if p['status'] in ('PENDING', 'FAILED'): p['status'] = 'CANCELLED'
     elif kind == 'close':
         require(issuer == owner, 'closure requires named owner')
+        require(not expired(instance, at), 'EXPIRED mandate or deadline prevents success closure')
+        require(bool(state['tasks']), 'success closure requires at least one task')
         require(not state['conditions'] and not state['review_required'], 'unresolved closure conditions')
         require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'decision prevents success closure')
         require(all(p['status'] == 'SUCCEEDED' and not blockers(instance, state, t, at) for t, p in state['tasks'].items()), 'incomplete/stale work prevents success closure')

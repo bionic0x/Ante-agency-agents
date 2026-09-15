@@ -145,4 +145,84 @@ class InstanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'out-of-order'):
             self.run_event('dissent',at='2026-09-14T00:00:00Z',objection='x',risk_owner='owner',evidence_refs=['x'])
 
+    def completed_pilot(self):
+        events = [json.loads(l) for l in (ROOT / 'examples/nexus/strategic-decision.events.jsonl').read_text().splitlines()]
+        self.s = n.replay(self.i, events[:-1])
+        return {k: events[-1][k] for k in ('closure', 'evidence_refs')}
+
+    def rebind(self, task):
+        return self.run_event('rebind_claims', task_id=task,
+                              claim_revisions=self.s['tasks'][task]['claim_revisions'], reason='Review changed inputs')
+
+    def test_upstream_rerun_requires_new_downstream_result(self):
+        closure = self.completed_pilot()
+        self.rebind('B'); self.start('B'); self.finish('B')
+        self.assertFalse(n.blockers(self.i, self.s, 'A', AT))
+        with self.assertRaisesRegex(ValueError, 'incomplete/stale'):
+            self.run_event('close', **closure)
+        self.assertIn('TASK_INPUT_REVIEW', n.blockers(self.i, self.s, 'C', AT))
+        self.rebind('C')
+        self.assertEqual((1, 1), (self.s['tasks']['C']['spent'], self.s['tasks']['C']['attempts']))
+        self.start('C'); self.finish('C')
+        self.assertEqual({'A': 1, 'B': 2}, self.s['tasks']['C']['dependency_revisions'])
+        self.assertEqual(2, self.s['tasks']['C']['result_revision'])
+        self.run_event('close', **closure)
+        self.assertEqual(5, self.s['spent'])
+
+    def test_running_consumer_reconciles_cost_but_requires_review(self):
+        self.start('A'); self.finish('A'); self.start('B'); self.finish('B'); self.start('C')
+        self.rebind('B'); self.start('B'); self.finish('B'); self.finish('C')
+        self.assertEqual(4, self.s['spent'])
+        self.assertEqual(0, self.s['tasks']['C']['reserved'])
+        self.assertIn('TASK_INPUT_REVIEW', n.blockers(self.i, self.s, 'C', AT))
+        self.assertIn('DEPENDENCY_REVISION:B', n.blockers(self.i, self.s, 'C', AT))
+
+    def test_task_invalidation_reaches_transitive_consumers(self):
+        d = copy.deepcopy(self.i['tasks'][2])
+        d.update(id='D', depends_on=['C'], resource_scope=['fixture-D'])
+        self.i['tasks'].append(d); self.s = n.initial(self.i)
+        for task in ('A', 'B', 'C', 'D'):
+            self.start(task); self.finish(task)
+        self.rebind('B'); self.start('B'); self.finish('B')
+        self.rebind('C'); self.start('C'); self.finish('C')
+        self.assertIn('TASK_INPUT_REVIEW', n.blockers(self.i, self.s, 'D', AT))
+        self.assertFalse(n.blockers(self.i, self.s, 'A', AT))
+
+    def test_shared_claim_cannot_hide_cross_scope_ancestor(self):
+        self.i['claims'][0]['scope'] = 'solana'
+        self.i['tasks'][0]['evidence_scope'] = 'solana'
+        self.i['tasks'][2]['evidence_scope'] = 'arbitrum'
+        with self.assertRaisesRegex(ValueError, 'cross-scope'):
+            n.initial(self.i)
+
+    def test_revised_claim_scope_blocks_transitive_consumers(self):
+        claim = copy.deepcopy(self.s['claims']['CLM-1'])
+        claim.update(revision=2, scope='solana')
+        self.run_event('claim_revision', claim=claim, reason='Premise applies only to Solana')
+        self.assertIn('CLAIM_SCOPE:CLM-1', n.blockers(self.i, self.s, 'C', AT))
+
+    def test_same_scope_and_shared_ancestry_are_accepted(self):
+        self.i['claims'][0]['scope'] = 'solana'
+        for task in self.i['tasks']:
+            task['evidence_scope'] = 'solana'
+        self.s = n.initial(self.i)
+        self.assertFalse([b for b in n.blockers(self.i, self.s, 'C', AT) if 'SCOPE' in b])
+
+    def test_empty_task_plan_is_rejected(self):
+        self.i['tasks'] = []
+        with self.assertRaisesRegex(ValueError, 'at least one task'):
+            n.initial(self.i)
+
+    def test_success_closure_checks_mandate_and_deadline(self):
+        closure = self.completed_pilot()
+        for field in ('mandate', 'budget'):
+            with self.subTest(field=field):
+                instance = copy.deepcopy(self.i)
+                instance[field]['expires' if field == 'mandate' else 'deadline'] = AT
+                with self.assertRaisesRegex(ValueError, 'EXPIRED'):
+                    n.apply(instance, self.s, self.event('close', **closure))
+        self.run_event('terminate', at='2031-01-01T00:00:00Z', outcome='EXPIRED',
+                       reason='Record closure after expiry', **closure)
+        self.assertTrue(self.s['closed'])
+
 if __name__ == '__main__':unittest.main()
