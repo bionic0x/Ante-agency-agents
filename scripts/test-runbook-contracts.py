@@ -19,6 +19,8 @@ class TerminationContractTests(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'scripts').mkdir()
         shutil.copy2(ROOT / 'scripts/check-runbooks.sh', self.root / 'scripts')
+        shutil.copy2(ROOT / 'scripts/build-catalog.py', self.root / 'scripts')
+        (self.root / 'divisions.json').write_text(json.dumps({'divisions': {'specialized': {'label': 'Test'}}}))
         registry_bytes = (ROOT / 'strategy/runbooks.json').read_bytes().replace(b'\r\n', b'\n')
         self.registry_sha256 = hashlib.sha256(registry_bytes).hexdigest()
         self.data = json.loads(registry_bytes)
@@ -32,7 +34,8 @@ class TerminationContractTests(unittest.TestCase):
                 for slug in group['agents']:
                     dest = self.root / 'specialized' / (slug + '.md')
                     dest.parent.mkdir(exist_ok=True)
-                    dest.touch()
+                    dest.write_text(f'---\nname: {slug}\ndescription: Fixture agent\ncolor: blue\n---\nBody\n')
+        shutil.copy2(ROOT / 'strategy/contracts.json', self.root / 'strategy')
         subprocess.run(['git', 'init', '-q'], cwd=self.root, check=True)
         subprocess.run(['git', 'add', '.'], cwd=self.root, check=True)
         self.index = next(i for i, rb in enumerate(self.data['runbooks'])
@@ -105,6 +108,22 @@ class TerminationContractTests(unittest.TestCase):
             with self.subTest(value=value):
                 self.check(value, 1, 'termination_criteria is a placeholder', field='termination_criteria')
         self.check('Stop when funds expire.', 0, 'PASSED:', field='termination_criteria')
+
+
+
+    def test_invalid_catalog_references_and_metadata(self):
+        self.check('', 1, 'doc must be a non-empty path string', field='doc')
+        self.check('TBD', 1, 'decision_owner is a placeholder', field='decision_owner')
+        self.check('IMPOSSIBLE_STATE', 1, 'recognized NEXUS mode', field='mode')
+        (self.root / 'specialized/README.md').write_text('# Not an agent\n')
+        self.check([{'group': 'invalid', 'agents': ['specialized-strategic-assurance-lead', 'README']}],
+                   1, "slug 'README'", field='roster')
+
+    def test_malformed_fields_fail_cleanly(self):
+        for field, value in [('slug', {}), ('required_artifacts', [{}]),
+                             ('roster', [{'agents': [{}]}]), ('mode', [])]:
+            with self.subTest(field=field):
+                self.check(value, 1, 'ERROR', field=field)
 
 
 if __name__ == '__main__':
