@@ -63,9 +63,9 @@ consumed by `lib.sh` and the adapters that preserve tool metadata.
 
 `scripts/agent-tools.json` is the closed privilege registry. The reviewed roster
 uses exactly five registered tokens: `Read`, `WebSearch`, `WebFetch`, `Write`,
-and `Edit`. Their current effective classes are `read`, `network-read`, and
+and `Edit`. Their current declared classes are `read`, `network-read`, and
 `write`; the schema reserves `execute` as the next-higher class but **no execution
-tool is registered and no agent is classified `execute`**. The 11 profiles that
+tool is registered and no explicit declaration is classified `execute`**. The 11 profiles that
 previously declared `Bash` were individually reviewed and did not require shell
 execution for their stated workflows, so that token was removed from both those
 profiles and the registry.
@@ -240,3 +240,35 @@ bypass entry. After applying, read back the ruleset and run the operational
 acceptance checks above with an ordinary actor. The presence of this JSON file
 is not evidence that GitHub settings changed. Do not work around a rejected
 branch operation by editing protections or invoking a bypass from automation.
+
+## Declared capabilities versus host behavior
+
+An absent `tools` field is `unspecified`, not proof of no tools. Claude Code may
+inherit capabilities from the parent session. The closed registry validates
+explicit requests; it cannot establish the tool pool or permissions of a host.
+Explicit YAML null is invalid and cannot disguise an omitted policy.
+
+```bash
+python3 scripts/agent-capabilities.py inspect --agent agents-orchestrator
+python3 scripts/agent-capabilities.py inspect --agent agents-orchestrator \
+  --observation host-observation.json --policy scope-policy.json
+python3 scripts/agent-capabilities.py render --agent agents-orchestrator \
+  --policy scope-policy.json --output /tmp/scoped-agent.md
+```
+
+The diagnostic reports declarations, supplied host observations and the candidate
+intersection with the supplied scope policy separately. It does not authenticate
+an authority record or claim live enforcement. Observations must include the
+source SHA-256, host/version, configuration/evidence references, observed time,
+valid-until time and resolved tool names. Reject expired or mismatched records.
+
+A scope policy contains `host: claude-code`, canonical `agent_id`, `scope`, `owner`,
+`authority_ref`, zoned ISO `expires`, and a non-empty `allowed_tools` array from the
+closed registry. Rendering cannot expand an explicit source allowlist or overwrite
+an existing file. It prepares a profile for review; it does not install it or
+prove enforcement. The host/operator must enforce expiry and revoke/remove stale
+profiles. For other hosts, capability translation remains unverified; do not
+apply Claude syntax and label it portable. The next live smoke test must verify
+actual discovery, resolved tools and denied operations in that host version.
+
+Primary host semantics: https://code.claude.com/docs/en/sub-agents#available-tools

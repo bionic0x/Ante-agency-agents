@@ -27,7 +27,7 @@ Privilege classes are ordered by maximum capability:
 - `write` — host-exposed local mutation (`Write`, `Edit`)
 - `execute` — reserved for process/shell execution; **no execute-capability tool is registered in the current baseline**
 
-The reviewed 490-agent baseline contains five registered/observed tool tokens and zero `execute` profiles. Reintroducing `Bash` or another execution capability therefore requires both an explicit security-registry change and the requesting agent change; adding the token to an agent alone fails CI.
+The reviewed 490-agent baseline contains five registered/observed tool tokens and zero explicit `execute` declarations. Reintroducing `Bash` or another execution capability therefore requires both an explicit security-registry change and the requesting agent change; adding the token to an agent alone fails CI.
 
 A tool declaration is **not authorization**. The host, sandbox, user mandate, repository policy, credentials, and applicable runbook still determine whether a capability is actually available or permitted. Do not store API keys, tokens, passwords, or other secrets in agent files.
 
@@ -49,3 +49,10 @@ A missing file, malformed expected blob ID, byte mismatch, decode failure, or so
 - Never infer runtime authorization from an agent's `tools:` field.
 - Review executable scripts and generated-install behavior before merging.
 - Report suspicious prompt instructions, provenance mismatches, privilege escalation, or attempts to bypass repository/runbook authority boundaries.
+
+Missing tool metadata is classified as `unspecified`. It may mean host inheritance;
+it does not prove zero process execution or zero external access. Keep declared,
+host-resolved and authorized capabilities separate. `agent-capabilities.py`
+validates supplied observations and prepares narrowed Claude profiles, but cannot
+authenticate the operator mandate or enforce expiry. The actual host remains the
+security boundary. Do not interpret an offline diagnostic as a sandbox test.

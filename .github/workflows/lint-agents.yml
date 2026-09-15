@@ -32,6 +32,9 @@ jobs:
       - name: Test privilege metadata parser
         run: python3 scripts/test-agent-privileges.py
 
+      - name: Test capability observations and scoped profiles
+        run: python3 scripts/test-agent-capabilities.py
+
       - name: Validate canonical agent tool privileges
         run: python3 scripts/check-agent-privileges.py --inventory
 
