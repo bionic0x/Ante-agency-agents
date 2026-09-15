@@ -18,6 +18,8 @@ done
 python3 scripts/build-catalog.py --check
 python3 scripts/test-runbook-contracts.py
 python3 scripts/check-strategy-vocabulary.py
+python3 scripts/test-nexus-instance.py
+python3 scripts/test-nexus-evaluation.py
 python3 scripts/check-hermes-plugin.py
 python3 scripts/test-hermes-plugin.py
 python3 scripts/test-incremental-conversion.py

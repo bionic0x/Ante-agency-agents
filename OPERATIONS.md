@@ -272,3 +272,19 @@ apply Claude syntax and label it portable. The next live smoke test must verify
 actual discovery, resolved tools and denied operations in that host version.
 
 Primary host semantics: https://code.claude.com/docs/en/sub-agents#available-tools
+
+## NEXUS instance pilot
+
+See [NEXUS-INSTANCE.md](strategy/NEXUS-INSTANCE.md) for the executable offline
+planner, typed events, claim revision/expiry, selective HOLD, cumulative budgets,
+resource ownership, termination and replay recovery. The pilot reuses three
+canonical agents from `strategic-decision`; it does not activate the full roster.
+
+`nexus-options.py` compares admissible options without weighted scoring and exposes
+sensitivity to declared scenario values. `evaluate-nexus.py` compares recorded
+three-variant host trials. The checked-in host-trial file is empty and yields
+`NOT_MEASURED`: no model-quality gain or host enforcement is claimed.
+
+The plan/replay engine performs no model calls or external actions. A live adapter,
+authenticated authority, tool enforcement and measured model trials remain separate
+acceptance work. Both HTP networks retain their documented HOLD.

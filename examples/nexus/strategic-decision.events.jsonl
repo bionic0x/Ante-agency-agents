@@ -1,0 +1,7 @@
+{"id": "pilot-1", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "start", "task_id": "A", "reserved_cost": 1}
+{"id": "pilot-2", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "finish", "task_id": "A", "actual_cost": 1, "accepted": true, "evidence_refs": ["synthetic-result-A"], "predicate_results": {"contract_met": true}}
+{"id": "pilot-3", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "start", "task_id": "B", "reserved_cost": 1}
+{"id": "pilot-4", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "finish", "task_id": "B", "actual_cost": 1, "accepted": true, "evidence_refs": ["synthetic-result-B"], "predicate_results": {"contract_met": true}}
+{"id": "pilot-5", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "start", "task_id": "C", "reserved_cost": 1}
+{"id": "pilot-6", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "finish", "task_id": "C", "actual_cost": 1, "accepted": true, "evidence_refs": ["synthetic-result-C"], "predicate_results": {"contract_met": true}}
+{"id": "pilot-7", "at": "2026-09-15T12:00:00Z", "issuer": "fixture-owner", "type": "close", "evidence_refs": ["synthetic-decision"], "closure": {"achieved": "Synthetic plan meets fixture predicates", "outstanding": "No unresolved fixture obligations; live effectiveness unmeasured", "accountable": "fixture-owner", "on_breach": "Reopen this fixture decision", "conservation_resources": "Fixture maintainers and versioned replay history"}}
