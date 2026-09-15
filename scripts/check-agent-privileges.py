@@ -90,8 +90,6 @@ def frontmatter(path: Path) -> dict[str, object]:
 
 
 def parse_tools(raw: object) -> list[str]:
-    if raw is None:
-        return []
     if not isinstance(raw, str):
         raise ValueError("'tools' must be a single comma-separated YAML scalar")
     if "\n" in raw or "\r" in raw:
@@ -120,9 +118,9 @@ def validate_registered_tools(tokens: list[str], policy: dict[str, dict[str, obj
         )
 
 
-def effective_class(tokens: list[str], classes: list[str], policy: dict[str, dict[str, object]]) -> str:
+def declared_class(tokens: list[str], classes: list[str], policy: dict[str, dict[str, object]]) -> str:
     if not tokens:
-        return "none"
+        return "none_declared"
     rank = {name: index for index, name in enumerate(classes)}
     return max((str(policy[token]["class"]) for token in tokens), key=rank.__getitem__)
 
@@ -151,14 +149,14 @@ def main() -> int:
         try:
             metadata = frontmatter(path)
             if "tools" not in metadata:
-                class_files["none"].append(rel)
+                class_files["unspecified"].append(rel)
                 continue
             declarations += 1
             tokens = parse_tools(metadata.get("tools"))
             validate_registered_tools(tokens, policy)
             for token in tokens:
                 token_files[token].append(rel)
-            class_files[effective_class(tokens, classes, policy)].append(rel)
+            class_files[declared_class(tokens, classes, policy)].append(rel)
         except (OSError, UnicodeError, ValueError) as exc:
             errors.append(f"{rel}: {exc}")
 
@@ -177,8 +175,8 @@ def main() -> int:
                 f"class={spec['class']}\tmutates={str(spec['mutates']).lower()}\t"
                 f"external_io={str(spec['external_io']).lower()}"
             )
-        for class_name in ["none", *classes]:
-            print(f"CLASS {class_name}\t{len(class_files.get(class_name, []))}")
+        for class_name in ["unspecified", *classes]:
+            print(f"DECLARED_CLASS {class_name}\t{len(class_files.get(class_name, []))}")
         for rel in class_files.get("execute", []):
             print(f"EXECUTE {rel}")
 
