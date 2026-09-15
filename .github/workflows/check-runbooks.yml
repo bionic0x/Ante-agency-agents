@@ -33,3 +33,6 @@ jobs:
 
       - name: Validate termination contract failure cases
         run: python3 scripts/test-runbook-contracts.py
+
+      - name: Preserve canonical epistemic states in handoffs
+        run: python3 scripts/check-strategy-vocabulary.py

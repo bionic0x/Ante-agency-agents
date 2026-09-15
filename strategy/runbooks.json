@@ -468,6 +468,7 @@
       "non_object": "Soften the cultural critique, convert the book into a framework or how-to manual, or let a hypothesis harden into doctrine because it has survived several drafts.",
       "decision_owner": "Author (Javier Peiro Rius)",
       "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
         "strategy/templates/claim-register.yaml",
         "strategy/runbooks/scenario-boring-wins-manuscript.md",
         "strategy/INSTITUTIONAL-SELF-TEST.md"

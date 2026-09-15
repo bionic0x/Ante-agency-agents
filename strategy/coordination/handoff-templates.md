@@ -75,9 +75,11 @@ Rules:
 **Evidence required:** [tests, sources, screenshots, measurements, citations, logs]
 
 ## Claim state
+
+Vocabulary: `strategy/contracts.json`. Preserve claim IDs, revisions and source lineage.
 | Proposition | Status | Evidence / source | Consequence if wrong |
 |---|---|---|---|
-| [claim] | EVIDENCE / HYPOTHESIS / ASSUMPTION / UNKNOWN | [ref] | [impact] |
+| [claim] | EVIDENCE / HYPOTHESIS / ASSUMPTION / ATTRIBUTED_INTENT / UNKNOWN | [ref] | [impact] |
 
 ## Handoff back / next
 [Who receives the output, what decision it informs, and what format is required]
