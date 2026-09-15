@@ -36,3 +36,9 @@ jobs:
 
       - name: Preserve canonical epistemic states in handoffs
         run: python3 scripts/check-strategy-vocabulary.py
+
+      - name: Validate NEXUS instance replay and evaluation contracts
+        run: |
+          python3 scripts/test-nexus-instance.py
+          python3 scripts/test-nexus-evaluation.py
+          python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json
