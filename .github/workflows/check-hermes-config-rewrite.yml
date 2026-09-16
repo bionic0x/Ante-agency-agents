@@ -5,7 +5,7 @@ name: Check Hermes Config Rewrite
 #   1. Wrong indent on insert (collapses plugins.enabled onto one line as a
 #      scalar string under any config whose items use a non-default indent).
 #   2. Non-idempotent re-runs that silently duplicate the new entry.
-# Runs on every PR — small surface area, fast, no deps beyond bash + python3.
+# Runs on every PR — small surface area, fast, needs bash + python3 + PyYAML.
 on:
   pull_request:
   push:
@@ -25,6 +25,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The checker parses YAML; do not rely on runner-provided PyYAML.
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+      - run: python3 -m pip install -r scripts/requirements-validation.txt
 
       - name: Run regression cases
         run: |

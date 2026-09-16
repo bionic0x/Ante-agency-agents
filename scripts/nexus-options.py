@@ -41,7 +41,11 @@ def analyze(doc):
                 if av is None or bv is None: return False
                 better.append((av-bv)*(1 if prefer=='higher' else -1))
             return all(v>=0 for v in better) and any(v>0 for v in better)
-        edges=[{'preferred':a['id'],'dominated':b['id']} for a in eligible for b in eligible if a!=b and dominates(a,b)]
+        def basis(a,b):
+            # Preserve the declared evidence strength behind each comparison.
+            return sorted({x['factors'][f]['status'] for x in (a,b) for f in factors})
+        edges=[{'preferred':a['id'],'dominated':b['id'],'evidence_basis':basis(a,b),'measured_only':basis(a,b)==['MEASURED']}
+               for a in eligible for b in eligible if a!=b and dominates(a,b)]
         dominated={e['dominated'] for e in edges}
         return {'undominated':[o['id'] for o in eligible if o['id'] not in dominated], 'dominance':edges,'excluded':excluded,
                 'unknown_factors':[{'option':o['id'],'factor':f} for o in eligible for f,v in o['factors'].items() if v['value'] is None]}
@@ -56,7 +60,7 @@ def analyze(doc):
         result=evaluate(modified)
         scenarios.append({'id':scenario['id'],'comparison':result,'frontier_changed':set(base['undominated'])!=set(result['undominated'])})
     return {'base':base,'scenarios':scenarios,'decision':'HUMAN_COMPARISON_REQUIRED',
-            'interpretation':'Dominance is conditional on supplied values and the selected factors. No causal proof or weighted score.'}
+            'interpretation':'Dominance is conditional on supplied values and the selected factors. Edges whose evidence_basis includes TARGET, ESTIMATE or HYPOTHESIS are not measured superiority. No causal proof or weighted score.'}
 
 
 def main():
