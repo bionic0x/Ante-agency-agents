@@ -43,7 +43,7 @@ class FunctionalInstallTests(unittest.TestCase):
         for key in ["CLAUDE_CONFIG_DIR", "COPILOT_AGENT_DIR", "CURSOR_RULES_DIR", "GEMINI_AGENTS_DIR",
                     "OPENCODE_AGENTS_DIR", "OPENCLAW_DIR", "QWEN_AGENTS_DIR", "ZCODE_AGENTS_DIR",
                     "CODEX_AGENTS_DIR", "OSAURUS_SKILLS_DIR", "HERMES_HOME", "HERMES_PLUGIN_DIR",
-                    "VIBE_HOME", "AGENCY_INSTALL_WORKER"]:
+                    "VIBE_HOME", "KIMI_CODE_HOME", "AGENCY_INSTALL_WORKER"]:
             self.env.pop(key, None)
 
     def command(self, script, *args, success=True):
@@ -62,7 +62,7 @@ class FunctionalInstallTests(unittest.TestCase):
             "antigravity": "agency-alpha-agent/SKILL.md", "osaurus": "agency-alpha-agent/SKILL.md",
             "gemini-cli": "alpha-agent.md", "opencode": "alpha-agent.md", "qwen": "alpha-agent.md",
             "zcode": "alpha-agent.md", "cursor": "alpha-agent.mdc", "codex": "alpha-agent.toml",
-            "kimi": "alpha-agent/agent.yaml", "openclaw": "alpha-agent/SOUL.md",
+            "kimi": "alpha-agent.md", "openclaw": "alpha-agent/SOUL.md",
             "vibe": "agents/alpha-agent.toml", "hermes": "agency-agents-router/plugin.yaml",
             "aider": "CONVENTIONS.md", "windsurf": ".windsurfrules",
         }

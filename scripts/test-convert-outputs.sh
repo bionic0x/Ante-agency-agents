@@ -133,8 +133,6 @@ def check(cond, msg): (ok if cond else bad)(msg)
 #   toml      TOML with a description key           round-trip description
 #   toml-id   TOML carrying only an identifier      id == slug + companion prompt file
 #             (vibe: system_prompt_id -> prompts/<slug>.md)
-#   yaml-id   YAML carrying only an identifier      id == slug + companion file
-#             (kimi: agent.name -> <slug>/system.md)
 #   accum     one file for all agents: "## Name" then the description line
 #             (windsurf: bare line; aider: "> " blockquote)  round-trip both
 #   plain     no structured metadata                count only
@@ -149,7 +147,7 @@ SPEC = {
     "cursor":      ("rules/*.mdc",       "yaml-fm"),
     "codex":       ("agents/*.toml",     "toml"),
     "vibe":        ("agents/*.toml",     "toml-id"),
-    "kimi":        ("*/agent.yaml",      "yaml-id"),
+    "kimi":        ("agents/*.md",       "yaml-fm"),
     "openclaw":    ("*/SOUL.md",         "plain"),
     "aider":       ("CONVENTIONS.md",    "accum"),
     "windsurf":    (".windsurfrules",    "accum"),
@@ -259,7 +257,7 @@ for tool in TOOLS:
             text = open(f, encoding="utf-8").read()
             if fmt == "yaml-fm":               data = frontmatter(text)
             elif fmt in ("toml", "toml-id"):   data = tomllib.loads(text)
-            else:                              data = yaml.safe_load(text)   # yaml-id
+            else:                              data = yaml.safe_load(text)
             if not isinstance(data, dict): raise ValueError("top level is not a mapping")
         except Exception as e:
             bad_parse += 1; bad(f"{tool}: {os.path.relpath(f, OUT)} does not parse ({type(e).__name__}: {e})"); continue

@@ -488,35 +488,56 @@ HEREDOC
 
 convert_kimi() {
   local file="$1"
-  local name description slug outdir agent_file body
+  local name description tools slug outfile body mapped token
 
   name="$(get_field "name" "$file")"
   description="$(get_field "description" "$file")"
+  tools="$(get_field "tools" "$file")"
   slug="$(slugify "$name")"
   body="$(get_body "$file")"
 
-  outdir="$OUT_DIR/kimi/$slug"
-  agent_file="$outdir/agent.yaml"
-  mkdir -p "$outdir"
+  outfile="$OUT_DIR/kimi/agents/${slug}.md"
+  mkdir -p "$(dirname "$outfile")"
 
-  # Kimi Code CLI agent format: YAML with separate system prompt file
-  # Uses extend: default to inherit Kimi's default toolset
-  cat > "$agent_file" <<HEREDOC
-version: 1
-agent:
-  name: ${slug}
-  extend: default
-  system_prompt_path: ./system.md
-HEREDOC
+  # Kimi Code v0.29+ custom agents are Markdown files. Omission of the
+  # tools field means all tools, so source class=none must render as [].
+  # Kimi names web fetch FetchURL; every source token must map explicitly.
+  mapped=""
+  if [[ -n "$tools" ]]; then
+    local old_ifs="$IFS"
+    IFS=','
+    for token in $tools; do
+      token="$(printf '%s' "$token" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      case "$token" in
+        Read|Write|Edit|WebSearch) ;;
+        WebFetch) token="FetchURL" ;;
+        *) error "Kimi: no tool mapping for '$token' in $file"; IFS="$old_ifs"; return 1 ;;
+      esac
+      mapped+="  - ${token}"$'\n'
+    done
+    IFS="$old_ifs"
+  fi
 
-  # Write system prompt to separate file
-  cat > "$outdir/system.md" <<HEREDOC
-# ${name}
-
-${description}
-
+  if [[ -n "$mapped" ]]; then
+    cat > "$outfile" <<HEREDOC
+---
+name: $(yaml_quote "$slug")
+description: $(yaml_quote "$description")
+tools:
+${mapped%$'\n'}
+---
 ${body}
 HEREDOC
+  else
+    cat > "$outfile" <<HEREDOC
+---
+name: $(yaml_quote "$slug")
+description: $(yaml_quote "$description")
+tools: []
+---
+${body}
+HEREDOC
+  fi
 }
 
 convert_vibe() {
