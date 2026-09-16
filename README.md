@@ -1,31 +1,38 @@
-# 🎭 The Agency: AI Specialists Ready to Transform Your Workflow
+# Ante: Agent Catalog and NEXUS Strategic Coordination
 
-> **A complete AI agency at your fingertips** - From frontend wizards to Reddit community ninjas, from whimsy injectors to reality checkers. Each agent is a specialized expert with personality, processes, and proven deliverables.
+A collection of **490 agent profiles across 19 divisions**, with **8 runbooks**,
+**16 tool installation targets** and an **offline NEXUS contract engine** for
+planning, evidence tracking and event replay.
 
-[![GitHub stars](https://img.shields.io/github/stars/msitarzewski/agency-agents?style=social)](https://github.com/msitarzewski/agency-agents)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github)](https://github.com/sponsors/msitarzewski)
-[![Download the app](https://img.shields.io/github/v/release/msitarzewski/agency-agents-app?label=Download%20app&color=2563eb)](https://github.com/msitarzewski/agency-agents-app/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Runbook checks](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml/badge.svg)](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml)
 
-> ### 🆕 There's an app now
->
-> **[Agency Agents](https://agencyagents.app)** is a native app for **macOS, Linux & Windows** that browses the entire roster and installs it into Claude Code, Cursor, Codex, Gemini, Osaurus, and more — with a click. No clone, no scripts, and it auto-updates.
->
-> **→ [Download the latest release](https://github.com/msitarzewski/agency-agents-app/releases/latest) · [agencyagents.app](https://agencyagents.app)**
+Ante builds on [The Agency](https://github.com/msitarzewski/agency-agents) and
+normalized OpenClaw community profiles. This fork adds Mispriced CMO, strategic
+decision contracts, network-specific HTP Gate 0 workflows and NEXUS replay.
+See [source provenance and sync policy](strategy/UPSTREAM-SYNC.md).
 
----
+## What you can use
 
-## 🚀 What Is This?
+| Layer | What it provides | Start here |
+|---|---|---|
+| Agent catalog | Role prompts, workflows, deliverable formats and proposed acceptance criteria | [Complete catalog](CATALOG.md) |
+| Tool adapters | Conversion and installation of selected profiles for a supported host | [Installation](#-quick-start), [tool contracts](tools.json) |
+| Runbooks | Candidate teams, purpose, evidence requirements, handoffs and termination contracts | [Eight runbooks](strategy/runbooks.json) |
+| NEXUS instance engine | Offline task planning and replay with budgets, HOLD, claim revisions and dependency checks | [Pilot and contracts](strategy/NEXUS-INSTANCE.md) |
+| HTP Gate 0 | Separate Solana and Arbitrum One documentary scopes, manifests and unresolved conditions | [Gate 0 runbook](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) |
 
-Born from a Reddit thread and months of iteration, **The Agency** is a growing collection of meticulously crafted AI agent personalities. Each agent is:
+Installing a roster makes profiles available to your chosen host. The host controls
+model calls, tool access and execution. NEXUS currently validates supplied records;
+it does not launch agents, authenticate authority or enforce live permissions.
 
-- **🎯 Specialized**: Deep expertise in their domain (not generic prompt templates)
-- **🧠 Personality-Driven**: Unique voice, communication style, and approach
-- **📋 Deliverable-Focused**: Real code, processes, and measurable outcomes
-- **✅ Production-Ready**: Battle-tested workflows and success metrics
+Profile success metrics are proposed evaluation criteria. Repository tests validate
+software contracts; they do not demonstrate production readiness or improved model
+performance. Recorded live model trials are currently absent.
 
-**Think of it as**: Assembling your dream team, except they're AI specialists who never sleep, never complain, and always deliver.
+**Navigate:** [Install](#-quick-start) · [NEXUS pilot](#nexus-offline-pilot) ·
+[Verification](#verification-and-evidence) · [Documentation](#documentation-map) ·
+[Catalog](CATALOG.md) · [Integrations](#-multi-tool-integrations)
 
 ---
 
@@ -62,11 +69,11 @@ monitoring service. See [OPERATIONS.md](OPERATIONS.md) for verification and othe
 
 ### Upstream desktop app
 
-The linked desktop app is maintained upstream. Its inclusion of this fork's
+The [upstream desktop app](https://github.com/msitarzewski/agency-agents-app) is a separate project. Its inclusion of this fork's
 Mispriced CMO division and HTP runbooks has not been verified. Use the checkout
 above to install this repository's exact roster.
 
-### Option 3: Use as Reference
+### Use profiles as reference
 
 Each agent file contains:
 - Identity & personality traits
@@ -76,7 +83,7 @@ Each agent file contains:
 
 Browse the agents below and copy/adapt the ones you need!
 
-### Option 4: Use with Other Tools (GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Kimi Code, Codex, Osaurus, Hermes, Mistral Vibe)
+### Use with other tools (GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Kimi Code, Codex, Osaurus, Hermes, Mistral Vibe)
 
 ```bash
 # Step 1 -- generate integration files for all supported tools
@@ -111,11 +118,83 @@ Browse the agents below and copy/adapt the ones you need!
 ./scripts/install.sh --tool opencode --division engineering --dry-run
 ```
 
-> **OpenCode note:** OpenCode's runtime currently registers only ~119 agents and silently drops the rest ([upstream bug](https://github.com/anomalyco/opencode/issues/27988)). Installing a subset with `--division` keeps you under that limit. The installer warns you when a selection would exceed it.
+> **OpenCode note:** This repository's installer warns above 119 selected agents, based on a previously reported host limit. Use `--division` for a bounded selection and verify discovery in your installed host version.
 
 See the [Multi-Tool Integrations](#-multi-tool-integrations) section below for full details.
 
 ---
+
+## NEXUS offline pilot
+
+NEXUS connects each task to a purpose, strategic level, vector, causal mechanism,
+assigned agent and acceptance predicates:
+
+- **Multiple levels:** task QA and strategic decision state are recorded separately.
+- **Multiple vectors:** explicit task dependencies, selective HOLD and logical resource
+  ownership allow independent work to remain eligible when another branch is blocked.
+- **Multiple factors:** admissibility and fatal-defect filters precede conditional
+  Pareto comparisons. Unknown factors remain incomparable; scenarios expose sensitivity.
+
+The replay engine checks cumulative cost, reserves, attempts, deadlines, evidence
+scope and claim expiry. Repeating upstream work invalidates existing dependent
+results until they are reviewed and rerun. A `shared` claim cannot conceal an
+incompatible network-specific premise in its ancestry.
+
+Run the synthetic example from the repository root with Python 3.11+:
+
+```bash
+python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json
+python3 scripts/nexus-instance.py plan examples/nexus/strategic-decision.instance.json \
+  --at 2026-09-15T12:00:00Z
+python3 scripts/nexus-instance.py replay examples/nexus/strategic-decision.instance.json \
+  --events examples/nexus/strategic-decision.events.jsonl
+python3 scripts/nexus-options.py examples/nexus/options.json
+python3 scripts/evaluate-nexus.py --runs examples/nexus/host-trials.json
+```
+
+The fixed clock belongs to the synthetic fixture. Replay uses recorded event times;
+the checked-in empty trial file returns `NOT_MEASURED`. No performance gain is
+inferred from these examples. Old checkpoints must be reconstructed from the full
+event history after contract changes; see the [checkpoint rules](strategy/NEXUS-INSTANCE.md).
+
+## Verification and evidence
+
+Run the complete local release gate from a checkout:
+
+```bash
+python3 -m pip install -r scripts/requirements-validation.txt
+bash scripts/verify-release.sh
+```
+
+Requires Python 3.11+, Bash, Git and the conversion dependencies described in
+[OPERATIONS.md](OPERATIONS.md). The gate checks agent metadata, catalog and runbook
+consistency, privileges, import provenance, NEXUS regressions, conversion and
+installation. GitHub Actions also exercise installation on Ubuntu and macOS.
+The tool registry contains 16 installation targets; 14 targets use conversion.
+
+| Evidence boundary | Current state |
+|---|---|
+| Host capabilities | Declared profile tools and supplied host observations are separate; omitted tools do not mean no access. See [SECURITY.md](SECURITY.md). |
+| Live execution | A host adapter, authenticated mandate and enforced permissions remain acceptance work. |
+| HTP Solana / Arbitrum One | Both remain HOLD. Profile installation and passing repository checks do not authorize transactions or close Gate 0. |
+| Institutional self-test | Eight predicates remain `NOT_DEMONSTRATED`; see the [exercise record](strategy/INSTITUTIONAL-SELF-TEST-EXERCISE-2026-09.md). |
+| Branch protection | The proposed [ruleset payload](.github/rulesets/main.json) requires administrative application. A green workflow alone does not make its checks mandatory. |
+
+The [follow-up audit patch, PR #25](https://github.com/bionic0x/Ante-agency-agents/pull/25)
+is pending integration as of 2026-09-16. It adds sufficient-result termination guards,
+immediate rebind scope rejection, option evidence annotations and a Gate 0 YAML
+validator. Its checks are not part of `main` until that PR is merged.
+
+## Documentation map
+
+| Document | Purpose |
+|---|---|
+| [CATALOG.md](CATALOG.md) | Complete generated agent roster |
+| [OPERATIONS.md](OPERATIONS.md) | Installation, conversion, verification and operating limits |
+| [SECURITY.md](SECURITY.md) | Capability declarations, provenance and host boundaries |
+| [General Strategy Doctrine](strategy/GENERAL-STRATEGY-DOCTRINE.md) | Purpose, levels, evidence and decision discipline |
+| [NEXUS instances](strategy/NEXUS-INSTANCE.md) | Instance schema, event contract, replay and evaluation |
+| [CHANGELOG.md](CHANGELOG.md) | Repository changes |
 
 ## Consolidation snapshot
 
@@ -766,8 +845,8 @@ Each agent is designed with:
 1. **🎭 Strong Personality**: Not generic templates - real character and voice
 2. **📋 Clear Deliverables**: Concrete outputs, not vague guidance
 3. **✅ Success Metrics**: Measurable outcomes and quality standards
-4. **🔄 Proven Workflows**: Step-by-step processes that work
-5. **💡 Learning Memory**: Pattern recognition and continuous improvement
+4. **🔄 Explicit Workflows**: Step-by-step processes to adapt and evaluate
+5. **💡 Feedback Records**: Capture lessons explicitly; persistence depends on the host
 
 ---
 
@@ -789,7 +868,9 @@ Each agent is designed with:
 
 ## 🎨 Agent Personality Highlights
 
-> "I don't just test your code - I default to finding 3-5 issues and require visual proof for everything."
+Illustrative role language, not empirical results or universal acceptance rules.
+
+> "Choose evidence appropriate to the claim and report verified findings, including when no issue is found."
 >
 > -- **Evidence Collector** (Testing Division)
 
@@ -801,26 +882,27 @@ Each agent is designed with:
 >
 > -- **Whimsy Injector** (Design Division)
 
-> "Let me add a celebration animation that reduces task completion anxiety by 40%"
+> "Test whether a celebration animation improves the experience; measure the effect before claiming a benefit."
 >
 > -- **Whimsy Injector** (during a UX review)
 
 ---
 
-## 📊 Stats
+## 📊 Repository inventory
 
-- 🎭 **480+ Specialized Agents** across 19 divisions — full list in [CATALOG.md](CATALOG.md)
-- 🧭 **8 NEXUS runbooks** with one-click team rosters in `strategy/runbooks.json`
-- 📝 **10,000+ lines** of personality, process, and code examples
-- ⏱️ **Months of iteration** from real-world usage
-- 🌟 **Battle-tested** in production environments
-- 💬 **50+ requests** in first 12 hours on Reddit
+- **490 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
+- **8 runbooks** — declared in [strategy/runbooks.json](strategy/runbooks.json).
+- **16 installation targets** — declared in [tools.json](tools.json).
+- **14 converted targets**, plus native profile installation for Claude Code and Copilot.
+- **Offline NEXUS planning, replay and option comparison** — synthetic examples in [examples/nexus](examples/nexus/).
+
+Counts describe repository contents, not measured agent effectiveness.
 
 ---
 
 ## 🔌 Multi-Tool Integrations
 
-The Agency works natively with Claude Code, and ships conversion + install scripts so you can use the same agents across every major agentic coding tool.
+Ante provides native profile installation for Claude Code and Copilot, plus adapters for the other targets listed in `tools.json`. Verify profile discovery and behavior in your installed host version.
 
 ### Supported Tools
 
@@ -1155,13 +1237,14 @@ When you add new agents or edit existing ones, regenerate all integration files:
 
 ## 🗺️ Roadmap
 
-- [ ] Interactive agent selector web tool
-- [x] Multi-agent workflow examples -- see [examples/](examples/)
-- [x] Multi-tool integration scripts (Claude Code, GitHub Copilot, Antigravity, Gemini CLI, OpenCode, OpenClaw, Cursor, Aider, Windsurf, Qwen Code, Kimi Code, Codex, Osaurus, Hermes)
-- [ ] Video tutorials on agent design
-- [ ] Community agent marketplace
-- [ ] Agent "personality quiz" for project matching
-- [ ] "Agent of the Week" showcase series
+- [x] Canonical catalog, selective installation and multi-tool conversion
+- [x] Strategic runbooks and cross-division handoff examples
+- [x] Offline NEXUS replay, task-result invalidation and evidence ancestry checks
+- [ ] Integrate the follow-up closure and Gate 0 audit patch ([#25](https://github.com/bionic0x/Ante-agency-agents/pull/25))
+- [ ] Validate a live host adapter with authenticated authority and enforced capabilities
+- [ ] Record matched single-agent, fixed-team and NEXUS trials
+- [ ] Exercise the eight institutional self-test predicates with dated evidence
+- [ ] Apply and verify the proposed branch ruleset through repository administration
 
 ---
 
@@ -1199,7 +1282,7 @@ MIT License - Use freely, commercially or personally. Attribution appreciated bu
 
 ## 🙏 Acknowledgments
 
-What started as a Reddit thread about AI agent specialization has grown into something remarkable — **490 agents across 19 divisions**, supported by a community of contributors from around the world. Every agent in this repo exists because someone cared enough to write it, test it, and share it.
+What started as a Reddit thread about AI agent specialization has grown into something remarkable — **490 agents across 19 divisions**, supported by a community of contributors from around the world. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
 
 To everyone who has opened a PR, filed an issue, started a Discussion, or simply tried an agent and told us what worked — thank you. You're the reason The Agency keeps getting better.
 
@@ -1208,7 +1291,7 @@ To everyone who has opened a PR, filed an issue, started a Discussion, or simply
 ## 💬 Community
 
 - **GitHub Discussions**: [Share your success stories](https://github.com/msitarzewski/agency-agents/discussions)
-- **Issues**: [Report bugs or request features](https://github.com/msitarzewski/agency-agents/issues)
+- **Fork changes**: [Review or propose a pull request](https://github.com/bionic0x/Ante-agency-agents/pulls)
 - **Reddit**: Join the conversation on r/ClaudeAI
 - **Twitter/X**: Share with #TheAgency
 
@@ -1226,9 +1309,9 @@ To everyone who has opened a PR, filed an issue, started a Discussion, or simply
 
 <div align="center">
 
-**🎭 The Agency: Your AI Dream Team Awaits 🎭**
+**Ante: explicit purpose, traceable evidence, reviewable decisions.**
 
-[⭐ Star this repo](https://github.com/msitarzewski/agency-agents) • [🍴 Fork it](https://github.com/msitarzewski/agency-agents/fork) • [🐛 Report an issue](https://github.com/msitarzewski/agency-agents/issues) • [❤️ Sponsor](https://github.com/sponsors/msitarzewski)
+[Repository](https://github.com/bionic0x/Ante-agency-agents) • [Pull requests](https://github.com/bionic0x/Ante-agency-agents/pulls) • [Upstream project](https://github.com/msitarzewski/agency-agents)
 
 Made with ❤️ by the community, for the community
 
