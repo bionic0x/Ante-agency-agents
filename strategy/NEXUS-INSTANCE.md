@@ -69,7 +69,7 @@ Claim revisions invalidate consumer pins and mark downstream claims for review.
 Expiry propagates through claim dependencies. Reviewers explicitly revise claims
 and rebind task inputs; rebind cannot drop an inconvenient claim or reset consumed
 budget. Scope checks traverse the entire claim ancestry during validation and
-replay: every premise must match the task scope or be explicitly shared. Marking
+replay, including explicit rebinding of revised claims: every premise must match the task scope or be explicitly shared. Marking
 only a derived conclusion `shared` cannot transfer a Solana-only premise into an
 Arbitrum task. A host must separately verify whether each `shared` classification
 is defensible; this runner provides no scope-transfer override.
@@ -120,7 +120,10 @@ authentication and independently verify the mandate. JSON labels are not signatu
 
 A closure record contains `achieved`, `outstanding`, `accountable`, `on_breach`
 and `conservation_resources`. Termination can record sufficient result, failure,
-expiry, redesign or rejection. Running work must be reconciled first. No new event
+expiry, redesign or rejection. Running work must be reconciled first.
+`SUFFICIENT_RESULT` is refused while a `FATAL_DEFECT` condition is open or the
+decision is `REJECT`/`REDESIGN`: sufficiency cannot compensate a fatal defect or
+relabel a negative decision. Use the matching negative outcome instead. No new event
 may reopen a closed instance: create a reviewed successor with new assumptions.
 
 A scoped HOLD does not stop independent work under an existing mandate. A global
@@ -137,6 +140,10 @@ Each selected factor specifies whether higher or lower values are preferred.
 Values carry MEASURED, TARGET, ESTIMATE, HYPOTHESIS or UNKNOWN status. Measured
 values require source, observation window, method and baseline. Unknown values
 remain incomparable. Scenario overrides expose changes in the undominated set.
+Each dominance edge reports its `evidence_basis` (the statuses it rests on) and
+`measured_only`. Dominance built on TARGET, ESTIMATE or HYPOTHESIS values is a
+conditional comparison, not measured superiority. `measured_only` describes supplied
+labels; it does not authenticate the measurements or establish causality.
 
 There is no weighted score. Dominance is conditional on the declared factors and
 values; a short list of factors is not a complete strategy. Probability, confidence

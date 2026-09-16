@@ -225,4 +225,47 @@ class InstanceTests(unittest.TestCase):
                        reason='Record closure after expiry', **closure)
         self.assertTrue(self.s['closed'])
 
+    def closure(self):
+        return {k:'fixture record' for k in ('achieved','outstanding','accountable','on_breach','conservation_resources')}
+
+    def test_sufficient_result_cannot_bypass_fatal_defect(self):
+        self.run_event('hold', condition={'id':'fatal','classification':'FATAL_DEFECT','task_ids':['A'],'reason':'inadmissible'})
+        with self.assertRaisesRegex(ValueError,'fatal defect prevents sufficient-result'):
+            self.run_event('terminate',outcome='SUFFICIENT_RESULT',reason='declare success',closure=self.closure(),evidence_refs=['x'])
+        self.run_event('terminate',outcome='REDESIGN',reason='fatal defect',closure=self.closure(),evidence_refs=['x'])
+        self.assertEqual('REDESIGN',self.s['termination_outcome'])
+
+    def test_sufficient_result_cannot_overwrite_negative_decision(self):
+        for decision in ('REJECT', 'REDESIGN'):
+            with self.subTest(decision=decision):
+                self.s = n.initial(self.i)
+                self.run_event('decision', state=decision, reason='inadmissible mechanism')
+                with self.assertRaisesRegex(ValueError,'REJECT/REDESIGN termination'):
+                    self.run_event('terminate',outcome='SUFFICIENT_RESULT',reason='relabel',closure=self.closure(),evidence_refs=['x'])
+
+    def test_rebind_rejects_cross_scope_claim(self):
+        c = copy.deepcopy(self.s['claims']['CLM-1']); c.update(revision=2, scope='arbitrum')
+        self.run_event('claim_revision', claim=c, reason='scope narrowed to one network')
+        revisions = dict(self.s['tasks']['A']['claim_revisions']); revisions['CLM-1'] = 2
+        with self.assertRaisesRegex(ValueError,'cross-scope'):
+            self.run_event('rebind_claims', task_id='A', claim_revisions=revisions, reason='rebind')
+
+    def test_rebind_rejects_cross_scope_ancestor(self):
+        c = copy.deepcopy(self.s['claims']['CLM-1']); c.update(revision=2, scope='arbitrum')
+        self.run_event('claim_revision', claim=c, reason='scope narrowed')
+        c = copy.deepcopy(self.s['claims']['CLM-2']); c.update(revision=2)
+        self.run_event('claim_revision', claim=c, reason='review shared conclusion')
+        with self.assertRaisesRegex(ValueError,'cross-scope'):
+            self.run_event('rebind_claims', task_id='C', claim_revisions={'CLM-2':2}, reason='rebind shared conclusion')
+
+    def test_unknown_references_fail_with_diagnostics(self):
+        with self.assertRaisesRegex(ValueError,'unknown or already resolved condition'):
+            self.run_event('resolve_hold', condition_id='missing', evidence_refs=['x'], reason='r')
+        with self.assertRaisesRegex(ValueError,'existing claim'):
+            self.run_event('claim_revision', claim={'id':'CLM-404'}, reason='r')
+        for field in ('at', 'type'):
+            event = self.event('dissent'); event.pop(field)
+            with self.assertRaisesRegex(ValueError, f'event.{field} required'):
+                n.apply(self.i, self.s, event)
+
 if __name__ == '__main__':unittest.main()

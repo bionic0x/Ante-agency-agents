@@ -288,3 +288,8 @@ three-variant host trials. The checked-in host-trial file is empty and yields
 The plan/replay engine performs no model calls or external actions. A live adapter,
 authenticated authority, tool enforcement and measured model trials remain separate
 acceptance work. Both HTP networks retain their documented HOLD.
+
+`check-htp-gate0.py` guards the machine-readable Gate 0 instance: each handoff names
+one network, resolves to a manifest of that network and freeze date, uses the Gate 0
+evidence ladder, names HTP roster agents, and keeps live actions prohibited while no
+`authority_ref` exists. It checks recording boundaries, not on-chain facts.

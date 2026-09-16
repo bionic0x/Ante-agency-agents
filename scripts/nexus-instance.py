@@ -228,6 +228,8 @@ def apply(instance, prior, event):
     if eid in state['events']:
         require(state['events'][eid] == h, 'conflicting duplicate event')
         return state
+    for field in ('at', 'type'):
+        require(field in event, f'event.{field} required')
     at = event['at']; when(at)
     require(state['last_at'] is None or when(at) >= when(state['last_at']), 'out-of-order event')
     require(not state['closed'], 'closed instance requires a new reviewed instance')
@@ -277,6 +279,7 @@ def apply(instance, prior, event):
         state['conditions'][c['id']] = copy.deepcopy(c)
     elif kind == 'resolve_hold':
         require(issuer == owner, 'only named owner can resolve a hold')
+        require(event.get('condition_id') in state['conditions'], 'unknown or already resolved condition')
         c = state['conditions'][event['condition_id']]
         require(c['classification'] != 'FATAL_DEFECT', 'fatal defect requires redesign, not risk acceptance')
         strings(event['evidence_refs'], 'evidence_refs', True); text(event['reason'], 'resolution reason')
@@ -289,7 +292,9 @@ def apply(instance, prior, event):
         state['decision_state'] = event['state']
     elif kind == 'claim_revision':
         require(issuer in [owner, *reviewers], 'claim revision requires owner/reviewer')
-        new = event['claim']; old = state['claims'][new['id']]
+        new = event['claim']
+        require(isinstance(new, dict) and new.get('id') in state['claims'], 'claim revision must target an existing claim')
+        old = state['claims'][new['id']]
         validate_claim(new); require(new['revision'] == old['revision'] + 1, 'nonsequential claim revision')
         text(event['reason'], 'revision reason')
         if old['status'] != 'EVIDENCE' and new['status'] == 'EVIDENCE':
@@ -305,6 +310,8 @@ def apply(instance, prior, event):
         require(set(revisions) == set(state['tasks'][tid]['claim_revisions']), 'cannot drop/add task claims while rebinding')
         for cid, rev in revisions.items():
             require(rev == state['claims'][cid]['revision'] and cid not in state['review_required'], 'claim still requires review')
+            require(all(state['claims'][parent]['scope'] in ('shared', tasks[tid]['evidence_scope'])
+                        for parent in claim_ancestry(state['claims'], cid)), 'cross-scope evidence reuse in claim ancestry')
         text(event['reason'], 'rebinding reason')
         state['tasks'][tid]['claim_revisions'] = copy.deepcopy(revisions)
         state['tasks'][tid]['status'] = 'PENDING'
@@ -324,6 +331,10 @@ def apply(instance, prior, event):
         require(issuer == owner, 'termination requires named owner')
         require(event['outcome'] in ('SUFFICIENT_RESULT', 'FAILURE', 'EXPIRED', 'REDESIGN', 'REJECT'), 'unknown termination outcome')
         require(not any(p['status'] == 'RUNNING' for p in state['tasks'].values()), 'reconcile running tasks before termination')
+        if event['outcome'] == 'SUFFICIENT_RESULT':
+            # Sufficiency cannot compensate a fatal defect or overwrite a negative decision.
+            require(not any(c['classification'] == 'FATAL_DEFECT' for c in state['conditions'].values()), 'fatal defect prevents sufficient-result termination')
+            require(state['decision_state'] not in ('REJECT', 'REDESIGN'), 'decision state requires REJECT/REDESIGN termination, not sufficient result')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
             text(event['closure'][field], field)
         strings(event['evidence_refs'], 'evidence_refs', True)
