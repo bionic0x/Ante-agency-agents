@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -34,5 +33,19 @@ class EvaluationTests(unittest.TestCase):
   self.assertTrue(o.analyze(d)['base']['unknown_factors'])
   d['options'][0]['factors']['cost']={'value':2,'status':'MEASURED'}
   with self.assertRaisesRegex(ValueError,'source/window'):o.analyze(d)
+
+ def test_dominance_discloses_evidence_basis(self):
+  d=json.loads((ROOT/'examples/nexus/options.json').read_text())
+  edge=o.analyze(d)['base']['dominance'][0]
+  self.assertEqual(['HYPOTHESIS'],edge['evidence_basis']);self.assertFalse(edge['measured_only'])
+  for option in d['options']:
+   for factor in option['factors'].values():
+    factor.update(status='MEASURED',source_ref='fixture',window='fixture',method='fixture',baseline='fixture')
+  edge=o.analyze(d)['base']['dominance'][0]
+  self.assertEqual(['MEASURED'],edge['evidence_basis']);self.assertTrue(edge['measured_only'])
+  d['options'][0]['factors']['cost']['status']='ESTIMATE'
+  edge=o.analyze(d)['base']['dominance'][0]
+  self.assertEqual(['ESTIMATE','MEASURED'],edge['evidence_basis']);self.assertFalse(edge['measured_only'])
+  self.assertFalse(o.analyze(d)['scenarios'][0]['comparison']['dominance'])
 
 if __name__=='__main__':unittest.main()

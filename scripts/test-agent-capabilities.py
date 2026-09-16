@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import copy
 import hashlib
 import datetime as dt
 import importlib.util

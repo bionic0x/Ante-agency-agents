@@ -1,5 +1,20 @@
 # Changelog
 
+## Closure integrity and Gate 0 guards — 2026-09-16
+
+- Refuse NEXUS `SUFFICIENT_RESULT` termination with an open `FATAL_DEFECT` or a
+  `REJECT`/`REDESIGN` decision. Matching negative outcomes remain available.
+- Reject cross-scope claims at rebind, including the complete claim ancestry,
+  preserving the result invalidation and closure guards introduced in PR #24.
+- Report explicit errors for unknown condition/claim IDs and missing event time/type.
+- Annotate every option dominance edge with `evidence_basis` and `measured_only`;
+  comparisons based on hypotheses are visibly distinct from measured observations.
+- Add a structural HTP Gate 0 validator and regression tests for network scope,
+  manifest/freeze-date binding, evidence status, roster and prohibited live actions.
+- Align CI and the complete release gate with NEXUS fixture and Gate 0 validation;
+  install PyYAML explicitly for runbook and Hermes workflows.
+- Remove two unused imports and refresh the README roster count.
+
 ## Privilege and provenance hardening — 2026-09-14
 
 - Add a closed `scripts/agent-tools.json` security registry for the five tool tokens
