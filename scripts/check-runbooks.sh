@@ -40,7 +40,8 @@ command -v python3 >/dev/null 2>&1 || {
 python3 - <<'PYEOF'
 import json
 import os
-import subprocess
+import runpy
+from pathlib import Path
 import sys
 
 JSON_PATH = "strategy/runbooks.json"
@@ -59,19 +60,25 @@ except json.JSONDecodeError as exc:
     print(f"ERROR {JSON_PATH} is not valid JSON: {exc}")
     sys.exit(1)
 
+if not isinstance(data, dict):
+    print("ERROR runbook registry must be an object")
+    sys.exit(1)
+
 schema_version = str(data.get("schema_version", ""))
 if not schema_version.startswith("2."):
     errors.append(
         f"schema_version must be 2.x for the strategic runbook contract; got {schema_version!r}"
     )
 
-# Real slugs = filename stems of tracked agent .md files under division dirs.
-tracked = subprocess.check_output(["git", "ls-files", "*/*.md"]).decode().splitlines()
-real = {
-    os.path.basename(path)[:-3]
-    for path in tracked
-    if path.split("/")[0] not in NON_DIVISION
-}
+# Resolve against the same canonical catalog used by the installer.
+try:
+    catalog = runpy.run_path("scripts/build-catalog.py")
+    _, agents, _ = catalog["collect"]()
+    real = {a["slug"] for a in agents}
+    vocabulary = json.loads(Path("strategy/contracts.json").read_text(encoding="utf-8"))
+except (OSError, ValueError, KeyError, TypeError) as exc:
+    print(f"ERROR cannot load canonical catalog/contracts: {exc}")
+    sys.exit(1)
 
 runbooks = data.get("runbooks")
 if not isinstance(runbooks, list) or not runbooks:
@@ -126,12 +133,15 @@ for rb in runbooks:
             errors.append(f"runbook '{rid}': {field!r} must be a non-empty string")
 
     slug = rb.get("slug")
+    if not isinstance(slug, str):
+        errors.append(f"runbook entry: slug must be a string")
+        continue
     if slug in seen_slugs:
         errors.append(f"duplicate runbook slug '{slug}'")
     seen_slugs.add(slug)
 
     doc = rb.get("doc")
-    if doc:
+    if "doc" in rb:
         if not isinstance(doc, str) or not doc.strip():
             errors.append(f"runbook '{rid}': doc must be a non-empty path string")
         elif not os.path.isfile(doc):
@@ -142,7 +152,7 @@ for rb in runbooks:
         errors.append(f"runbook '{rid}': required_artifacts must be a non-empty array")
         artifacts = []
 
-    if len(artifacts) != len(set(artifacts)):
+    if len([a for a in artifacts if isinstance(a, str)]) != len(set(a for a in artifacts if isinstance(a, str))):
         errors.append(f"runbook '{rid}': required_artifacts contains duplicates")
 
     for artifact in artifacts:
@@ -170,7 +180,7 @@ for rb in runbooks:
         for agent_slug in agents:
             total_refs += 1
             all_agents.append(agent_slug)
-            if agent_slug not in real:
+            if not isinstance(agent_slug, str) or agent_slug not in real:
                 errors.append(
                     f"runbook '{rid}' / group '{group_name}': slug '{agent_slug}' "
                     "does not match any agent .md filename stem"
@@ -214,6 +224,12 @@ for rb in runbooks:
             errors.append(
                 f"runbook '{rid}': termination_contract has unknown key(s): {', '.join(sorted(unknown))}"
             )
+
+    if not isinstance(rb.get("mode"), str) or rb.get("mode") not in vocabulary["runbook_modes"]:
+        errors.append(f"runbook '{rid}': mode is not a recognized NEXUS mode")
+    owner = rb.get("decision_owner")
+    if isinstance(owner, str) and owner.strip().casefold() in PLACEHOLDERS:
+        errors.append(f"runbook '{rid}': decision_owner is a placeholder")
 
     obj = rb.get("governing_object")
     non = rb.get("non_object")

@@ -1,6 +1,6 @@
 # 🧭 Runbook: Strategic Decision & Transition
 
-> **Mode**: NEXUS-Sprint | **Duration**: Decision-dependent | **Agents**: 6-10
+> **Mode**: NEXUS-Sprint | **Duration**: Decision-dependent | **Candidate roster**: 11 (activate according to the mandate)
 
 ---
 

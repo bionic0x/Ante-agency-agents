@@ -9,6 +9,7 @@ python3 -c 'import yaml, tomllib' || {
 for script in scripts/*.sh; do bash -n "$script"; done
 python3 scripts/test-changed-agent-files.py
 python3 scripts/test-agent-privileges.py
+python3 scripts/test-agent-capabilities.py
 python3 scripts/check-agent-privileges.py
 python3 scripts/test-openclaw-import-provenance.py
 python3 scripts/test-kimi-adapter.py
@@ -17,6 +18,12 @@ for check in lint-agents check-divisions check-tools check-runbooks check-hermes
 done
 python3 scripts/build-catalog.py --check
 python3 scripts/test-runbook-contracts.py
+python3 scripts/check-strategy-vocabulary.py
+python3 scripts/test-nexus-instance.py
+python3 scripts/test-nexus-evaluation.py
+python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json >/dev/null
+python3 scripts/check-htp-gate0.py
+python3 scripts/test-htp-gate0.py
 python3 scripts/check-hermes-plugin.py
 python3 scripts/test-hermes-plugin.py
 python3 scripts/test-incremental-conversion.py

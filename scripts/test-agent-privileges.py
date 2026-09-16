@@ -46,15 +46,15 @@ class ToolDeclarationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unregistered tool token"):
                 module.validate_registered_tools(["Read", token], self.policy)
 
-    def test_effective_class_uses_highest_registered_privilege(self):
-        self.assertEqual("read", module.effective_class(["Read"], self.classes, self.policy))
+    def test_declared_class_uses_highest_registered_privilege(self):
+        self.assertEqual("read", module.declared_class(["Read"], self.classes, self.policy))
         self.assertEqual(
             "network-read",
-            module.effective_class(["Read", "WebFetch"], self.classes, self.policy),
+            module.declared_class(["Read", "WebFetch"], self.classes, self.policy),
         )
         self.assertEqual(
             "write",
-            module.effective_class(["Read", "Write", "Edit"], self.classes, self.policy),
+            module.declared_class(["Read", "Write", "Edit"], self.classes, self.policy),
         )
 
 

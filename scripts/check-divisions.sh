@@ -5,7 +5,7 @@
 # This script fails if any of the following disagree with it:
 #   1. The actual top-level agent directories on disk
 #   2. The runtime registry reader used by convert.sh and lint-agents.sh
-#   3. The path filters in .github/workflows/lint-agents.yml
+#   3. Unconditional PR coverage in .github/workflows/lint-agents.yml
 #   4. Every divisions.json entry has label, icon, and color
 #
 # convert.sh and lint-agents.sh consume divisions.json through registry.py; they
@@ -76,22 +76,29 @@ else
   compare "scripts/registry.py runtime discovery" "$runtime"
 fi
 
-# Workflow path filters: every canonical division must appear as `<div>/` in
-# the lint workflow, or new divisions silently skip changed-file linting.
+# A required check must run on every PR; path/branch filters can leave it pending.
 WF=".github/workflows/lint-agents.yml"
-if [[ -f "$WF" ]]; then
-  while IFS= read -r div; do
-    grep -qE "\b${div}/" "$WF" || fail "$WF has no path filter for division '$div'"
-  done < <(canonical)
-else
-  fail "$WF not found"
+if ! python3 - "$WF" <<'PYEOF'
+import sys
+import yaml
+with open(sys.argv[1], encoding="utf-8") as source:
+    workflow = yaml.safe_load(source)
+triggers = workflow.get("on", workflow.get(True, {}))
+if not isinstance(triggers, dict) or "pull_request" not in triggers:
+    sys.exit("ERROR lint workflow must run on pull_request")
+pr = triggers["pull_request"]
+if pr is not None and pr != {}:
+    sys.exit("ERROR required lint check must run on every PR without event filters")
+PYEOF
+then
+  fail "$WF does not provide unconditional PR lint coverage (requires PyYAML)"
 fi
 
 # Every entry must have label, icon, and color.
 while IFS= read -r div; do
   block="$(awk -v d="\"$div\"" '$0 ~ d"[[:space:]]*:[[:space:]]*\\{" {print; found=1; next} found && /\}/ {print; exit} found {print}' "$JSON")"
   for field in label icon color; do
-    echo "$block" | grep -qE "\"$field\"[[:space:]]*:" \
+    grep -qE "\"$field\"[[:space:]]*:" <<<"$block" \
       || fail "division '$div' in $JSON is missing \"$field\""
   done
 done < <(canonical)

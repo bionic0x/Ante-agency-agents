@@ -2,35 +2,8 @@ name: Lint Agent Files
 
 on:
   pull_request:
-    paths:
-      - "academic/**"
-      - "design/**"
-      - "engineering/**"
-      - "finance/**"
-      - "game-development/**"
-      - "gis/**"
-      - "healthcare/**"
-      - "marketing/**"
-      - "mispriced-cmo/**"
-      - "paid-media/**"
-      - "sales/**"
-      - "security/**"
-      - "product/**"
-      - "project-management/**"
-      - "research/**"
-      - "testing/**"
-      - "support/**"
-      - "spatial-computing/**"
-      - "specialized/**"
-      - "divisions.json"
-      - "scripts/lib.sh"
-      - "scripts/lint-agents.sh"
-      - "scripts/registry.py"
-      - "scripts/list-changed-agent-files.py"
-      - "scripts/test-changed-agent-files.py"
-      - "scripts/agent-tools.json"
-      - "scripts/check-agent-privileges.py"
-      - "scripts/test-agent-privileges.py"
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -59,12 +32,20 @@ jobs:
       - name: Test privilege metadata parser
         run: python3 scripts/test-agent-privileges.py
 
+      - name: Test capability observations and scoped profiles
+        run: python3 scripts/test-agent-capabilities.py
+
       - name: Validate canonical agent tool privileges
         run: python3 scripts/check-agent-privileges.py --inventory
 
       - name: Get changed agent and lint-infrastructure files
         id: changed
         run: |
+          BASE_REF="${{ github.base_ref }}"
+          if [ -z "$BASE_REF" ]; then
+            echo 'full=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD | \
             python3 scripts/list-changed-agent-files.py)
           INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
