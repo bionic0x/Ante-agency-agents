@@ -30,15 +30,15 @@
 #   never collide on this file. Hashes are platform-neutral: forward-slash paths
 #   and LF line endings, so a Windows checkout produces the same manifest.
 #
-#   Contributors adding/editing agents do NOT need to touch the manifest: CI runs
-#   this with --drift=advisory on pull requests (drift is printed, not failed) and
-#   maintainers regenerate it when the PR lands. A generator change should ship
-#   with --update so the tool line moves in the same commit.
+#   CI enforces drift on pull requests and main. Contributors changing agents,
+#   converters or source contracts must run --update, review the changed keys,
+#   and commit the manifest in the same PR. After reconciling with main, regenerate
+#   from the combined tree; never resolve a manifest conflict by taking one side.
 #
 # Usage:
 #   ./scripts/test-convert-outputs.sh                   # generate into a temp dir, check everything
 #   ./scripts/test-convert-outputs.sh --update          # ...and rewrite the manifest
-#   ./scripts/test-convert-outputs.sh --drift=advisory  # drift is reported but does not fail (CI on PRs)
+#   ./scripts/test-convert-outputs.sh --drift=advisory  # local diagnosis only; does not satisfy CI
 #   ./scripts/test-convert-outputs.sh --out=DIR         # check an already-generated DIR (no generation)
 #
 # Exit 0 only when every invariant passes AND the manifest matches (or --update,
