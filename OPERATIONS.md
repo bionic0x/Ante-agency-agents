@@ -241,6 +241,83 @@ acceptance checks above with an ordinary actor. The presence of this JSON file
 is not evidence that GitHub settings changed. Do not work around a rejected
 branch operation by editing protections or invoking a bypass from automation.
 
+## Live host acceptance — recorded, with its method attached
+
+Installation tests establish what a file contains. A **host acceptance record**
+contains supplied observations of a host. It does not authenticate the operator,
+authority label, host process or evidence producer. `scripts/probe-host-claude-code.py` drives a
+real Claude Code host and writes one record per agent under
+`evidence/host-acceptance/`; `scripts/host-acceptance.py` validates records and
+derives their status. The record never grades itself.
+
+```bash
+python3 scripts/probe-host-claude-code.py --agent <slug> \
+  --policy scope-policy.json --out evidence/host-acceptance/<host>-<slug>.json
+python3 scripts/host-acceptance.py validate evidence/host-acceptance/*.json
+python3 scripts/host-acceptance.py emit-observation evidence/host-acceptance/<file>.json \
+  | python3 scripts/agent-capabilities.py inspect --agent <slug> --observation /dev/stdin
+```
+
+Every probe carries the method that produced it, and the validator refuses an
+outcome its method cannot support. `filesystem` never establishes enforcement.
+`host-resolution` — the host binary reporting its own agent resolution, with no
+model turn — can settle what the host *offers*: discovery, revocation, scope
+isolation, post-expiry availability. Only `live-session` can settle what the host
+*executed*: the resolved tool set, a permitted call, a refused one. A record that
+reports `ENFORCED` from a file read is rejected rather than downgraded. For the
+three session probes, the validator also reads the referenced transcript, checks
+the resolved tools and refuses positive execution claims unsupported by its
+events. Method labels alone do not establish those outcomes. Host-listing and
+filesystem observations remain supplied attestations; this is not an adversarial
+attestation or independent certification system.
+
+Derived status is `ACCEPTED` only when all eight probes are positive;
+`BOUNDARY_NOT_ENFORCED` when a boundary demonstrably failed; `NOT_DEMONSTRATED`
+when any probe was not attempted. An untested boundary never reads as a pass.
+
+### Recorded result — Claude Code 2.1.276, one agent, project scope
+
+`evidence/host-acceptance/claude-code-specialized-pricing-analyst.json` records a
+scoped profile (`allowed_tools: ["Read"]`, rendered by `agent-capabilities.py`)
+reported on Claude Code 2.1.276 in the user-supplied historical run. The recorded
+init event exposes only `Read`; the completed session withholds `Write`. The
+supplied record reports discovery, installed-profile body equality, scope
+isolation and revocation. Body equality is a filesystem observation, not proof
+of the host's actual system prompt. The retained frontmatter excerpt alone does
+not independently verify that equality.
+
+**The permitted Read is INCONCLUSIVE:** the supplied transcript contains its
+request but omits its `tool_result`. Model prose saying it succeeded is not an
+execution oracle. Future probes retain matching tool results and require a
+non-error result for the expected target content. **Expiry remains reported
+NOT_ENFORCED:** the supplied post-expiry listing still offers the profile. This
+is availability evidence for this configuration, not proof that every version
+or mode lacks expiry support. Overall status remains `BOUNDARY_NOT_ENFORCED`.
+
+This integration did not rerun a live host: no Claude CLI was available in the
+review environment. The record's original timestamps and source binding are
+retained. Session evidence is minimized to decision-relevant event fields;
+plugin inventories, local plugin paths and unrelated telemetry are omitted.
+The original uploaded files remain unchanged. Historical fixture validation
+uses the observation clock; it never makes expired evidence current again.
+
+Two mechanical findings from the same run:
+
+- The host addresses a profile by its frontmatter `name` (`Pricing Analyst`), not
+  by its file slug (`specialized-pricing-analyst`) in the supplied run. The probe
+  therefore parses the YAML `name` rather than assuming a filename identifier.
+  This observation is limited to the recorded host version and profile.
+- An out-of-allowlist tool is **withheld**, not denied at call time, so the
+  session's `permission_denials` stays empty. Treating that array as the oracle
+  for allowlist enforcement would read a withheld tool as a successful call.
+
+Scope of the claim: one agent, one host version, project scope, one sandbox. It is
+not a certification of the other 489 agents, of user scope, or of any other host.
+The probe currently rejects scopes other than `project` and allowlists other
+than `["Read"]`; its fixed Read/Write protocol cannot measure arbitrary policies.
+Kimi has no probe yet and therefore no record; absence of a record is
+`NOT_DEMONSTRATED`, not a pass.
+
 ## Declared capabilities versus host behavior
 
 An absent `tools` field is `unspecified`, not proof of no tools. Claude Code may

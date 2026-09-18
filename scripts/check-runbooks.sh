@@ -46,7 +46,7 @@ import sys
 
 JSON_PATH = "strategy/runbooks.json"
 ASSURANCE_SLUG = "specialized-strategic-assurance-lead"
-NON_DIVISION = {"integrations", "examples", "strategy", "scripts", ".github"}
+NON_DIVISION = {"integrations", "examples", "strategy", "scripts", "evidence", ".github"}
 errors = []
 
 if not os.path.isfile(JSON_PATH):

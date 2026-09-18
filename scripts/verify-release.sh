@@ -27,6 +27,7 @@ python3 scripts/test-htp-gate0.py
 python3 scripts/check-hermes-plugin.py
 python3 scripts/test-hermes-plugin.py
 python3 scripts/test-incremental-conversion.py
+python3 scripts/test-host-acceptance.py
 bash scripts/test-convert-frontmatter.sh
 bash scripts/test-agent-selection.sh
 python3 scripts/test-install-functional.py
