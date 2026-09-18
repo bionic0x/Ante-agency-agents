@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "HOST_EVALUATION_PROTOCOL_NOT_EXECUTED",
   "cases": [
     {
@@ -68,10 +68,23 @@
     "fixed_team",
     "nexus_instance"
   ],
-  "metrics": [
-    "correct_reaction",
-    "uncertainty_preserved",
-    "traceable",
-    "fatal_violation"
-  ]
+  "metrics": {
+    "run_counters": {
+      "cost_usd": "money spent by the run, as reported by the host",
+      "tokens_total": "input plus output tokens across every session in the run",
+      "wall_time_seconds": "elapsed time from first request to final artifact",
+      "invalid_decisions": "decisions rejected by the same external validity checks applied to all three variants",
+      "rework_cycles": "times a produced artifact was withdrawn and redone within the run"
+    },
+    "judged_counters": {
+      "factual_errors": "statements contradicted by the case material",
+      "fatal_defects": "defects that would make the artifact unusable or unsafe to act on",
+      "constraint_violations": "breaches of a limit the case stated explicitly"
+    },
+    "judged_fractions": {
+      "evidence_coverage": "claims carrying a usable evidence reference, over claims requiring one"
+    }
+  },
+  "protocol_ref": "strategy/NEXUS-MEASUREMENT-PROTOCOL.md",
+  "composite_score": "NOT_DEFINED: the metrics trade against each other and are reported separately. Ranking requires a stated purpose this protocol does not hold."
 }

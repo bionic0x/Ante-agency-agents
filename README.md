@@ -149,7 +149,8 @@ python3 scripts/nexus-instance.py plan examples/nexus/strategic-decision.instanc
 python3 scripts/nexus-instance.py replay examples/nexus/strategic-decision.instance.json \
   --events examples/nexus/strategic-decision.events.jsonl
 python3 scripts/nexus-options.py examples/nexus/options.json
-python3 scripts/evaluate-nexus.py --runs examples/nexus/host-trials.json
+python3 scripts/evaluate-nexus.py --runs examples/nexus/host-trials.json \
+  --judgments examples/nexus/host-judgments.json
 ```
 
 The fixed clock belongs to the synthetic fixture. Replay uses recorded event times;

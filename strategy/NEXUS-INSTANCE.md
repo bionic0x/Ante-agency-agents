@@ -152,22 +152,33 @@ values illustrate mechanics only and are not a forecast of this architecture.
 
 ## Host evaluation remains outstanding
 
-The twelve cases in `examples/nexus/evaluation-cases.json` define a starting
-protocol. `host-trials.json` is deliberately empty and the evaluator returns
-`NOT_MEASURED`. To compare real sessions, supply rows containing:
+The twelve cases in `examples/nexus/evaluation-cases.json` define the starting
+protocol, written up in [NEXUS-MEASUREMENT-PROTOCOL.md](NEXUS-MEASUREMENT-PROTOCOL.md).
+`host-trials.json` and `host-judgments.json` are deliberately empty and the
+evaluator returns `NOT_MEASURED`.
 
-- `case_id`, `trial_id`, `variant` (`single_agent`, `fixed_team`, `nexus_instance`);
-- `model_version`, `host_version`, `started_at`, `inputs_hash`, `budget_policy_ref`;
-- `evidence_ref`, `reviewer`, observed `cost` and `latency_seconds`;
-- explicit reviewer booleans for `correct_reaction`, `uncertainty_preserved`,
-  `traceable` and `fatal_violation`.
+Comparing real sessions takes two files, not one. A **trial** row records
+`submission_id`, `case_id`, `trial_id`, `variant`, `model_version`, `host_version`,
+`started_at`, `inputs_hash`, `budget_policy_ref`, `evidence_ref`, `operator`, and
+the five run counters: `cost_usd`, `tokens_total`, `wall_time_seconds`,
+`invalid_decisions`, `rework_cycles`. A **judgment** row records only
+`submission_id`, `reviewer`, `judged_at`, `evidence_ref` and the four judged
+metrics: `factual_errors`, `fatal_defects`, `constraint_violations` and
+`evidence_coverage` as `{covered, required}`.
 
-Each case/trial needs all three variants with the same inputs and budget policy.
-Use a predeclared review rubric, preserve raw outputs and separate development
-cases from held-out cases. The evaluator reports descriptive counts, missing case
-coverage, median cost and latency. It neither manufactures model responses nor
-claims statistical superiority. Fatal violations remain separate. Component
-ablations and institutional self-test exercises require additional observed work.
+The split reduces direct metadata leaks but does not prove blinding: a judgment naming its variant, case, trial or model is
+rejected, as is one whose reviewer identifier matches any trial operator. `nexus-blind.py seal`
+builds the review packet under opaque submission ids and refuses artifacts that
+narrate their own pipeline.
+
+Each case/trial needs all three variants with the same inputs, budget policy, host and
+model. Pre-declare the cases and trial count, preserve raw outputs, and separate
+development cases from held-out ones. The evaluator reports the metrics separately
+with their spread, names incomplete pairs and unjudged submissions, and produces
+no score or ranking. It neither manufactures model responses nor claims
+statistical superiority. Fatal defects remain separate and uncompensated.
+Component ablations and institutional self-test exercises require additional
+observed work.
 
 For a first live adapter, verify Claude discovery and resolved tools, authenticate
 the mandate outside this engine, enforce expiry and side-effect boundaries, bind
