@@ -56,6 +56,9 @@ jobs:
         # Commit regenerated outputs with profile/converter changes; enforce drift on PRs too.
         run: bash scripts/test-convert-outputs.sh
 
+      - name: Validate host acceptance records (evidence cannot outrun its method)
+        run: python3 scripts/test-host-acceptance.py
+
       - name: Validate agent selection (install.sh --agent / --agents-file)
         run: bash scripts/test-agent-selection.sh
 

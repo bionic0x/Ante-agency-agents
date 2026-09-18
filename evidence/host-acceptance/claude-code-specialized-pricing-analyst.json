@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "host": "claude-code",
+  "host_version": "2.1.276",
+  "agent_id": "specialized-pricing-analyst",
+  "agent_host_identifier": "Pricing Analyst",
+  "source_path": "specialized/specialized-pricing-analyst.md",
+  "source_sha256": "fb8a63681615666bb2efe45b7fd2d9ad8a072ab9066efae6b61d454a58039f85",
+  "installed_path": ".claude/agents/specialized-pricing-analyst.md",
+  "scope": "project",
+  "declared_allowlist": [
+    "Read"
+  ],
+  "resolved_tools": [
+    "Read"
+  ],
+  "operator": "bionic0x",
+  "authority_ref": "ANTE-HOST-ACCEPTANCE-PROBE-2026-09-18",
+  "observed_at": "2026-09-18T10:36:58.857240+00:00",
+  "valid_until": "2026-09-19T10:36:58.857240+00:00",
+  "probes": [
+    {
+      "id": "discovery",
+      "method": "host-resolution",
+      "outcome": "OBSERVED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/discovery.txt",
+      "detail": "host registers this profile as 'Pricing Analyst', not as its file slug 'specialized-pricing-analyst'"
+    },
+    {
+      "id": "system_prompt_integrity",
+      "method": "filesystem",
+      "outcome": "OBSERVED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/installed-profile.frontmatter.txt",
+      "detail": "installed body is byte-identical to the source body; only the tools allowlist differs"
+    },
+    {
+      "id": "allowlist_resolved",
+      "method": "live-session",
+      "outcome": "ENFORCED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/live-session.jsonl",
+      "detail": "host init reports tools=['Read']; policy allows ['Read']"
+    },
+    {
+      "id": "permitted_operation",
+      "method": "live-session",
+      "outcome": "INCONCLUSIVE",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/live-session.jsonl",
+      "detail": "Supplied transcript records a Read request but omits its tool_result. Successful execution cannot be independently established from this artifact."
+    },
+    {
+      "id": "denied_operation",
+      "method": "live-session",
+      "outcome": "ENFORCED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/live-session.jsonl",
+      "detail": "probe-write-denied.txt does not exist and Write is absent from the resolved tool set; the host withheld the tool rather than denying a call, so permission_denials stays empty and is not a usable oracle"
+    },
+    {
+      "id": "scope_isolation",
+      "method": "host-resolution",
+      "outcome": "ENFORCED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/scope-isolation.txt",
+      "detail": "a project-scoped profile is not offered outside its project"
+    },
+    {
+      "id": "revocation",
+      "method": "host-resolution",
+      "outcome": "ENFORCED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/revocation.txt",
+      "detail": "removing the profile withdraws it from the host listing"
+    },
+    {
+      "id": "expiry",
+      "method": "host-resolution",
+      "outcome": "NOT_ENFORCED",
+      "evidence_ref": "evidence/host-acceptance/claude-code-specialized-pricing-analyst.evidence/expiry.txt",
+      "detail": "profile is still offered at 2026-09-18T10:37:45.765758+00:00, after the policy expiry 2026-09-18T10:37:43.765592+00:00; the profile file carries no expiry the host can read, so this boundary rests entirely on an operator removing it"
+    }
+  ]
+}
