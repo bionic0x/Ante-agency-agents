@@ -9,7 +9,7 @@ work is smaller and more useful than "add five providers" suggests.
 | Multi-level | `task.level` validated against the five canonical planes in `contracts.json` | Unchanged — it was already a contract |
 | Multi-vector | `task.vector` accepted as free text; nothing checked it | Closed registry in `strategy/vectors.json`, enforced by the validator and the router |
 | Multi-factor | `nexus-options.py` compares factors with admissibility, dominance and per-factor evidence status, no weighted score | Unchanged — and reused by the router |
-| Multi-provider | Nothing. Zero provider or model references in 430 lines of engine | `strategy/providers.json` + `scripts/nexus-routing.py` |
+| Multi-provider | Nothing. Zero provider or model references in 430 lines of engine | Closed provider registry + router, plus one bounded Anthropic/Claude Code adapter and pilot |
 
 The conversion layer was never the gap: 492 profiles already convert to 16
 destinations, including Gemini CLI, Kimi and Codex. Conversion is not execution.
@@ -83,11 +83,28 @@ One defect found and fixed during construction: the first cut compared a task's
 per 1k output tokens, which excluded every target for a unit mismatch. The
 ceiling now applies only when a task states one in the observation's own unit.
 
-## What this does not do
+## One adapter, without collapsing the control planes
 
-It does not execute anything. No adapter is implemented; every provider entry
-reads `adapter: unimplemented`. The router decides what *may* run where, under
-what constraints, and says plainly when the answer is nothing. Building the
-adapters, and choosing how many to build, is a separate decision that should rest
-on the single-host evidence and the measurement protocol rather than on the
-number of vendors available.
+Anthropic is now the one implemented execution adapter. The other four provider
+entries remain `unimplemented`, and the registry still ships **zero model
+observations**. Implementing a provider is not observing a model.
+
+`nexus-anthropic.py observe` makes one real Claude Code call and records the
+model/session/host fields the stream actually exposes. It does not manufacture a
+price from a cached turn: per-1k costs stay `UNKNOWN` until the operator supplies
+them, so the existing router continues to reject an incomplete observation.
+
+`nexus-pilot.py` keeps the three authorities separate. The instance engine says
+which task is ready; the router says which observed target is admissible; an
+expiring operator record names the instance, task set, provider and budget unit.
+A `step` performs at most one live model call, with a temporary project profile
+whose host-resolved tools must be exactly `[Read]`, then stops in
+`AWAITING_ACCEPTANCE`. Host `COMPLETED` is evidence, not a NEXUS acceptance.
+Only a separate `accept`/reject decision appends the engine's `finish` event and
+unblocks a dependency. After all tasks succeed the pilot stops at
+`AWAITING_TERMINATION`; it never closes the instance by itself.
+
+This is deliberately not general multi-provider execution. It proves that the
+provider abstraction can carry one real adapter without allowing that adapter to
+choose the task, target, authority or acceptance result. Quality claims remain the
+job of the matched measurement protocol, not the execution record.

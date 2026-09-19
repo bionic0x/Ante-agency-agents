@@ -15,7 +15,7 @@
   "providers": {
     "anthropic": {
       "label": "Anthropic",
-      "adapter": "unimplemented",
+      "adapter": "scripts/nexus-anthropic.py",
       "observation_required": true,
       "models": [],
       "notes": "Claude Code is the one host with a recorded acceptance record; that record covers tool resolution, not model selection."

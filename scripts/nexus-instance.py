@@ -52,9 +52,10 @@ def number(value, field):
 
 
 def when(value):
+    require(isinstance(value, str), 'ISO timestamp text required')
     try:
         date = dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except (ValueError, AttributeError):
+    except ValueError:
         raise ValueError('ISO timestamp required')
     require(date.tzinfo is not None, 'timestamp needs timezone')
     return date
