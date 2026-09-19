@@ -19,6 +19,10 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 VOCAB = json.loads((ROOT / 'strategy/contracts.json').read_text())
+# `level` was validated against the five canonical planes from the start; `vector`
+# was accepted as free text, so the multi-vector dimension was a convention nothing
+# checked. strategy/vectors.json closes it.
+VECTORS = json.loads((ROOT / 'strategy/vectors.json').read_text())['vectors']
 
 
 def digest(value):
@@ -147,6 +151,7 @@ def validate(instance):
         require(task['agent'] in roster & catalog, 'task agent must belong to canonical runbook roster')
         require(task['level'] in VOCAB['levels'], 'unknown task level')
         text(task['vector'], 'vector')
+        require(task['vector'] in VECTORS, 'unknown task vector')
         require(task['purpose_ref'] == objective['id'], 'orphan task purpose')
         text(task['mechanism'], 'mechanism')
         text(task['evidence_scope'], 'evidence_scope')

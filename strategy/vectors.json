@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "_note": "Closed registry of task vectors. `level` was already validated against the five canonical planes in strategy/contracts.json; `vector` was accepted as free text, so multi-vector was a convention nobody checked. This closes it, the same way agent-tools.json closed capabilities and security-engagement.json closed offensive engagement. A vector declares HOW a task contributes to the decision, so the engine can tell a broken dependency from an absorbed effect.",
+  "contribution_kinds": ["sequential", "cumulative"],
+  "vectors": {
+    "causal": {
+      "contribution": "sequential",
+      "domain": "the mechanism that connects action to result",
+      "question": "why should this action produce that effect?",
+      "evidence_kind": "a stated mechanism with its conditions and what would refute it",
+      "failure_mode": "a necessary dependency is missing, so no later step is enabled",
+      "absent_when": "the instance claims an effect with no explanation of how it is produced"
+    },
+    "evidence": {
+      "contribution": "cumulative",
+      "domain": "what is known, at what status, from what source",
+      "question": "what supports this, and what would retire it?",
+      "evidence_kind": "sourced claims carrying a canonical epistemic status",
+      "failure_mode": "findings accumulate without changing the decisive uncertainty",
+      "absent_when": "a decision rests on claims whose status nobody recorded"
+    },
+    "assurance": {
+      "contribution": "sequential",
+      "domain": "whether the work satisfies its declared predicates",
+      "question": "does this meet the acceptance conditions, and who says so?",
+      "evidence_kind": "predicate-by-predicate results, each keeping its own verdict",
+      "failure_mode": "a technical PASS is promoted into authority it does not carry",
+      "absent_when": "acceptance is asserted in aggregate instead of per predicate"
+    },
+    "adversarial": {
+      "contribution": "sequential",
+      "domain": "how a competent opposing party reacts to the chosen course",
+      "question": "what changes when the other side adapts?",
+      "evidence_kind": "named plausible reactions, their incentives, and the signal that one is occurring",
+      "failure_mode": "the plan only works while the other party stays passive",
+      "absent_when": "opposition appears only as a generic obstacle"
+    },
+    "legitimacy": {
+      "contribution": "cumulative",
+      "domain": "the cooperation, acceptance or authority the result needs to hold",
+      "question": "does the method preserve what the result depends on?",
+      "evidence_kind": "affected parties, their acceptance conditions, and observed cooperation",
+      "failure_mode": "the method wins the objective and destroys the cooperation that sustains it",
+      "absent_when": "an intervention changes obligations for parties nobody consulted"
+    },
+    "resource": {
+      "contribution": "cumulative",
+      "domain": "what the course consumes and what remains uncommitted",
+      "question": "what is spent, what is left, and what covers a surprise?",
+      "evidence_kind": "recorded consumption against the declared budget and reserve",
+      "failure_mode": "reserve is spent on ordinary work and counted as available",
+      "absent_when": "cost is tracked without a reserve that anything could still draw on"
+    },
+    "termination": {
+      "contribution": "sequential",
+      "domain": "how the effort ends and the result is kept",
+      "question": "what closes this, who maintains it, and on what budget?",
+      "evidence_kind": "cease, closure decision, transition owner and conservation owner, stated separately",
+      "failure_mode": "the objective is reached and the result decays for lack of an owner",
+      "absent_when": "closure is declared without naming who conserves the outcome"
+    }
+  },
+  "coverage_rules": {
+    "_note": "Which vectors an instance must carry, by the decision it supports. A missing vector is reported as a gap, never silently treated as satisfied.",
+    "required_always": ["causal", "evidence", "termination"],
+    "required_when_contested": ["adversarial"],
+    "required_when_affects_third_parties": ["legitimacy"],
+    "required_when_budgeted": ["resource"],
+    "required_when_predicates_declared": ["assurance"]
+  }
+}
