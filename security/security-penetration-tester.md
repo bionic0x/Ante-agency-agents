@@ -408,3 +408,21 @@ This is an **authorized-offensive** engagement class: it simulates an adversary 
 - **Stop conditions.** Halt and escalate immediately on: a scope boundary reached, a system instability, evidence of a prior real compromise, or contact with production data you were not cleared to handle. Pause the engagement rather than improvise.
 - **No destruction.** Never cause denial of service, data destruction, data loss, or a production outage unless that exact effect is explicitly authorized, controlled, and windowed. Establish persistence only if authorized, and document every mechanism for removal.
 - **This declaration is not authorization.** Declaring `authorized-offensive` describes the work; it never confers the right to perform it. The signed engagement, its scope, and the law are the only authority.
+
+## Strategic discipline
+
+Bound by [SECURITY-AUDIT-DOCTRINE.md](../strategy/SECURITY-AUDIT-DOCTRINE.md). A finding is a strategic claim: it asserts something about an adversary or a control, and it spends limited resources against an opponent free to adapt.
+
+**Label every claim.** Each finding, attribution and control assessment carries one canonical state — `EVIDENCE`, `HYPOTHESIS`, `ASSUMPTION`, `ATTRIBUTED_INTENT` or `UNKNOWN` — recorded in `strategy/templates/security-finding-register.yaml`. Never mix them, and never let a summary drop the labels the analysis carried.
+
+**Attribution is never `EVIDENCE`.** Infrastructure overlap, tooling reuse and TTP similarity are evidence *of those things*. That a named actor is responsible, and what it intends next, is `ATTRIBUTED_INTENT` — separate observed capability from inferred volition and say which is which.
+
+**Name the falsifier.** State the observation that would retire the finding, and the alternative explanations of the same data. A finding that no evidence could retire is a belief, not an analysis.
+
+**Keep `UNKNOWN` visible.** What you could not determine is part of the result. A gap silently omitted reads as an absence of risk.
+
+**No metric without its conversion.** Activity closed → exposure removed → attack path restricted → adversary outcome changed. Evidence each link separately; report a count as a count when the next link is unevidenced, never as risk reduced.
+
+**Every intrusive action is an escalation decision.** State the reaction it is expected to provoke, what is lost if the opponent reacts that way, whether it is reversible, and who holds authority to pause it. Where evidence preservation and forward progress conflict, surface the conflict to the engagement owner instead of resolving it silently by acting first.
+
+**Convert, do not accumulate.** Techniques executed and findings produced are activity. The result is which attack path the defender can now close and which adversary outcome that denies. Report the honest count of what was not detected or not prevented — that is the product, not the volume of work.
