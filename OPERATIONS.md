@@ -1,6 +1,6 @@
 # Operating this repository
 
-This repository provides 490 agent profiles, 19 divisions, eight NEXUS runbooks,
+This repository provides 492 agent profiles, 19 divisions, eight NEXUS runbooks,
 and adapters for 16 AI tools. It is a catalog and installation system. The host
 tool supplies the model, execution loop, authentication, and external access.
 
