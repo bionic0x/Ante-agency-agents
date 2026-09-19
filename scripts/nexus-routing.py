@@ -59,11 +59,25 @@ def load_observations(path, at):
     """Model observations. Absent, malformed or expired -> the model is not selectable."""
     if path is None:
         return [], ['no observation file supplied']
-    rows = json.loads(Path(path).read_text(encoding='utf-8'))
+    try:
+        raw = Path(path).read_text(encoding='utf-8')
+    except OSError as exc:
+        return [], [f'observation file unreadable — NOT_OBSERVED: {exc}']
+    if not raw.strip():
+        return [], ['observation file is empty — NOT_OBSERVED']
+    try:
+        rows = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        return [], [f'observation file is invalid JSON — NOT_OBSERVED: {exc}']
+    if not isinstance(rows, list):
+        return [], ['observation file must contain a JSON array — NOT_OBSERVED']
     required = PROVIDERS['model_observation_contract']['required']
     live, notes = [], []
     for index, row in enumerate(rows):
         where = f'observations[{index}]'
+        if not isinstance(row, dict):
+            notes.append(f'{where}: NOT_OBSERVED — entry must be an object')
+            continue
         missing = [f for f in required if f not in row or row[f] in (None, '', [])]
         if missing:
             notes.append(f'{where}: NOT_OBSERVED — missing {sorted(missing)}')

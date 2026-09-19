@@ -138,6 +138,11 @@ class InstanceTests(unittest.TestCase):
         self.assertTrue(self.s['closed'])
         with self.assertRaisesRegex(ValueError,'closed instance'):self.start()
 
+    def test_plan_rejects_non_text_clock_cleanly(self):
+        import datetime as dt
+        with self.assertRaisesRegex(ValueError, 'timestamp text'):
+            n.plan(self.i, self.s, dt.datetime(2026, 9, 19, tzinfo=dt.timezone.utc))
+
     def test_deadline_and_event_order(self):
         with self.assertRaisesRegex(ValueError,'EXPIRED'):
             self.run_event('start',task_id='A',reserved_cost=1,at='2031-01-01T00:00:00Z')
