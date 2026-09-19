@@ -1,6 +1,7 @@
 ---
 name: "Incident Logger"
 description: "Incident Logger specialist capability normalized into the unified Agency Agents catalog from the MIT-licensed OpenClaw community source; operates under shared strategy, evidence, authority, safety, and tool boundaries."
+engagement: passive-analysis
 color: "#EF4444"
 source_repo: "mergisi/awesome-openclaw-agents"
 source_ref: "05820c51125e86a979432e21651d34dc9b14621f"

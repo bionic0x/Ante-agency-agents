@@ -1,6 +1,6 @@
 # Ante: Agent Catalog and NEXUS Strategic Coordination
 
-A collection of **490 agent profiles across 19 divisions**, with **8 runbooks**,
+A collection of **492 agent profiles across 19 divisions**, with **8 runbooks**,
 **16 tool installation targets** and an **offline NEXUS contract engine** for
 planning, evidence tracking and event replay.
 
@@ -890,7 +890,7 @@ Illustrative role language, not empirical results or universal acceptance rules.
 
 ## 📊 Repository inventory
 
-- **490 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
+- **492 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
 - **8 runbooks** — declared in [strategy/runbooks.json](strategy/runbooks.json).
 - **16 installation targets** — declared in [tools.json](tools.json).
 - **14 converted targets**, plus native profile installation for Claude Code and Copilot.
@@ -1282,7 +1282,7 @@ MIT License - Use freely, commercially or personally. Attribution appreciated bu
 
 ## 🙏 Acknowledgments
 
-What started as a Reddit thread about AI agent specialization has grown into something remarkable — **490 agents across 19 divisions**, supported by a community of contributors from around the world. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
+What started as a Reddit thread about AI agent specialization has grown into something remarkable — **492 agents across 19 divisions**, supported by a community of contributors from around the world. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
 
 To everyone who has opened a PR, filed an issue, started a Discussion, or simply tried an agent and told us what worked — thank you. You're the reason The Agency keeps getting better.
 

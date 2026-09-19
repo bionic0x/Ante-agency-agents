@@ -72,6 +72,11 @@ jobs:
             echo "No agent files changed."
           fi
 
+      - name: Validate security engagement contract
+        run: |
+          python3 scripts/check-security-engagement.py
+          python3 scripts/test-security-engagement.py
+
       - name: Run agent linter
         if: steps.changed.outputs.full == 'true' || steps.changed.outputs.files != ''
         env:
