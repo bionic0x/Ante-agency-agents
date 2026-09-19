@@ -22,6 +22,7 @@ python3 scripts/build-catalog.py --check
 python3 scripts/test-runbook-contracts.py
 python3 scripts/check-strategy-vocabulary.py
 python3 scripts/test-nexus-instance.py
+python3 scripts/test-nexus-routing.py
 python3 scripts/test-nexus-evaluation.py
 python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json >/dev/null
 python3 scripts/check-htp-gate0.py

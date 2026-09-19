@@ -318,6 +318,37 @@ than `["Read"]`; its fixed Read/Write protocol cannot measure arbitrary policies
 Kimi has no probe yet and therefore no record; absence of a record is
 `NOT_DEMONSTRATED`, not a pass.
 
+## Security and audit under the strategy framework
+
+The canonical epistemic vocabulary in `strategy/contracts.json` was preserved by
+the orchestration and assurance agents and used by none of the security agents —
+the division that attributes intrusions to actors and grades controls as
+effective. [SECURITY-AUDIT-DOCTRINE.md](strategy/SECURITY-AUDIT-DOCTRINE.md)
+closes that gap by binding the framework to finding and intervention behavior.
+
+Seven bindings, each traceable to a chapter: every claim carries a canonical
+state and attribution is never `EVIDENCE` (VIII); priority follows the affected
+capability, its substitutes and their time, not the scanner's reach or the
+severity score (III); a metric is reported with the conversions it claims —
+activity closed, exposure removed, path restricted, adversary outcome changed —
+and a count stays a count while the next link is unevidenced (I.7, II.8, XV.12);
+hardening culminates, so a recommendation states its cost to users and the
+workaround it will otherwise produce (VI); containment is an escalation decision
+with an expected reaction, a reversibility and a pause authority (IX); closure
+separates cease, closure, transition and conservation (XII); and risk acceptance
+expires, with a third acceptance reported as a design finding because the
+repetition is the finding (VIII.7).
+
+Two bindings are machine-checked so they cannot drift back.
+`check-strategy-vocabulary.py` now validates
+`strategy/templates/security-finding-register.yaml` alongside the claim register
+and the standard handoff. `check-security-engagement.py` requires every security
+agent to carry the canonical states and bind its findings to that register,
+naming any state it drops. The remaining bindings live in each agent's
+**Strategic discipline** section: a stated discipline is a claim about behavior,
+not a guarantee of it — the same distinction this repository already draws
+between a declared capability and an enforced one.
+
 ## Declared capabilities versus host behavior
 
 An absent `tools` field is `unspecified`, not proof of no tools. Claude Code may

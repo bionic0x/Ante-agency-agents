@@ -40,17 +40,36 @@ def verdict(text):
     return findings, declared, advisories
 
 
-OFFENSIVE_BODY = ('Verify prior written authorization. Test only what the rules of engagement mark '
+# Every security agent must carry the canonical epistemic states and bind its
+# findings to the register, whatever its engagement class.
+EPISTEMIC = ('Label each claim EVIDENCE, HYPOTHESIS, ASSUMPTION, ATTRIBUTED_INTENT or UNKNOWN '
+             'in strategy/templates/security-finding-register.yaml. ')
+OFFENSIVE_BODY = (EPISTEMIC +
+                  'Verify prior written authorization. Test only what the rules of engagement mark '
                   'in-scope; anything out of scope is untouchable. Halt and escalate on any boundary. '
                   'Never cause denial of service or data destruction. This declaration is not authorization.')
-DEFENSIVE_BODY = ('Acts only on assets the operator owns. All changes run under change control with a '
+DEFENSIVE_BODY = (EPISTEMIC +
+                  'Acts only on assets the operator owns. All changes run under change control with a '
                   'rollback. This declaration is not authorization.')
 
 
 def main():
-    # Passive agent with nothing extra passes.
-    f, d, _ = verdict(agent('passive-analysis', 'Reads code and writes a report.'))
+    # Passive agent carrying the epistemic contract passes.
+    f, d, _ = verdict(agent('passive-analysis', EPISTEMIC + 'Reads code and writes a report.'))
     check(not f and d == 'passive-analysis', f'clean passive agent should pass, got {f}')
+
+    # Epistemic discipline is required of every class, not only intrusive ones.
+    f, _, _ = verdict(agent('passive-analysis', 'Reads code and writes a report.'))
+    check(any('canonical epistemic states' in x for x in f),
+          'an agent without the canonical states must be flagged')
+    check(any('security-finding-register' in x for x in f),
+          'an agent that does not bind findings to the register must be flagged')
+
+    # Dropping a single state is enough to fail, and the message names it.
+    partial_states = EPISTEMIC.replace('ATTRIBUTED_INTENT or ', '')
+    f, _, _ = verdict(agent('passive-analysis', partial_states + 'Reads code.'))
+    check(any('ATTRIBUTED_INTENT' in x for x in f),
+          'the missing state must be named — attribution is the one that matters most')
 
     # Missing engagement field fails.
     f, d, _ = verdict(agent(None, 'Reads code.'))
@@ -61,7 +80,7 @@ def main():
     check(any('unknown engagement class' in x for x in f), 'unknown class must fail')
 
     # Offensive agent lacking every obligation fails on each one.
-    f, _, _ = verdict(agent('authorized-offensive', 'I attack things.'))
+    f, _, _ = verdict(agent('authorized-offensive', EPISTEMIC + 'I attack things.'))
     for token in ('written_authorization', 'scope_boundary', 'stop_condition',
                   'no_destruction', 'not_authorization'):
         check(any(token in x for x in f), f'offensive agent missing {token} must be flagged')
@@ -77,7 +96,7 @@ def main():
           f'removing exactly the not-authorization line should fail exactly once, got {f}')
 
     # Defensive agent needs own-assets + change-control + not-authorization.
-    f, _, _ = verdict(agent('active-defensive', 'Monitors things in real time.'))
+    f, _, _ = verdict(agent('active-defensive', EPISTEMIC + 'Monitors things in real time.'))
     for token in ('own_assets', 'change_control', 'not_authorization'):
         check(any(token in x for x in f), f'defensive agent missing {token} must be flagged')
     f, _, _ = verdict(agent('active-defensive', DEFENSIVE_BODY))
@@ -85,13 +104,13 @@ def main():
 
     # Misdeclaration is ADVISORY, never a failure: first-person offensive phrasing
     # under a passive class is reported but does not fail the build.
-    f, _, adv = verdict(agent('passive-analysis', 'I will exploit the target host to prove it.'))
+    f, _, adv = verdict(agent('passive-analysis', EPISTEMIC + 'I will exploit the target host to prove it.'))
     check(not f, 'first-person offensive phrasing must not fail a passive agent (advisory only)')
     check(any('offensive phrasing' in a for a in adv), 'that phrasing should raise an advisory')
 
     # And naming attacker techniques as subject matter raises NOTHING — the false
     # positive the design exists to avoid.
-    f, _, adv = verdict(agent('passive-analysis',
+    f, _, adv = verdict(agent('passive-analysis', EPISTEMIC +
         'Analysts track how adversaries use C2, lateral movement, privilege escalation and '
         'exfiltration. This agent detects and documents those techniques.'))
     check(not f and not adv, f'describing attacker TTPs must be clean, got findings={f} advisories={adv}')
@@ -121,7 +140,7 @@ def main():
     ):
         f, _, _ = verdict(agent('authorized-offensive', OFFENSIVE_BODY.replace(before, after)))
         check(len(f) == 1 and token in f[0], f'weak phrase must not satisfy {token}: {f}')
-    f, _, adv = verdict(agent('passive-analysis',
+    f, _, adv = verdict(agent('passive-analysis', EPISTEMIC +
         'Adversaries establish persistence and run the exploit. We document their behavior.'))
     check(not f and not adv, 'third-person descriptions must not trigger an advisory')
 
@@ -129,6 +148,9 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         (root / 'divisions.json').write_text(json.dumps({'divisions': {'security': {}}}))
+        (root / 'strategy').mkdir(parents=True)
+        (root / 'strategy' / 'contracts.json').write_text(
+            json.dumps({'epistemic_states': list(cse.EPISTEMIC_STATES)}))
         (root / 'security' / 'nested').mkdir(parents=True)
         (root / 'security' / 'README.md').write_text('Division documentation')
         try:
@@ -137,13 +159,13 @@ def main():
         except ValueError:
             pass
         nested = root / 'security' / 'nested' / 'fixture.md'
-        nested.write_text(agent('passive-analysis', 'Reads code.'))
+        nested.write_text(agent('passive-analysis', EPISTEMIC + 'Reads code.'))
         check(cse.security_agents(root) == [nested], 'nested security agents must be discovered')
         check(not cse.check_file(nested, REG, root)[0], 'alternate repository root must work')
 
     # Exercise the public CLI with a relative path and multiple findings on one agent.
     with tempfile.NamedTemporaryFile('w', suffix='.md', dir=ROOT / 'security') as fh:
-        fh.write(agent('authorized-offensive', 'No policy language.'))
+        fh.write(agent('authorized-offensive', EPISTEMIC + 'No policy language.'))
         fh.flush()
         result = subprocess.run([sys.executable, str(ROOT / 'scripts/check-security-engagement.py'),
                                  str(Path(fh.name).relative_to(ROOT))], cwd=ROOT,
@@ -152,7 +174,7 @@ def main():
               and 'Traceback' not in result.stderr, 'CLI must count failed agents, not findings')
         fh.seek(0)
         fh.truncate()
-        fh.write(agent('passive-analysis', 'Reads code.'))
+        fh.write(agent('passive-analysis', EPISTEMIC + 'Reads code.'))
         fh.flush()
         result = subprocess.run([sys.executable, str(ROOT / 'scripts/check-security-engagement.py'),
                                  str(Path(fh.name).relative_to(ROOT))], cwd=ROOT,
