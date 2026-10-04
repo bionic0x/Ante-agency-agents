@@ -358,9 +358,31 @@ resource ownership, termination and replay recovery. The pilot reuses three
 canonical agents from `strategic-decision`; it does not activate the full roster.
 
 `nexus-options.py` compares admissible options without weighted scoring and exposes
-sensitivity to declared scenario values. `evaluate-nexus.py` compares recorded
-three-variant host trials. The checked-in host-trial file is empty and yields
-`NOT_MEASURED`: no model-quality gain or host enforcement is claimed.
+sensitivity to declared scenario values. `evaluate-nexus.py` joins recorded
+three-variant host trials with blind reviewer judgments under the protocol in
+[NEXUS-MEASUREMENT-PROTOCOL.md](strategy/NEXUS-MEASUREMENT-PROTOCOL.md). The
+checked-in trial and judgment files are empty and yield `NOT_MEASURED`: no
+model-quality gain or host enforcement is claimed.
+
+Nine metrics are reported separately — five counted by the runner (cost, tokens,
+wall time, invalid decisions, rework cycles) and four by a blind reviewer (factual
+errors, fatal defects, constraint violations, evidence coverage as a fraction).
+There is no composite score and no ranking: the metrics trade against each other,
+any weighting encodes a purpose the tool does not hold, and a single number would
+make a fatal defect purchasable with a lower token count. Inputs carrying a
+`score`, `rank`, `overall`, `winner` or `composite` field are rejected.
+
+`nexus-blind.py seal` prepares opaque artifact names, a shuffled index, case
+scenarios, expected behavior and artifact hashes. It rejects unsafe IDs, symlinks
+and known self-narration before publishing a packet. This reduces direct label
+leakage but cannot certify blinding. Preserve original outputs; any redaction
+must follow the preregistered protocol, not selective post-run editing.
+Reviewer identifiers matching any trial operator are rejected, but identities
+are not authenticated. Primary comparisons use only fully judged three-variant
+pairs for all nine metrics; execution-only summaries are separate. Missing
+submissions and all supplied fatal findings remain visible even when excluded
+from comparisons. The evaluator checks equal model, host, input and budget
+labels; it does not authenticate counters, budget enforcement or preregistration.
 
 The plan/replay engine performs no model calls or external actions. A live adapter,
 authenticated authority, tool enforcement and measured model trials remain separate
