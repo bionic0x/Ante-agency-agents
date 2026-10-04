@@ -1,12 +1,14 @@
 name: Check Tools Consistency
 
+# Runs on every PR (no path filter on purpose): a new or renamed tool must trip
+# this check even when nobody touched tools.json or the install/convert scripts.
 on:
   pull_request:
   push:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,35 +21,51 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
       - run: python3 -m pip install -r scripts/requirements-validation.txt
 
-      - name: Generate catalog blob for API commit
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Validate tool registry and implementation coverage
         run: |
-          python3 scripts/build-catalog.py
-          python3 - <<'PY'
-          import json, os, urllib.request
-          content = open('CATALOG.md', encoding='utf-8').read()
-          payload = json.dumps({'content': content, 'encoding': 'utf-8'}).encode('utf-8')
-          req = urllib.request.Request(
-              f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/git/blobs",
-              data=payload,
-              headers={
-                  'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
-                  'Accept': 'application/vnd.github+json',
-                  'X-GitHub-Api-Version': '2022-11-28',
-                  'Content-Type': 'application/json',
-              },
-              method='POST',
-          )
-          with urllib.request.urlopen(req) as response:
-              data = json.load(response)
-          print('CATALOG_BLOB_SHA=' + data['sha'])
-          PY
-          exit 1
+          chmod +x scripts/check-tools.sh
+          ./scripts/check-tools.sh
+
+      - name: Validate OpenClaw provenance verifier
+        run: python3 scripts/test-openclaw-import-provenance.py
+
+      - name: Validate Kimi current agent contract
+        run: python3 scripts/test-kimi-adapter.py
+
+      - name: Static shell analysis (errors only)
+        run: shellcheck -x -S error scripts/*.sh
+
+      - name: Validate generated Hermes plugin
+        run: python3 scripts/check-hermes-plugin.py
+
+      - name: Validate Hermes lifecycle behavior from a clean build
+        run: python3 scripts/test-hermes-plugin.py
+
+      - name: Validate incremental conversion state and pruning
+        run: python3 scripts/test-incremental-conversion.py
+
+      - name: Validate converted YAML frontmatter
+        run: bash scripts/test-convert-frontmatter.sh
+
+      - name: Reject colliding agent slugs before conversion
+        run: bash scripts/test-convert-slug-collisions.sh
+
+      - name: Refuse symlinked conversion output directories
+        run: bash scripts/test-convert-symlink-output.sh
+
+      - name: Validate converted outputs (round-trip, strict parse, counts, drift)
+        run: bash scripts/test-convert-outputs.sh
+
+      - name: Validate host acceptance records (evidence cannot outrun its method)
+        run: python3 scripts/test-host-acceptance.py
+
+      - name: Validate agent selection (install.sh --agent / --agents-file)
+        run: bash scripts/test-agent-selection.sh
+
+      - name: Validate generated catalog (CATALOG.md)
+        run: python3 scripts/build-catalog.py --check
