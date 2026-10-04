@@ -8,8 +8,8 @@ scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/repo/scripts" "$scratch/repo/engineering" \
   "$scratch/repo/integrations/openclaw/example-agent" "$scratch/bin"
-cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$scratch/repo/scripts/"
-cp "$SCRIPT_DIR/../divisions.json" "$scratch/repo/"
+cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$scratch/repo/scripts/"
+cp "$SCRIPT_DIR/../divisions.json" "$SCRIPT_DIR/../tools.json" "$scratch/repo/"
 cat > "$scratch/repo/engineering/example.md" <<'EOF'
 ---
 name: Example Agent
@@ -44,7 +44,7 @@ export OPENCLAW_TEST_LOG="$scratch/add.log"
 export PATH="$scratch/bin:$PATH"
 export HOME="$scratch/home"
 export OPENCLAW_TEST_MODE=existing
-bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
+bash "$scratch/repo/scripts/install.sh" --tool openclaw \
   --no-convert --path "$scratch/destination" > "$scratch/existing.log" 2>&1
 [[ ! -e "$OPENCLAW_TEST_LOG" ]] || {
   echo 'FAIL: compact JSON existing agent was registered again' >&2
@@ -52,7 +52,7 @@ bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
 }
 
 export OPENCLAW_TEST_MODE=missing
-if bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
+if bash "$scratch/repo/scripts/install.sh" --tool openclaw \
   --no-convert --path "$scratch/destination" > "$scratch/missing.log" 2>&1; then
   echo 'FAIL: failed OpenClaw registration was reported as successful' >&2
   exit 1
@@ -61,7 +61,7 @@ grep -q 'failed to register' "$scratch/missing.log"
 
 rm -f "$OPENCLAW_TEST_LOG"
 export OPENCLAW_TEST_MODE=list-fail
-if bash "$scratch/repo/scripts/install.sh" --tool openclaw --agent example-agent \
+if bash "$scratch/repo/scripts/install.sh" --tool openclaw \
   --no-convert --path "$scratch/destination" > "$scratch/list-fail.log" 2>&1; then
   echo 'FAIL: failed OpenClaw roster query was reported as successful' >&2
   exit 1
