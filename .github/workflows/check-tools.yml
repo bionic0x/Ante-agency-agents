@@ -60,7 +60,10 @@ jobs:
 
       - name: Emit generated conversion manifest for sync
         run: |
-          bash scripts/test-convert-outputs.sh --update
+          out="$RUNNER_TEMP/convert-out"
+          mkdir -p "$out"
+          bash scripts/convert.sh --tool all --parallel --jobs 4 --out "$out" >/dev/null
+          bash scripts/test-convert-outputs.sh --out="$out" --update
           echo '===CONVERT_OUTPUTS_SHA256_B64_START==='
           base64 -w0 scripts/convert-outputs.sha256
           echo
