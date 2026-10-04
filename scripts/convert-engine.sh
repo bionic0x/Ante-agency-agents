@@ -572,9 +572,10 @@ convert_kimi() {
         Bash) continue ;;
         *) error "Kimi: no tool mapping for '$token' in $file"; IFS="$old_ifs"; return 1 ;;
       esac
-      mapped+="  - ${token}"    IFS="$old_ifs"
+      mapped+="  - ${token}"$'\n'
+    done
+    IFS="$old_ifs"
   fi
-
   if [[ -n "$mapped" ]]; then
     cat > "$outfile" <<HEREDOC
 ---
