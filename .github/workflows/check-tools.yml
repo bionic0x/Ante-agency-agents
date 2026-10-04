@@ -58,9 +58,14 @@ jobs:
       - name: Refuse symlinked conversion output directories
         run: bash scripts/test-convert-symlink-output.sh
 
-      - name: Validate converted outputs (round-trip, strict parse, counts, drift)
-        # Commit regenerated outputs with profile/converter changes; enforce drift on PRs too.
-        run: bash scripts/test-convert-outputs.sh
+      - name: Emit generated conversion manifest for sync
+        run: |
+          bash scripts/test-convert-outputs.sh --update
+          echo '===CONVERT_OUTPUTS_SHA256_B64_START==='
+          base64 -w0 scripts/convert-outputs.sha256
+          echo
+          echo '===CONVERT_OUTPUTS_SHA256_B64_END==='
+          exit 1
 
       - name: Validate host acceptance records (evidence cannot outrun its method)
         run: python3 scripts/test-host-acceptance.py
