@@ -927,7 +927,7 @@ install_openclaw() {
   local dest; dest="$(resolve_dest openclaw "${HOME}/.openclaw/agency-agents")"
   local count=0
   local existing_agents=""
-  local failed_names=""   # a string, not an array: bash 3.2 + set -u rejects "${empty[@]}"
+  local failed_names=""
   [[ -d "$src" ]] || { err "integrations/openclaw missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest"
   if command -v openclaw >/dev/null 2>&1; then
@@ -936,10 +936,7 @@ install_openclaw() {
       err "OpenClaw: could not list registered agents; refusing to guess which workspaces need registration."
       return 1
     fi
-    # IDs may appear in compact or pretty JSON, and several may share a line.
-    # Agent IDs are slugs, so quoted id tokens need no JSON parser dependency.
-    existing_agents=$'\n'"$(printf '%s' "$agents_json" | grep -oE '"id"[[:space:]]*:[[:space:]]*"[^"]*"' \
-      | sed -E 's/^"id"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' || true)"$'\n'
+    existing_agents="$(printf '%s\n' "$agents_json" | grep -oE '"id"[[:space:]]*:[[:space:]]*"[^"]*"' | sed -E 's/^"id"[[:space:]]*:[[:space:]]*"([^"]*)"$/\1/' || true)"
   fi
   local d
   while IFS= read -r -d '' d; do
@@ -951,11 +948,18 @@ install_openclaw() {
     install_file "$d/AGENTS.md" "$dest/$name/AGENTS.md"
     install_file "$d/IDENTITY.md" "$dest/$name/IDENTITY.md"
     if command -v openclaw >/dev/null 2>&1; then
-      if [[ "$existing_agents" != *    fi
+      if ! printf '%s\n' "$existing_agents" | grep -qxF "$name"; then
+        if ! openclaw agents add "$name" --workspace "$dest/$name" --non-interactive; then
+          err "OpenClaw: failed to register '$name'; the copied workspace is not active."
+          failed_names="${failed_names:+$failed_names }$name"
+          continue
+        fi
+      fi
+    fi
     (( count++ )) || true
   done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
-  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
-  if (( count == 0 )); then
+  verify_install_count "${FUNCNAME[0]}" "$count" || { [[ -n "$failed_names" ]] || return 1; }
+  if (( count == 0 )) && [[ -z "$failed_names" ]]; then
     err "integrations/openclaw contains no generated workspaces. Run ./scripts/convert.sh --tool openclaw first."
     return 1
   fi
