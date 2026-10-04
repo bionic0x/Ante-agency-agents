@@ -260,6 +260,8 @@ resolve_opencode_color() {
     lime)           mapped="#84CC16" ;;
     gray)           mapped="#6B7280" ;;
     fuchsia)        mapped="#D946EF" ;;
+    slate)          mapped="#64748B" ;;
+    navy)           mapped="#000080" ;;
     *)              mapped="$c" ;;
   esac
 
