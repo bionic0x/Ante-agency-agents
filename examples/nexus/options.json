@@ -1,0 +1,66 @@
+{
+  "factors": {
+    "cost": "lower",
+    "time_to_evidence_days": "lower"
+  },
+  "options": [
+    {
+      "id": "bounded-pilot",
+      "admissibility": "ADMISSIBLE",
+      "fatal_defect": false,
+      "factors": {
+        "cost": {
+          "value": 2,
+          "status": "HYPOTHESIS"
+        },
+        "time_to_evidence_days": {
+          "value": 3,
+          "status": "HYPOTHESIS"
+        }
+      }
+    },
+    {
+      "id": "large-team",
+      "admissibility": "ADMISSIBLE",
+      "fatal_defect": false,
+      "factors": {
+        "cost": {
+          "value": 4,
+          "status": "HYPOTHESIS"
+        },
+        "time_to_evidence_days": {
+          "value": 3,
+          "status": "HYPOTHESIS"
+        }
+      }
+    },
+    {
+      "id": "inadmissible-fast",
+      "admissibility": "INADMISSIBLE",
+      "fatal_defect": true,
+      "factors": {
+        "cost": {
+          "value": 1,
+          "status": "HYPOTHESIS"
+        },
+        "time_to_evidence_days": {
+          "value": 5,
+          "status": "HYPOTHESIS"
+        }
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "team-delivers-earlier",
+      "overrides": {
+        "large-team": {
+          "time_to_evidence_days": {
+            "value": 1,
+            "status": "HYPOTHESIS"
+          }
+        }
+      }
+    }
+  ]
+}

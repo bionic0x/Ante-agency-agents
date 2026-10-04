@@ -1,0 +1,153 @@
+manifest:
+  id: gate0-arb-aave-v37-weth-usdcn-2026-09-13
+  network_scope: arbitrum_one
+  frozen_at: "2026-09-13"
+  status: frozen_with_runtime_parameters_pending
+  purpose: >-
+    Freeze the current Aave V3.7 Arbitrum One deployment identity for WETH and
+    native USDC and establish the exact architectural assumptions for ARB-ORC
+    and ARB-RES without inventing dynamic reserve parameters.
+
+network:
+  name: arbitrum_one
+  chain_id: 42161
+
+protocol:
+  name: Aave V3.7
+  address_book:
+    repository: aave-dao/aave-address-book
+    commit: 02748a20592a019e834aee193b6c40c9bc7bd059
+    release_context: "4.67.4"
+    frozen_file: src/AaveV3Arbitrum.sol
+  core:
+    pool_addresses_provider: 0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb
+    pool_proxy: 0x794a61358D6845594F94dc1DB02A252b5b4814aD
+    pool_implementation: 0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A
+    pool_configurator_proxy: 0x8145eddDf43f50276641b55bd3AD95944510021E
+    pool_configurator_implementation: 0xFF42Ce30054dcE7dc7C1282a9a497aa58eaBCe99
+    aave_oracle: 0xb56c2F0B653B2e0b10C9b928C8580Ac5Df02C7C7
+    protocol_data_provider: 0x243Aa95cAC2a25651eda86e80bEe66114413c43b
+    acl_admin: 0xFF1137243698CaA18EE364Cc966CF0e02A4e6327
+    acl_manager: 0xa72636CbcAa8F5FF95B2cc47F3CDEe83F3294a0B
+
+assets:
+  - symbol: WETH
+    underlying: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
+    decimals: 18
+    a_token: 0xe50fA9b3c56FfB159cB0FCA61F5c9D750e8128c8
+    variable_debt_token: 0x0c84331e39d6658Cd6e6b9ba04736cC4c4734351
+    oracle_source: 0xbD41b1548a5A06544cBcf87c0c54864312842C00
+    reserve_parameters: PENDING_RUNTIME_SNAPSHOT
+    oracle_runtime_metadata: PENDING_RUNTIME_SNAPSHOT
+
+  - symbol: USDC
+    address_book_symbol: USDCn
+    underlying: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831
+    decimals: 6
+    a_token: 0x724dc807b04555b71ed48a6896b6F41593b8C637
+    variable_debt_token: 0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6
+    oracle_source: 0xB0C9A7122aaB68F75CffD9851E867144DBFF113b
+    reserve_parameters: PENDING_RUNTIME_SNAPSHOT
+    oracle_runtime_metadata: PENDING_RUNTIME_SNAPSHOT
+
+threat_scope:
+  allowed_classes:
+    - ARB-ORC
+    - ARB-RES
+  class_state:
+    ARB-ORC:
+      state: active_with_runtime_parameters_pending
+      object: >-
+        Reconstruct the exact price path consumed by Aave for WETH/native-USDC
+        exposure and identify invalid/degraded evidence under a separately frozen
+        observation policy without substituting a price on behalf of Aave.
+    ARB-RES:
+      state: active_but_external_observation_only
+      object: >-
+        Observe interruption/recovery evidence and unresolved protocol exposure
+        externally. Aave V3.7 no longer gates borrows or liquidations through a
+        PriceOracleSentinel/SequencerOracle path.
+
+v3_7_sentinel_semantics:
+  price_oracle_sentinel_in_pool_validation: false
+  sequencer_oracle_in_pool_validation: false
+  borrows_gated_by_sequencer_status: false
+  liquidations_gated_by_sequencer_status: false
+  source: aave-dao/aave-v3-origin/docs/3.7/sentinel-removal.md
+  consequence_for_htp: >-
+    Sequencer/recovery evidence may be an external observation input for ARB-RES,
+    but HTP must not model it as a protocol-enforced Aave permission gate.
+
+oracle_contract:
+  aave_oracle: 0xb56c2F0B653B2e0b10C9b928C8580Ac5Df02C7C7
+  WETH_source: 0xbD41b1548a5A06544cBcf87c0c54864312842C00
+  USDC_source: 0xB0C9A7122aaB68F75CffD9851E867144DBFF113b
+  base_currency_semantics: PENDING_RUNTIME_OR_SOURCE_VERIFICATION
+  source_feed_heartbeat_or_staleness_policy: PENDING_RUNTIME_OR_PROVIDER_VERIFICATION
+  htp_staleness_policy: PENDING_CLIENT_POLICY
+  rule: >-
+    An oracle source address is not evidence of a universal heartbeat, staleness
+    threshold, or safe replacement price. Those semantics must be verified for
+    the deployed source and frozen evaluation policy.
+
+runtime_snapshot_requirements:
+  - block_number_and_timestamp
+  - pool_proxy_implementation_slot_verification
+  - pool_configurator_implementation_slot_verification
+  - WETH_reserve_configuration
+  - USDC_reserve_configuration
+  - liquidation_thresholds_and_bonuses
+  - borrow_and_supply_caps
+  - pause_freeze_active_flags
+  - e_mode_configuration_and_membership
+  - current_oracle_source_resolution_from_aave_oracle
+  - current_oracle_answer_units_and_timestamp_semantics
+  - position_snapshot_for_evaluated_accounts
+  - executable_liquidity_snapshot_for_recovery_scenarios
+
+external_observation_for_ARB_RES:
+  sequencer_or_chain_progress_source: PENDING
+  rpc_providers: []
+  independent_chain_progress_evidence: PENDING
+  price_reference_sources: []
+  recovery_policy_version: PENDING_CLIENT_POLICY
+  note: >-
+    These are HTP/client observation dependencies, not Aave V3.7 Pool validation
+    dependencies. They must be kept out of the frozen protocol core manifest.
+
+source_freeze:
+  primary:
+    - repository: aave-dao/aave-address-book
+      commit: 02748a20592a019e834aee193b6c40c9bc7bd059
+      evidence: >-
+        Pins the Arbitrum Pool, Pool implementation, PoolConfigurator, Oracle,
+        ProtocolDataProvider, WETH/native-USDC token contracts and oracle sources.
+    - repository: aave-dao/aave-v3-origin
+      artifact: docs/3.7/sentinel-removal.md
+      evidence: >-
+        Documents removal of PriceOracleSentinel and SequencerOracle checks from
+        borrow/liquidation validation in v3.7.
+
+known_blockers:
+  - id: ARB-BLK-001
+    statement: >-
+      Current WETH/native-USDC reserve risk parameters have not yet been frozen at
+      an immutable Arbitrum block for replay.
+  - id: ARB-BLK-002
+    statement: >-
+      Current oracle source runtime metadata and any provider-specific heartbeat/
+      validity semantics have not yet been frozen for the selected block.
+  - id: ARB-BLK-003
+    statement: >-
+      ARB-RES external observation sources and client recovery policy are not yet
+      selected; the old Aave sequencer-sentinel model is invalid for v3.7.
+
+prohibited_inferences:
+  - "sequencer status UP == Aave risk resolved"
+  - "RPC failure == Arbitrum sequencer failure"
+  - "Aave v3.7 internally gates liquidation on sequencer uptime"
+  - "oracle source address == universal freshness threshold"
+  - "synthetic liquidation cascade == realized loss"
+  - "external recovery recommendation == protocol authorization"
+
+s1_ready_for_full_acceptance: false

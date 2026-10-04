@@ -1,238 +1,161 @@
-# 🏗️ Phase 1 Playbook — Strategy & Architecture
+# Phase 1 — Strategy Translation & Architecture
 
-> **Duration**: 5-10 days | **Agents**: 8 | **Gate Keepers**: Studio Producer + Reality Checker
+> **Status:** execution module subordinate to `strategy/STRATEGIC-CONTROL-PLANE.md`.
 
----
+## Function
 
-## Objective
+Translate a sufficiently coherent strategic decision into an implementable product, system, operating, and resource design without letting architecture or roadmap mechanics replace the governing object.
 
-Define what we're building, how it's structured, and what success looks like — before writing a single line of code. Every architectural decision is documented. Every feature is prioritized. Every dollar is accounted for.
+This module does not create the strategy by assembling slides. It converts the current strategic intent into choices that engineers, designers, operators, finance, security, and product specialists can execute and test.
 
-## Pre-Conditions
+## Governing question
 
-- [ ] Phase 0 Quality Gate passed (GO decision)
-- [ ] Phase 0 Handoff Package received
-- [ ] Stakeholder alignment on project scope
+> What architecture, scope, resource allocation, and operating constraints are sufficient to test or deliver the current strategic thesis while preserving options?
 
-## Agent Activation Sequence
+## Entry conditions
 
-### Step 1: Strategic Framing (Day 1-3, Parallel)
+- a Strategic Decision Record exists;
+- the current output permits architecture/design work;
+- governing object, non-object, minimum sufficient result, and decision owner are explicit;
+- decision-critical discovery unknowns are either reduced or explicitly accepted;
+- hard legal/security/organizational constraints are visible.
 
-#### 🎬 Studio Producer — Strategic Portfolio Alignment
-```
-Activate Studio Producer for strategic portfolio alignment on [PROJECT].
+A project may enter this module without completing every possible discovery activity.
 
-Input: Phase 0 Executive Summary + Market Analysis Report
-Deliverables required:
-1. Strategic Portfolio Plan with project positioning
-2. Vision, objectives, and ROI targets
-3. Resource allocation strategy
-4. Risk/reward assessment
-5. Success criteria and milestone definitions
+## Main workstreams
 
-Align with: Organizational strategic objectives
-Format: Strategic Portfolio Plan Template
-Timeline: 3 days
-```
+Activate only those required by the decision.
 
-#### 🎭 Brand Guardian — Brand Identity System
-```
-Activate Brand Guardian for brand identity development on [PROJECT].
+| Workstream | Candidate agents | Decision-relevant output |
+|---|---|---|
+| strategic/product translation | Business Strategist, Product Manager, Studio Producer | product/system choices and explicit tradeoffs |
+| task/dependency design | Senior Project Manager, Project Shepherd | executable dependency map and gates |
+| UX / interaction architecture | UX Architect, UX Researcher | user-flow and interface architecture tied to evidence |
+| system architecture | Backend Architect, Senior Developer, domain engineering specialist | technical architecture, boundaries, failure modes |
+| AI/ML architecture | AI Engineer | model/data/inference design only where justified |
+| financial/resource design | Finance Tracker | cost model, resource constraints, reserves |
+| brand/message constraints | Brand Guardian | brand system where it affects the objective |
+| independent challenge | Reality Checker, Strategic Assurance Lead | evidence challenge and coherence result |
 
-Input: Phase 0 UX Research (personas, journey maps)
-Deliverables required:
-1. Brand Foundation (purpose, vision, mission, values, personality)
-2. Visual Identity System (colors, typography, spacing as CSS variables)
-3. Brand Voice and Messaging Architecture
-4. Logo system specifications (if new brand)
-5. Brand usage guidelines
+## Protocol
 
-Format: Brand Identity System Document
-Timeline: 3 days
-```
+### 1. Trace every major design choice to the strategic record
 
-#### 💰 Finance Tracker — Budget and Resource Planning
-```
-Activate Finance Tracker for financial planning on [PROJECT].
+For material choices, record:
 
-Input: Studio Producer strategic plan + Phase 0 Tech Stack Assessment
-Deliverables required:
-1. Comprehensive project budget with category breakdown
-2. Resource cost projections (agents, infrastructure, tools)
-3. ROI model with break-even analysis
-4. Cash flow timeline
-5. Financial risk assessment with contingency reserves
-
-Format: Financial Plan with ROI Projections
-Timeline: 2 days
+```yaml
+decision: ""
+governing_object_link: ""
+requirement_or_evidence: ""
+options_considered: []
+chosen_option: ""
+tradeoff: ""
+assumptions: []
+rollback_or_substitute: ""
+review_trigger: ""
 ```
 
-### Step 2: Technical Architecture (Day 3-7, Parallel, after Step 1 outputs available)
+### 2. Distinguish requirement from proposal
 
-#### 🏛️ UX Architect — Technical Architecture + UX Foundation
-```
-Activate UX Architect for technical architecture on [PROJECT].
+Do not promote generic best practices into mandatory requirements without context.
 
-Input: Brand Guardian visual identity + Phase 0 UX Research
-Deliverables required:
-1. CSS Design System (variables, tokens, scales)
-2. Layout Framework (Grid/Flexbox patterns, responsive breakpoints)
-3. Component Architecture (naming conventions, hierarchy)
-4. Information Architecture (page flow, content hierarchy)
-5. Theme System (light/dark/system toggle)
-6. Accessibility Foundation (WCAG 2.1 AA baseline)
+Examples of values that require an authoritative source or explicit project decision:
 
-Files to create:
-- css/design-system.css
-- css/layout.css
-- css/components.css
-- docs/ux-architecture.md
+- availability/SLO targets;
+- latency targets;
+- accessibility standard/version;
+- model accuracy/fairness thresholds;
+- scale assumptions;
+- budget/ROI targets;
+- specific architecture patterns;
+- sprint velocity;
+- release date.
 
-Format: Developer-Ready Foundation Package
-Timeline: 4 days
-```
+If absent, mark the value `UNKNOWN` or propose a target with rationale.
 
-#### 🏗️ Backend Architect — System Architecture
-```
-Activate Backend Architect for system architecture on [PROJECT].
+### 3. Architecture must expose friction
 
-Input: Phase 0 Tech Stack Assessment + Compliance Requirements
-Deliverables required:
-1. System Architecture Specification
-   - Architecture pattern (microservices/monolith/serverless/hybrid)
-   - Communication pattern (REST/GraphQL/gRPC/event-driven)
-   - Data pattern (CQRS/Event Sourcing/CRUD)
-2. Database Schema Design with indexing strategy
-3. API Design Specification with versioning
-4. Authentication and Authorization Architecture
-5. Security Architecture (defense in depth)
-6. Scalability Plan (horizontal scaling strategy)
+A useful architecture identifies:
 
-Format: System Architecture Specification
-Timeline: 4 days
-```
+- critical dependencies;
+- external services and failure modes;
+- source-of-truth ownership;
+- authority boundaries;
+- rollback/safe states;
+- observability needed to verify claims;
+- maintenance burden;
+- concentration/single-point risk;
+- what must remain human-controlled.
 
-#### 🤖 AI Engineer — ML Architecture (if applicable)
-```
-Activate AI Engineer for ML system architecture on [PROJECT].
+### 4. Prioritize by causal contribution
 
-Input: Backend Architect system architecture + Phase 0 Data Audit
-Deliverables required:
-1. ML System Design
-   - Model selection and training strategy
-   - Data pipeline architecture
-   - Inference strategy (real-time/batch/edge)
-2. AI Ethics and Safety Framework
-3. Model monitoring and retraining plan
-4. Integration points with main application
-5. Cost projections for ML infrastructure
+RICE, MoSCoW, cost-of-delay, or another scoring method may be used as tools. They do not become the strategy.
 
-Condition: Only activate if project includes AI/ML features
-Format: ML System Design Document
-Timeline: 3 days
-```
+The prioritized plan must state:
 
-#### 👔 Senior Project Manager — Spec-to-Task Conversion
-```
-Activate Senior Project Manager for task list creation on [PROJECT].
+- the main effort;
+- what receives minimum sufficient coverage;
+- what is deferred or refused;
+- reserve preserved;
+- what evidence would reorder the backlog.
 
-Input: ALL Phase 0 documents + Architecture specs (as available)
-Deliverables required:
-1. Comprehensive Task List
-   - Quote EXACT requirements from spec (no luxury features)
-   - Each task has clear acceptance criteria
-   - Dependencies mapped between tasks
-   - Effort estimates (story points or hours)
-2. Work Breakdown Structure
-3. Critical path identification
-4. Risk register for implementation
+### 5. Preserve architectural alternatives where uncertainty is material
 
-Rules:
-- Do NOT add features not in the specification
-- Quote exact text from requirements
-- Be realistic about effort estimates
+When a decision is expensive to reverse and evidence is weak, prefer bounded prototypes, interfaces, or staged commitments that preserve options where practical.
 
-Format: Task List with acceptance criteria
-Timeline: 3 days
-```
+## Architecture package
 
-### Step 3: Prioritization (Day 7-10, Sequential, after Step 2)
+The package contains only applicable artifacts, typically:
 
-#### 🎯 Sprint Prioritizer — Feature Prioritization
-```
-Activate Sprint Prioritizer for backlog prioritization on [PROJECT].
+1. strategic/product translation and scope boundaries;
+2. system/dependency architecture;
+3. UX/interaction architecture;
+4. data and source-of-truth model;
+5. security/compliance constraints;
+6. financial/resource model;
+7. implementation task/dependency map;
+8. evidence/observability plan;
+9. rollback and transition assumptions;
+10. updated Claim Register and Strategic Decision Record.
 
-Input:
-- Senior Project Manager → Task List
-- Backend Architect → System Architecture
-- UX Architect → UX Architecture
-- Finance Tracker → Budget Framework
-- Studio Producer → Strategic Plan
+## Gate
 
-Deliverables required:
-1. RICE-scored backlog (Reach, Impact, Confidence, Effort)
-2. Sprint assignments with velocity-based estimation
-3. Dependency map with critical path
-4. MoSCoW classification (Must/Should/Could/Won't)
-5. Release plan with milestone mapping
+There is no universal requirement for “100% of the spec” if the governing decision is a bounded experiment; equally, a material mandatory requirement cannot be omitted because the MVP is small.
 
-Validation: Studio Producer confirms strategic alignment
-Format: Prioritized Sprint Plan
-Timeline: 2 days
-```
+Review instead:
 
-## Quality Gate Checklist
+| Test | Evidence expected |
+|---|---|
+| governing-object | architecture and scope trace to the valuable result |
+| causal | system can generate the mechanism/evidence the thesis requires |
+| interactive | foreseeable user/system/adversarial responses are represented |
+| conversion | resources, dependencies, and authority can make the architecture real |
+| legitimacy | applicable stakeholder, legal, security, and governance constraints are preserved |
+| epistemic | assumptions and unknowns remain visible |
+| exit | rollback, redesign, migration, or termination path exists |
 
-| # | Criterion | Evidence Source | Status |
-|---|-----------|----------------|--------|
-| 1 | Architecture covers 100% of spec requirements | Senior PM task list cross-referenced with architecture | ☐ |
-| 2 | Brand system complete (logo, colors, typography, voice) | Brand Guardian deliverable | ☐ |
-| 3 | All technical components have implementation path | Backend Architect + UX Architect specs | ☐ |
-| 4 | Budget approved and within constraints | Finance Tracker plan | ☐ |
-| 5 | Sprint plan is velocity-based and realistic | Sprint Prioritizer backlog | ☐ |
-| 6 | Security architecture defined | Backend Architect security spec | ☐ |
-| 7 | Compliance requirements integrated into architecture | Legal requirements mapped to technical decisions | ☐ |
+Strategic Assurance returns the bounded output. Reality Checker or specialist validators provide evidence; they are not sole strategic authorities.
 
-## Gate Decision
+## Exit condition
 
-**Dual sign-off required**: Studio Producer (strategic) + Reality Checker (technical)
+This module is complete for the next bounded commitment when:
 
-- **APPROVED**: Proceed to Phase 2 with full Architecture Package
-- **REVISE**: Specific items need rework (return to relevant Step)
-- **RESTRUCTURE**: Fundamental architecture issues (restart Phase 1)
+- material requirements and strategic constraints are traceable;
+- critical architecture decisions have explicit rationale and owners;
+- unresolved decisions are either intentionally deferred or gated;
+- implementation can start without silently inventing scope or authority;
+- rollback/transition logic is proportionate to impact;
+- the strategic gate permits the next commitment.
 
-## Handoff to Phase 2
+## Handoff
 
-```markdown
-## Phase 1 → Phase 2 Handoff Package
+Carry forward the v2 Strategic Context Header plus:
 
-### Architecture Package:
-1. Strategic Portfolio Plan (Studio Producer)
-2. Brand Identity System (Brand Guardian)
-3. Financial Plan (Finance Tracker)
-4. CSS Design System + UX Architecture (UX Architect)
-5. System Architecture Specification (Backend Architect)
-6. ML System Design (AI Engineer — if applicable)
-7. Comprehensive Task List (Senior Project Manager)
-8. Prioritized Sprint Plan (Sprint Prioritizer)
+- authoritative architecture/spec references;
+- explicit design decisions and rejected alternatives;
+- open architecture questions;
+- project-specific targets and their authority/source;
+- main effort and reserve;
+- evidence expected from implementation.
 
-### For DevOps Automator:
-- Deployment architecture from Backend Architect
-- Environment requirements from System Architecture
-- Monitoring requirements from Infrastructure needs
-
-### For Frontend Developer:
-- CSS Design System from UX Architect
-- Brand Identity from Brand Guardian
-- Component architecture from UX Architect
-- API specification from Backend Architect
-
-### For Backend Architect (continuing):
-- Database schema ready for deployment
-- API scaffold ready for implementation
-- Auth system architecture defined
-```
-
----
-
-*Phase 1 is complete when Studio Producer and Reality Checker both sign off on the Architecture Package.*
+> **Completion criterion:** implementers know not only what to build, but which strategic assumption each material choice serves and what would justify changing it.

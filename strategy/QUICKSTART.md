@@ -1,194 +1,286 @@
-# ⚡ NEXUS Quick-Start Guide
+# NEXUS v2 Quick Start
 
-> **Get from zero to orchestrated multi-agent pipeline in 5 minutes.**
+> Start with the decision, then deploy the team.
 
----
-
-## What is NEXUS?
-
-**NEXUS** (Network of EXperts, Unified in Strategy) turns The Agency's AI specialists into a coordinated pipeline. Instead of activating agents one at a time and hoping they work together, NEXUS defines exactly who does what, when, and how quality is verified at every step.
-
-## Choose Your Mode
-
-| I want to... | Use | Agents | Time |
-|-------------|-----|--------|------|
-| Build a complete product from scratch | **NEXUS-Full** | All | 12-24 weeks |
-| Build a feature or MVP | **NEXUS-Sprint** | 15-25 | 2-6 weeks |
-| Do a specific task (bug fix, campaign, audit) | **NEXUS-Micro** | 5-10 | 1-5 days |
+NEXUS v2 separates **strategic judgment** from **orchestration** and **specialist execution**. The lifecycle playbooks still exist, but a material initiative no longer starts by blindly entering Phase 0 or Phase 1.
 
 ---
 
-## 🚀 NEXUS-Full: Start a Complete Project
+## 1. Classify the work
 
-**Copy this prompt to activate the full pipeline:**
+Use the lightest governance that matches the decision.
 
-```
-Activate Agents Orchestrator in NEXUS-Full mode.
+| Work | Typical mode | Strategic treatment |
+|---|---|---|
+| Narrow, reversible task | NEXUS-Micro | compact record; expand if impact/uncertainty is high |
+| Multi-disciplinary feature, MVP, audit, campaign | NEXUS-Sprint | full preflight before material commitment |
+| Broad product/system transformation | NEXUS-Full | full record + periodic revalidation |
 
-Project: [YOUR PROJECT NAME]
-Specification: [DESCRIBE YOUR PROJECT OR LINK TO SPEC]
-
-Execute the complete NEXUS pipeline:
-- Phase 0: Discovery (Trend Researcher, Feedback Synthesizer, UX Researcher, Analytics Reporter, Legal Compliance Checker, Tool Evaluator)
-- Phase 1: Strategy (Studio Producer, Senior Project Manager, Sprint Prioritizer, UX Architect, Brand Guardian, Backend Architect, Finance Tracker)
-- Phase 2: Foundation (DevOps Automator, Frontend Developer, Backend Architect, UX Architect, Infrastructure Maintainer)
-- Phase 3: Build (Dev↔QA loops — all engineering + Evidence Collector)
-- Phase 4: Harden (Reality Checker, Performance Benchmarker, API Tester, Legal Compliance Checker)
-- Phase 5: Launch (Growth Hacker, Content Creator, all marketing agents, DevOps Automator)
-- Phase 6: Operate (Analytics Reporter, Infrastructure Maintainer, Support Responder, ongoing)
-
-Quality gates between every phase. Evidence required for all assessments.
-Maximum 3 retries per task before escalation.
-```
+Mode does not grant authority and does not guarantee a duration or agent count.
 
 ---
 
-## 🏃 NEXUS-Sprint: Build a Feature or MVP
+## 2. Start with Strategic Assurance
 
-**Copy this prompt:**
+For material work, instantiate:
 
+- `strategy/templates/strategic-decision-record.md`
+- `strategy/templates/claim-register.yaml`
+
+Then use:
+
+```text
+Activate Strategic Assurance Lead.
+
+Initiative: [NAME]
+Context: [PROBLEM / SPEC / LINKS]
+Decision owner: [AUTHORIZED HUMAN OR ROLE]
+Known constraints: [LEGAL / SECURITY / BUDGET / POLICY / TIME]
+
+Create or complete the Strategic Decision Record.
+State the governing object and explicit non-object.
+Build the causal hypothesis, alternatives, and falsifier.
+Separate EVIDENCE, HYPOTHESIS, ASSUMPTION, attributed intention, and UNKNOWN.
+Identify competent reaction, reversal, culmination condition, reserve, and termination.
+Apply all seven coherence tests.
+Return exactly one output:
+PROCEED / PROCEED_WITH_CONDITIONS / HOLD / REDESIGN / REJECT.
+Do not treat the output as execution authority.
 ```
-Activate Agents Orchestrator in NEXUS-Sprint mode.
 
-Feature/MVP: [DESCRIBE WHAT YOU'RE BUILDING]
-Timeline: [TARGET WEEKS]
-Skip Phase 0 (market already validated).
-
-Sprint team:
-- PM: Senior Project Manager, Sprint Prioritizer
-- Design: UX Architect, Brand Guardian
-- Engineering: Frontend Developer, Backend Architect, DevOps Automator
-- QA: Evidence Collector, Reality Checker, API Tester
-- Support: Analytics Reporter
-
-Begin at Phase 1 with architecture and sprint planning.
-Run Dev↔QA loops for all implementation tasks.
-Reality Checker approval required before launch.
-```
+If the task is trivial and reversible, the record can be a few lines. If it is irreversible, externally consequential, security-sensitive, regulated, or expensive, the record expands.
 
 ---
 
-## 🎯 NEXUS-Micro: Do a Specific Task
+## 3. If permitted, activate the execution mesh
 
-**Pick your scenario and copy the prompt:**
+```text
+Activate Agents Orchestrator.
 
-### Fix a Bug
-```
-Activate Backend Architect to investigate and fix [BUG DESCRIPTION].
-After fix, activate API Tester to verify the fix.
-Then activate Evidence Collector to confirm no visual regressions.
-```
+Strategic Decision Record: [PATH / CONTENT]
+Claim Register: [PATH / CONTENT]
+Scenario: [RUNBOOK OR TASK]
+Current strategic output: [OUTPUT]
 
-### Run a Marketing Campaign
-```
-Activate Social Media Strategist as campaign lead for [CAMPAIGN DESCRIPTION].
-Team: Content Creator, Twitter Engager, Instagram Curator, Reddit Community Builder.
-Brand Guardian reviews all content before publishing.
-Analytics Reporter tracks performance daily.
-Growth Hacker optimizes channels weekly.
-```
-
-### Conduct a Compliance Audit
-```
-Activate Legal Compliance Checker for comprehensive compliance audit.
-Scope: [GDPR / CCPA / HIPAA / ALL]
-After audit, activate Executive Summary Generator to create stakeholder report.
-```
-
-### Investigate Performance Issues
-```
-Activate Performance Benchmarker to diagnose performance issues.
-Scope: [API response times / Page load / Database queries / All]
-After diagnosis, activate Infrastructure Maintainer for optimization.
-DevOps Automator deploys any infrastructure changes.
-```
-
-### Market Research
-```
-Activate Trend Researcher for market intelligence on [DOMAIN].
-Deliverables: Competitive landscape, market sizing, trend forecast.
-After research, activate Executive Summary Generator for executive brief.
-```
-
-### UX Improvement
-```
-Activate UX Researcher to identify usability issues in [FEATURE/PRODUCT].
-After research, activate UX Architect to design improvements.
-Frontend Developer implements changes.
-Evidence Collector verifies improvements.
+Build the smallest sufficient team.
+Preserve the governing object, non-object, accepted risks, open unknowns, falsifier, and termination trigger in every material handoff.
+Parallelize only genuinely independent work.
+Do not activate work blocked by HOLD or unsatisfied conditions.
+Return evidence to the decision record when assumptions change.
 ```
 
 ---
 
-## 📁 Strategy Documents
+## 4. Use a scenario runbook when one fits
 
-| Document | Purpose | Location |
-|----------|---------|----------|
-| **Master Strategy** | Complete NEXUS doctrine | `strategy/nexus-strategy.md` |
-| **Phase 0 Playbook** | Discovery & intelligence | `strategy/playbooks/phase-0-discovery.md` |
-| **Phase 1 Playbook** | Strategy & architecture | `strategy/playbooks/phase-1-strategy.md` |
-| **Phase 2 Playbook** | Foundation & scaffolding | `strategy/playbooks/phase-2-foundation.md` |
-| **Phase 3 Playbook** | Build & iterate | `strategy/playbooks/phase-3-build.md` |
-| **Phase 4 Playbook** | Quality & hardening | `strategy/playbooks/phase-4-hardening.md` |
-| **Phase 5 Playbook** | Launch & growth | `strategy/playbooks/phase-5-launch.md` |
-| **Phase 6 Playbook** | Operate & evolve | `strategy/playbooks/phase-6-operate.md` |
-| **Activation Prompts** | Ready-to-use agent prompts | `strategy/coordination/agent-activation-prompts.md` |
-| **Handoff Templates** | Standardized handoff formats | `strategy/coordination/handoff-templates.md` |
-| **Startup MVP Runbook** | 4-6 week MVP build | `strategy/runbooks/scenario-startup-mvp.md` |
-| **Enterprise Feature Runbook** | Enterprise feature development | `strategy/runbooks/scenario-enterprise-feature.md` |
-| **Marketing Campaign Runbook** | Multi-channel campaign | `strategy/runbooks/scenario-marketing-campaign.md` |
-| **Incident Response Runbook** | Production incident handling | `strategy/runbooks/scenario-incident-response.md` |
+Machine-readable rosters live in `strategy/runbooks.json`.
+
+Current scenarios:
+
+| Scenario | Mode | Use |
+|---|---|---|
+| Startup MVP | NEXUS-Sprint | bounded MVP from thesis to validated release |
+| Enterprise Feature | NEXUS-Sprint | material feature with compliance, security, and integration constraints |
+| Marketing Campaign | NEXUS-Sprint | coordinated campaign with evidence and brand/compliance controls |
+| Incident Response | NEXUS-Micro | bounded response, recovery, evidence, and post-incident conservation |
+| HTP Gate 0 — Solana + Arbitrum | NEXUS-Sprint | evidence-first DeFi Gate 0 with chain-specific engineering and security/legal review |
+
+Each runbook declares its governing object, non-object, decision owner, mandatory artifacts, termination criteria, and assurance role.
 
 ---
 
-## 🔑 Key Concepts in 30 Seconds
+## 5. Lifecycle playbooks are execution modules
 
-1. **Quality Gates** — No phase advances without evidence-based approval
-2. **Dev↔QA Loop** — Every task is built then tested; PASS to proceed, FAIL to retry (max 3)
-3. **Handoffs** — Structured context transfer between agents (never start cold)
-4. **Reality Checker** — Final quality authority; defaults to "NEEDS WORK"
-5. **Agents Orchestrator** — Pipeline controller managing the entire flow
-6. **Evidence Over Claims** — Screenshots, test results, and data — not assertions
+Use the phase playbooks when their function is needed:
 
----
-
-## 🎭 The Agents at a Glance
-
-```
-ENGINEERING         │ DESIGN              │ MARKETING
-Frontend Developer  │ UI Designer         │ Growth Hacker
-Backend Architect   │ UX Researcher       │ Content Creator
-Mobile App Builder  │ UX Architect        │ Twitter Engager
-AI Engineer         │ Brand Guardian      │ TikTok Strategist
-DevOps Automator    │ Visual Storyteller  │ Instagram Curator
-Rapid Prototyper    │ Whimsy Injector     │ Reddit Community Builder
-Senior Developer    │ Image Prompt Eng.   │ App Store Optimizer
-                    │                     │ Social Media Strategist
-────────────────────┼─────────────────────┼──────────────────────
-PRODUCT             │ PROJECT MGMT        │ TESTING
-Sprint Prioritizer  │ Studio Producer     │ Evidence Collector
-Trend Researcher    │ Project Shepherd    │ Reality Checker
-Feedback Synthesizer│ Studio Operations   │ Test Results Analyzer
-                    │ Experiment Tracker  │ Performance Benchmarker
-                    │ Senior Project Mgr  │ API Tester
-                    │                     │ Tool Evaluator
-                    │                     │ Workflow Optimizer
-────────────────────┼─────────────────────┼──────────────────────
-SUPPORT             │ SPATIAL             │ SPECIALIZED
-Support Responder   │ XR Interface Arch.  │ Agents Orchestrator
-Analytics Reporter  │ macOS Spatial/Metal │ Analytics Reporter
-Finance Tracker     │ XR Immersive Dev    │ LSP/Index Engineer
-Infra Maintainer    │ XR Cockpit Spec.    │ Sales Data Extraction
-Legal Compliance    │ visionOS Spatial    │ Data Consolidation
-Exec Summary Gen.   │ Terminal Integration│ Report Distribution
+```text
+DISCOVER → STRATEGIZE → SCAFFOLD → BUILD → HARDEN → LAUNCH → OPERATE
 ```
 
+Do **not** assume the sequence is mandatory.
+
+You may:
+
+- revisit Discovery when a production observation breaks the original thesis;
+- run architecture and bounded research in parallel;
+- skip market discovery when it is already evidenced and still current;
+- return from Build to Strategy when a necessary dependency fails;
+- terminate before Launch when a falsifier destroys the value proposition;
+- move from Incident Response directly into institutional policy changes after recovery.
+
+The Strategic Decision Record explains deviations from the default lifecycle.
+
 ---
 
-<div align="center">
+## 6. Fast templates
 
-**Start with a mode. Follow the playbook. Trust the pipeline.**
+### Feature / MVP
 
-`strategy/nexus-strategy.md` — The complete doctrine
+```text
+Strategic preflight for [FEATURE / MVP].
 
-</div>
+Governing object: [VALUABLE USER/BUSINESS RESULT]
+Non-object: shipping features, sprint velocity, or roadmap completion by themselves
+Decision owner: [ROLE]
+Minimum sufficient result: [OBSERVABLE CONDITION]
+Constraints: [LIST]
+
+Test the causal thesis before architecture commitment.
+If coherent, activate Agents Orchestrator with the smallest team covering product, architecture, implementation, evidence, and independent QA.
+Use reversible prototypes for unresolved high-value assumptions where feasible.
+```
+
+### Bug / reliability problem
+
+```text
+NEXUS-Micro for [BUG].
+
+Governing object: restore [USER/SYSTEM FUNCTION] without creating regression or hidden operational debt.
+Non-object: closing the ticket.
+Decision owner: [ROLE]
+
+Investigate root cause and competing explanations.
+Apply a bounded fix, verify the claimed mechanism, test regressions, preserve evidence, and define the condition for closure.
+Escalate if the repair changes security, data integrity, external behavior, or architecture materially.
+```
+
+### Marketing campaign
+
+```text
+Strategic preflight for [CAMPAIGN].
+
+Governing object: [BEHAVIORAL / COMMERCIAL RESULT]
+Non-object: impressions, post volume, follower growth, or channel activity unless causally linked to the result
+Decision owner: [ROLE]
+
+Separate measured baseline from target.
+State the audience-response hypothesis and alternatives.
+Define brand/compliance constraints, stop-loss/termination rules, and what evidence changes channel allocation.
+Then activate the campaign roster.
+```
+
+### Compliance / security audit
+
+```text
+Strategic preflight for [AUDIT].
+
+Governing object: reduce material exposure and establish an actionable evidence record.
+Non-object: maximize finding count.
+Decision owner: [ROLE]
+
+Map authority and scope first.
+Prioritize verification by impact, irreversibility, and causal centrality.
+Keep findings, exploitability, legal conclusions, and remediation status distinct.
+Do not infer permission for live changes from permission to audit.
+```
+
+### Incident response
+
+```text
+Activate the Incident Response runbook.
+
+Governing object: restore the critical service safely while preserving evidence and preventing recurrence.
+Non-object: fastest possible closure or MTTR in isolation.
+Decision owner: [INCIDENT AUTHORITY]
+
+During containment, keep authority and rollback explicit.
+After stabilization, distinguish symptom removal, root-cause correction, and conservation.
+Expire emergency access and temporary controls when their conditions end.
+```
+
+---
+
+## 7. The seven questions at every material gate
+
+1. **Governing object:** Does this result serve the higher purpose?
+2. **Causal:** Why should this action produce the claimed effect?
+3. **Interactive:** What competent reaction or adaptation matters?
+4. **Conversion:** Can available resources actually produce the needed capacity/control?
+5. **Legitimacy:** Does the method preserve cooperation and authority needed to hold the result?
+6. **Epistemic:** Are evidence, hypotheses, assumptions, intentions, and unknowns separated?
+7. **Exit:** What stops, redesigns, transfers, or terminates the action?
+
+A gate can return `HOLD` or `REDESIGN`. Passing a gate is not execution permission.
+
+---
+
+## 8. Claim discipline in 30 seconds
+
+Use the claim register.
+
+```yaml
+proposition: "NEXUS reduces rework by 30%"
+status: HYPOTHESIS
+quantitative_status: HYPOTHESIS
+source_refs: []
+baseline: "not yet measured"
+falsifier: "controlled deployments show no material reduction"
+```
+
+After measurement:
+
+```yaml
+proposition: "..."
+status: EVIDENCE
+quantitative_status: MEASURED
+source_refs: ["experiment-or-report-id"]
+observation_window: "..."
+baseline: "..."
+method: "..."
+limitations: ["..."]
+```
+
+Do not turn an aspirational number into a fact because it appears in an executive summary.
+
+---
+
+## 9. Retry rule
+
+There is no universal three-retry doctrine.
+
+Choose a retry/experiment budget from:
+
+- cost per attempt;
+- reversibility;
+- learning gained;
+- risk of repeated failure;
+- time available;
+- reserve consumed.
+
+A three-attempt limit can still be a practical scenario default. It is a parameter, not a law.
+
+---
+
+## 10. Core documents
+
+| Document | Purpose |
+|---|---|
+| `strategy/STRATEGIC-CONTROL-PLANE.md` | normative strategy and governance |
+| `strategy/nexus-strategy.md` | operating model |
+| `strategy/templates/strategic-decision-record.md` | material decision record |
+| `strategy/templates/claim-register.yaml` | evidence and uncertainty ledger |
+| `strategy/runbooks.json` | machine-readable scenario roster and strategic contract |
+| `strategy/playbooks/` | lifecycle execution modules |
+| `strategy/coordination/` | activation and handoff protocols |
+| `strategy/htp-gate0/` | bounded HTP Gate 0 artifacts and chain overlays |
+
+---
+
+## 11. The minimum rule
+
+For any material action, be able to answer in one screen:
+
+```text
+OBJECT        What valuable condition are we trying to create or preserve?
+NON-OBJECT    What tempting proxy must not replace it?
+MECHANISM     Why should our action produce the result?
+EVIDENCE      What is observed vs hypothesized vs unknown?
+AUTHORITY     Who may accept this risk and authorize commitment?
+REACTION      What changes when others or the system adapt?
+RESERVE       What remains uncommitted for surprise?
+EXIT          What makes us stop, redesign, transfer, or close?
+```
+
+Then deploy the agents.
+
+> **Orientation before speed. Evidence before claim. Authority before commitment. Termination before momentum.**

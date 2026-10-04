@@ -2,67 +2,93 @@ name: Lint Agent Files
 
 on:
   pull_request:
-    paths:
-      - "academic/**"
-      - "design/**"
-      - "engineering/**"
-      - "finance/**"
-      - "game-development/**"
-      - "gis/**"
-      - "healthcare/**"
-      - "marketing/**"
-      - "paid-media/**"
-      - "sales/**"
-      - "security/**"
-      - "product/**"
-      - "project-management/**"
-      - "research/**"
-      - "testing/**"
-      - "support/**"
-      - "spatial-computing/**"
-      - "specialized/**"
-      # Changing the linter itself has to run it. Without these the whole-roster
-      # job below never fires, and a new rule ships untested: the color check
-      # went in this way and nothing in CI had ever looked at a color value.
-      - "scripts/lint-agents.sh"
-      - "scripts/convert.sh"
-      - "scripts/lib.sh"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
     name: Validate agent frontmatter and structure
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+      - run: python3 -m pip install -r scripts/requirements-validation.txt
 
-      - name: Get changed agent files
+      - name: Test changed-agent discovery
+        run: python3 scripts/test-changed-agent-files.py
+
+      - name: Test privilege metadata parser
+        run: python3 scripts/test-agent-privileges.py
+
+      - name: Test capability observations and scoped profiles
+        run: python3 scripts/test-agent-capabilities.py
+
+      - name: Validate canonical agent tool privileges
+        run: python3 scripts/check-agent-privileges.py --inventory
+
+      - name: Get changed agent and lint-infrastructure files
         id: changed
         run: |
-          FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
-            ':(glob)academic/**/*.md' ':(glob)design/**/*.md' ':(glob)engineering/**/*.md' ':(glob)finance/**/*.md' ':(glob)game-development/**/*.md' ':(glob)gis/**/*.md' ':(glob)healthcare/**/*.md' ':(glob)marketing/**/*.md' ':(glob)paid-media/**/*.md' ':(glob)sales/**/*.md' ':(glob)security/**/*.md' ':(glob)product/**/*.md' \
-            ':(glob)project-management/**/*.md' ':(glob)research/**/*.md' ':(glob)testing/**/*.md' ':(glob)support/**/*.md' \
-            ':(glob)spatial-computing/**/*.md' ':(glob)specialized/**/*.md')
+          BASE_REF="${{ github.base_ref }}"
+          if [ -z "$BASE_REF" ]; then
+            echo 'full=true' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD | \
+            python3 scripts/list-changed-agent-files.py)
+          INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
+            divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py \
+            scripts/list-changed-agent-files.py scripts/agent-tools.json \
+            scripts/check-agent-privileges.py)
           {
             echo "files<<ENDOFLIST"
             echo "$FILES"
             echo "ENDOFLIST"
+            if [ -n "$INFRA" ]; then
+              echo "full=true"
+            else
+              echo "full=false"
+            fi
           } >> "$GITHUB_OUTPUT"
-          if [ -z "$FILES" ]; then
-            echo "No agent files changed."
-          else
-            echo "Changed files:"
+          if [ -n "$INFRA" ]; then
+            echo "Lint infrastructure changed; full roster lint required:"
+            echo "$INFRA"
+          elif [ -n "$FILES" ]; then
+            echo "Changed agent files:"
             echo "$FILES"
+          else
+            echo "No agent files changed."
           fi
 
+      - name: Validate security engagement contract
+        run: |
+          python3 scripts/check-security-engagement.py
+          python3 scripts/test-security-engagement.py
+
       - name: Run agent linter
-        if: steps.changed.outputs.files != ''
+        if: steps.changed.outputs.full == 'true' || steps.changed.outputs.files != ''
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          FULL_LINT: ${{ steps.changed.outputs.full }}
         run: |
           chmod +x scripts/lint-agents.sh
-          ./scripts/lint-agents.sh $CHANGED_FILES
+          if [ "$FULL_LINT" = "true" ]; then
+            ./scripts/lint-agents.sh
+          else
+            ./scripts/lint-agents.sh $CHANGED_FILES
+          fi
 
       - name: Check agent originality
         if: steps.changed.outputs.files != ''

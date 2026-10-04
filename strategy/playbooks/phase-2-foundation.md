@@ -1,278 +1,126 @@
-# ⚙️ Phase 2 Playbook — Foundation & Scaffolding
+# Phase 2 — Foundation & Scaffolding
 
-> **Duration**: 3-5 days | **Agents**: 6 | **Gate Keepers**: DevOps Automator + Evidence Collector
+> **Status:** execution module subordinate to `strategy/STRATEGIC-CONTROL-PLANE.md`.
 
----
+## Function
 
-## Objective
+Create the minimum technical and operational foundation required for the current main effort to be built, tested, observed, and safely changed.
 
-Build the technical and operational foundation that all subsequent work depends on. Get the skeleton standing before adding muscle. After this phase, every developer has a working environment, a deployable pipeline, and a design system to build with.
+Foundation is not a contest to maximize infrastructure completeness. Overbuilding the platform before the thesis is tested consumes reserve and creates path dependency.
 
-## Pre-Conditions
+## Governing question
 
-- [ ] Phase 1 Quality Gate passed (Architecture Package approved)
-- [ ] Phase 1 Handoff Package received
-- [ ] All architecture documents finalized
+> What must exist before implementation can proceed without hiding critical dependency, security, evidence, or rollback risk?
 
-## Agent Activation Sequence
+## Entry conditions
 
-### Workstream A: Infrastructure (Day 1-3, Parallel)
+- current strategic output permits foundation work;
+- material architecture decisions are explicit enough for the bounded commitment;
+- project-specific security/compliance constraints are available or gated;
+- unresolved choices that would invalidate scaffolding are visible.
 
-#### 🚀 DevOps Automator — CI/CD Pipeline + Infrastructure
-```
-Activate DevOps Automator for infrastructure setup on [PROJECT].
+## Candidate workstreams
 
-Input: Backend Architect system architecture + deployment requirements
-Deliverables required:
-1. CI/CD Pipeline (GitHub Actions / GitLab CI)
-   - Security scanning stage
-   - Automated testing stage
-   - Build and containerization stage
-   - Deployment stage (blue-green or canary)
-   - Automated rollback capability
-2. Infrastructure as Code
-   - Environment provisioning (dev, staging, production)
-   - Container orchestration setup
-   - Network and security configuration
-3. Environment Configuration
-   - Secrets management
-   - Environment variable management
-   - Multi-environment parity
+| Need | Candidate agents | Typical output |
+|---|---|---|
+| CI/CD / environment | DevOps Automator | reproducible build/deploy path |
+| application skeleton | Frontend Developer, Backend Architect | minimum executable structure |
+| data / auth foundation | Backend Architect, security specialist | scoped schema and access controls |
+| design implementation | UX Architect, Frontend Developer | required tokens/components/layout foundation |
+| observability | Infrastructure Maintainer, Analytics Reporter | logs/metrics/traces needed for decisions |
+| process / collaboration | Studio Operations, Project Manager | workflow only where coordination requires it |
+| independent verification | Evidence Collector, relevant tester | proof that foundation supports the intended thin slice |
 
-Files to create:
-- .github/workflows/ci-cd.yml (or equivalent)
-- infrastructure/ (Terraform/CDK templates)
-- docker-compose.yml
-- Dockerfile(s)
+No fixed agent count is required.
 
-Format: Working CI/CD pipeline with IaC templates
-Timeline: 3 days
-```
+## Protocol
 
-#### 🏗️ Infrastructure Maintainer — Cloud Infrastructure + Monitoring
-```
-Activate Infrastructure Maintainer for monitoring setup on [PROJECT].
+### 1. Build for the first bounded vertical slice
 
-Input: DevOps Automator infrastructure + Backend Architect architecture
-Deliverables required:
-1. Cloud Resource Provisioning
-   - Compute, storage, networking resources
-   - Auto-scaling configuration
-   - Load balancer setup
-2. Monitoring Stack
-   - Application metrics (Prometheus/DataDog)
-   - Infrastructure metrics
-   - Custom dashboards (Grafana)
-3. Logging and Alerting
-   - Centralized log aggregation
-   - Alert rules for critical thresholds
-   - On-call notification setup
-4. Security Hardening
-   - Firewall rules
-   - SSL/TLS configuration
-   - Access control policies
+Prefer a foundation that can support the first meaningful end-to-end test over a generalized platform for hypothetical future needs.
 
-Format: Infrastructure Readiness Report with dashboard access
-Timeline: 3 days
-```
+### 2. Make dependencies explicit
 
-#### ⚙️ Studio Operations — Process Setup
-```
-Activate Studio Operations for process setup on [PROJECT].
+Record:
 
-Input: Sprint Prioritizer plan + Project Shepherd coordination needs
-Deliverables required:
-1. Git Workflow
-   - Branch strategy (GitFlow / trunk-based)
-   - PR review process
-   - Merge policies
-2. Communication Channels
-   - Team channels setup
-   - Notification routing
-   - Status update cadence
-3. Documentation Templates
-   - PR template
-   - Issue template
-   - Decision log template
-4. Collaboration Tools
-   - Project board setup
-   - Sprint tracking configuration
+- external services;
+- versions/interfaces relied on;
+- source of truth;
+- authentication/authorization boundary;
+- secret/key ownership;
+- data retention assumptions;
+- operational owner;
+- recovery/fallback path.
 
-Format: Operations Playbook
-Timeline: 2 days
-```
+### 3. Instrument the claims that matter
 
-### Workstream B: Application Foundation (Day 1-4, Parallel)
+Observability should answer decision-relevant questions. Do not collect telemetry simply because it is available.
 
-#### 🎨 Frontend Developer — Project Scaffolding + Component Library
-```
-Activate Frontend Developer for project scaffolding on [PROJECT].
+At minimum for material systems, determine what evidence is needed to establish:
 
-Input: UX Architect CSS Design System + Brand Guardian identity
-Deliverables required:
-1. Project Scaffolding
-   - Framework setup (React/Vue/Angular per architecture)
-   - TypeScript configuration
-   - Build tooling (Vite/Webpack/Next.js)
-   - Testing framework (Jest/Vitest + Testing Library)
-2. Design System Implementation
-   - CSS design tokens from UX Architect
-   - Base component library (Button, Input, Card, Layout)
-   - Theme system (light/dark/system toggle)
-   - Responsive utilities
-3. Application Shell
-   - Routing setup
-   - Layout components (Header, Footer, Sidebar)
-   - Error boundary implementation
-   - Loading states
+- the critical path works;
+- failures are detectable;
+- rollback/recovery works to the declared standard;
+- relevant security/compliance conditions hold;
+- the next phase can test its causal/quality claims.
 
-Files to create:
-- src/ (application source)
-- src/components/ (component library)
-- src/styles/ (design tokens)
-- src/layouts/ (layout components)
+### 4. Preserve reversible choices
 
-Format: Working application skeleton with component library
-Timeline: 3 days
-```
+Do not commit to a more complex platform merely because it is fashionable or theoretically scalable. Where uncertainty is high, use interfaces and staging that keep substitution possible.
 
-#### 🏗️ Backend Architect — Database + API Foundation
-```
-Activate Backend Architect for API foundation on [PROJECT].
+### 5. Do not automate away required human control
 
-Input: System Architecture Specification + Database Schema Design
-Deliverables required:
-1. Database Setup
-   - Schema deployment (migrations)
-   - Index creation
-   - Seed data for development
-   - Connection pooling configuration
-2. API Scaffold
-   - Framework setup (Express/FastAPI/etc.)
-   - Route structure matching architecture
-   - Middleware stack (auth, validation, error handling, CORS)
-   - Health check endpoints
-3. Authentication System
-   - Auth provider integration
-   - JWT/session management
-   - Role-based access control scaffold
-4. Service Communication
-   - API versioning setup
-   - Request/response serialization
-   - Error response standardization
+Human approval, dual control, legal review, manual recovery, or safety checks may be deliberate parts of the system. Automation must respect the authority model.
 
-Files to create:
-- api/ or server/ (backend source)
-- migrations/ (database migrations)
-- docs/api-spec.yaml (OpenAPI specification)
+## Foundation evidence package
 
-Format: Working API scaffold with database and auth
-Timeline: 4 days
-```
+Applicable evidence may include:
 
-#### 🏛️ UX Architect — CSS System Implementation
-```
-Activate UX Architect for CSS system implementation on [PROJECT].
+- reproducible environment/build instructions;
+- CI results;
+- deployment to an authorized non-production environment;
+- thin-slice execution evidence;
+- authentication/authorization tests;
+- schema/migration evidence;
+- observability screenshots/log refs;
+- recovery/rollback test;
+- known limitations and deferred foundation work;
+- updated Claim Register.
 
-Input: Brand Guardian identity + own Phase 1 CSS Design System spec
-Deliverables required:
-1. Design Tokens Implementation
-   - CSS custom properties (colors, typography, spacing)
-   - Brand color palette with semantic naming
-   - Typography scale with responsive adjustments
-2. Layout System
-   - Container system (responsive breakpoints)
-   - Grid patterns (2-col, 3-col, sidebar)
-   - Flexbox utilities
-3. Theme System
-   - Light theme variables
-   - Dark theme variables
-   - System preference detection
-   - Theme toggle component
-   - Smooth transition between themes
+## Gate
 
-Files to create/update:
-- css/design-system.css (or equivalent in framework)
-- css/layout.css
-- css/components.css
-- js/theme-manager.js
+The gate asks whether the foundation is **sufficient for the next bounded commitment**, not whether every future platform concern is solved.
 
-Format: Implemented CSS design system with theme toggle
-Timeline: 2 days
-```
+Review:
 
-## Verification Checkpoint (Day 4-5)
+- critical dependencies are named and owned;
+- required security/compliance controls exist or are explicitly gated;
+- build/test/deploy path is reproducible enough for the use case;
+- the first meaningful slice can be observed;
+- material failure has a safe state or recovery path;
+- deferred foundation debt cannot silently invalidate the next step;
+- reserve has not been consumed by speculative infrastructure.
 
-### Evidence Collector Verification
-```
-Activate Evidence Collector for Phase 2 foundation verification.
+Strategic output remains `PROCEED`, `PROCEED_WITH_CONDITIONS`, `HOLD`, `REDESIGN`, or `REJECT` as appropriate.
 
-Verify the following with screenshot evidence:
-1. CI/CD pipeline executes successfully (show pipeline logs)
-2. Application skeleton loads in browser (desktop screenshot)
-3. Application skeleton loads on mobile (mobile screenshot)
-4. Theme toggle works (light + dark screenshots)
-5. API health check responds (curl output)
-6. Database is accessible (migration status)
-7. Monitoring dashboards are active (dashboard screenshot)
-8. Component library renders (component demo page)
+## Exit condition
 
-Format: Evidence Package with screenshots
-Verdict: PASS / FAIL with specific issues
-```
+Foundation work is complete for the current commitment when implementation can proceed without inventing missing critical controls or hiding an unowned dependency.
 
-## Quality Gate Checklist
+It may be revisited later. “Done for this commitment” is not “finished forever.”
 
-| # | Criterion | Evidence Source | Status |
-|---|-----------|----------------|--------|
-| 1 | CI/CD pipeline builds, tests, and deploys | Pipeline execution logs | ☐ |
-| 2 | Database schema deployed with all tables/indexes | Migration success output | ☐ |
-| 3 | API scaffold responding on health check | curl response evidence | ☐ |
-| 4 | Frontend skeleton renders in browser | Evidence Collector screenshots | ☐ |
-| 5 | Monitoring dashboards showing metrics | Dashboard screenshots | ☐ |
-| 6 | Design system tokens implemented | Component library demo | ☐ |
-| 7 | Theme toggle functional (light/dark/system) | Before/after screenshots | ☐ |
-| 8 | Git workflow and processes documented | Studio Operations playbook | ☐ |
+## Handoff
 
-## Gate Decision
+Carry forward:
 
-**Dual sign-off required**: DevOps Automator (infrastructure) + Evidence Collector (visual)
+- Strategic Context Header;
+- architecture references;
+- environment/deploy instructions;
+- authoritative project-specific targets;
+- source-of-truth and access model;
+- observability/evidence plan;
+- known foundation debt;
+- rollback/recovery path;
+- open conditions before production or other irreversible action.
 
-- **PASS**: Working skeleton with full DevOps pipeline → Phase 3 activation
-- **FAIL**: Specific infrastructure or application issues → Fix and re-verify
-
-## Handoff to Phase 3
-
-```markdown
-## Phase 2 → Phase 3 Handoff Package
-
-### For all Developer Agents:
-- Working CI/CD pipeline (auto-deploys on merge)
-- Design system tokens and component library
-- API scaffold with auth and health checks
-- Database with schema and seed data
-- Git workflow and PR process
-
-### For Evidence Collector (ongoing QA):
-- Application URLs (dev, staging)
-- Screenshot capture methodology
-- Component library reference
-- Brand guidelines for visual verification
-
-### For Agents Orchestrator (Dev↔QA loop management):
-- Sprint Prioritizer backlog (from Phase 1)
-- Task list with acceptance criteria (from Phase 1)
-- Agent assignment matrix (from NEXUS strategy)
-- Quality thresholds for each task type
-
-### Environment Access:
-- Dev environment: [URL]
-- Staging environment: [URL]
-- Monitoring dashboard: [URL]
-- CI/CD pipeline: [URL]
-- API documentation: [URL]
-```
-
----
-
-*Phase 2 is complete when the skeleton application is running, the CI/CD pipeline is operational, and the Evidence Collector has verified all foundation elements with screenshots.*
+> **Completion criterion:** the next team can build and learn safely on a foundation proportionate to the actual commitment.

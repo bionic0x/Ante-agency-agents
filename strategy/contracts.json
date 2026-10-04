@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "runbook_modes": [
+    "NEXUS-Micro",
+    "NEXUS-Sprint",
+    "NEXUS-Full"
+  ],
+  "epistemic_states": [
+    "EVIDENCE",
+    "HYPOTHESIS",
+    "ASSUMPTION",
+    "ATTRIBUTED_INTENT",
+    "UNKNOWN"
+  ],
+  "decision_states": [
+    "PROCEED",
+    "PROCEED_WITH_CONDITIONS",
+    "HOLD",
+    "REDESIGN",
+    "REJECT"
+  ],
+  "levels": [
+    "purpose",
+    "strategic",
+    "operational",
+    "tactical",
+    "technical"
+  ]
+}

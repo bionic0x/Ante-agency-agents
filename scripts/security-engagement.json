@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "_note": "Closed registry of engagement classes for the security division. It is the offensive-action analogue of scripts/agent-tools.json: a security agent declares an `engagement:` class in its frontmatter, and CI checks required policy phrases. It does not authenticate an authority reference, verify signatures, classify behavior reliably or enforce host actions. A class declaration is NOT authorization \u2014 the operator's written mandate, scope, and applicable law still decide whether an engagement may run. Classes are listed in ascending order of the harm an unauthorized action could cause.",
+  "classes": [
+    "passive-analysis",
+    "active-defensive",
+    "authorized-offensive"
+  ],
+  "definitions": {
+    "passive-analysis": {
+      "interacts_with_live_targets": false,
+      "acts_only_on_own_assets": true,
+      "summary": "Reads code, configuration, logs, artifacts, or open sources and produces findings, reports, or designs. Does not touch a live target system.",
+      "requires_rules_of_engagement": false,
+      "requires_authority_reference": false,
+      "required_language": []
+    },
+    "active-defensive": {
+      "interacts_with_live_targets": true,
+      "acts_only_on_own_assets": true,
+      "summary": "Interacts with live systems to defend, harden, monitor, or contain only where the operator has an explicit mandate. Ownership alone is insufficient; changes require applicable authorization and change control.",
+      "requires_rules_of_engagement": false,
+      "requires_authority_reference": true,
+      "required_language": [
+        "own_assets",
+        "change_control",
+        "not_authorization"
+      ]
+    },
+    "authorized-offensive": {
+      "interacts_with_live_targets": true,
+      "acts_only_on_own_assets": false,
+      "summary": "Simulates an adversary against explicitly authorized targets. Repository policy requires prior written authorization and a defined scope; the declaration grants no authority.",
+      "requires_rules_of_engagement": true,
+      "requires_authority_reference": true,
+      "required_language": [
+        "written_authorization",
+        "scope_boundary",
+        "stop_condition",
+        "no_destruction",
+        "not_authorization"
+      ]
+    }
+  },
+  "required_language": {
+    "own_assets": {
+      "any_of": [
+        "own asset",
+        "owned asset",
+        "operator owns",
+        "assets the operator",
+        "systems you operate",
+        "your own systems",
+        "own or operate",
+        "own or are contracted"
+      ],
+      "why": "an active-defensive agent must state it acts only on assets the operator owns or is contracted to protect"
+    },
+    "change_control": {
+      "any_of": [
+        "change control",
+        "change-control",
+        "change window",
+        "maintenance window",
+        "rollback",
+        "approved change"
+      ],
+      "why": "an agent that can change production state must state it works under change control"
+    },
+    "written_authorization": {
+      "any_of": [
+        "written authorization",
+        "written permission",
+        "signed authorization"
+      ],
+      "why": "an offensive agent must require prior written authorization"
+    },
+    "scope_boundary": {
+      "any_of": [
+        "out of scope",
+        "outside the defined scope",
+        "defined scope",
+        "scope of engagement",
+        "in-scope",
+        "rules of engagement",
+        "off-limits"
+      ],
+      "why": "an offensive agent must operate strictly within an agreed scope"
+    },
+    "stop_condition": {
+      "any_of": [
+        "stop",
+        "halt",
+        "abort",
+        "cease",
+        "escalate immediately",
+        "pause the engagement"
+      ],
+      "why": "an offensive agent must define when to stop or escalate rather than press on"
+    },
+    "no_destruction": {
+      "any_of": [
+        "never cause denial of service",
+        "never cause data destruction",
+        "do not cause denial of service",
+        "no destructive",
+        "without destroying",
+        "avoid disruption"
+      ],
+      "why": "an offensive agent must not cause denial of service or destroy data outside explicit, controlled authorization"
+    },
+    "not_authorization": {
+      "any_of": [
+        "not authorization",
+        "is not authorization",
+        "does not grant",
+        "not permission",
+        "no confiere autorizaci",
+        "does not imply authorization",
+        "not itself authorization"
+      ],
+      "why": "every intrusive class must state that its own declaration is not authorization"
+    }
+  }
+}

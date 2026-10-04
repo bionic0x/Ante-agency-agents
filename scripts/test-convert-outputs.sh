@@ -30,15 +30,15 @@
 #   never collide on this file. Hashes are platform-neutral: forward-slash paths
 #   and LF line endings, so a Windows checkout produces the same manifest.
 #
-#   Contributors adding/editing agents do NOT need to touch the manifest: CI runs
-#   this with --drift=advisory on pull requests (drift is printed, not failed) and
-#   maintainers regenerate it when the PR lands. A generator change should ship
-#   with --update so the tool line moves in the same commit.
+#   CI enforces drift on pull requests and main. Contributors changing agents,
+#   converters or source contracts must run --update, review the changed keys,
+#   and commit the manifest in the same PR. After reconciling with main, regenerate
+#   from the combined tree; never resolve a manifest conflict by taking one side.
 #
 # Usage:
 #   ./scripts/test-convert-outputs.sh                   # generate into a temp dir, check everything
 #   ./scripts/test-convert-outputs.sh --update          # ...and rewrite the manifest
-#   ./scripts/test-convert-outputs.sh --drift=advisory  # drift is reported but does not fail (CI on PRs)
+#   ./scripts/test-convert-outputs.sh --drift=advisory  # local diagnosis only; does not satisfy CI
 #   ./scripts/test-convert-outputs.sh --out=DIR         # check an already-generated DIR (no generation)
 #
 # Exit 0 only when every invariant passes AND the manifest matches (or --update,
@@ -133,8 +133,6 @@ def check(cond, msg): (ok if cond else bad)(msg)
 #   toml      TOML with a description key           round-trip description
 #   toml-id   TOML carrying only an identifier      id == slug + companion prompt file
 #             (vibe: system_prompt_id -> prompts/<slug>.md)
-#   yaml-id   YAML carrying only an identifier      id == slug + companion file
-#             (kimi: agent.name -> <slug>/system.md)
 #   accum     one file for all agents: "## Name" then the description line
 #             (windsurf: bare line; aider: "> " blockquote)  round-trip both
 #   plain     no structured metadata                count only
@@ -150,7 +148,7 @@ SPEC = {
     "cursor":      ("rules/*.mdc",       "yaml-fm"),
     "codex":       ("agents/*.toml",     "toml"),
     "vibe":        ("agents/*.toml",     "toml-id"),
-    "kimi":        ("*/agent.yaml",      "yaml-id"),
+    "kimi":        ("agents/*.md",       "yaml-fm"),
     "openclaw":    ("*/SOUL.md",         "plain"),
     "aider":       ("CONVENTIONS.md",    "accum"),
     "windsurf":    (".windsurfrules",    "accum"),
@@ -265,7 +263,7 @@ for tool in TOOLS:
             text = open(f, encoding="utf-8").read()
             if fmt == "yaml-fm":               data = frontmatter(text)
             elif fmt in ("toml", "toml-id"):   data = tomllib.loads(text)
-            else:                              data = yaml.safe_load(text)   # yaml-id
+            else:                              data = yaml.safe_load(text)
             if not isinstance(data, dict): raise ValueError("top level is not a mapping")
         except Exception as e:
             bad_parse += 1; bad(f"{tool}: {os.path.relpath(f, OUT)} does not parse ({type(e).__name__}: {e})"); continue
@@ -333,17 +331,15 @@ elif not colour_bad:
 SPLIT_FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
 
 def body_lines(text):
-    """Mirror lib.sh's get_body, including `$(...)`'s trailing-newline strip."""
-    out, fm = [], 0
-    for line in text.split("\n"):
-        if fm < 2 and line == "---":
-            fm += 1
-            continue
-        if fm >= 2:
-            out.append(line)
-    while out and out[-1] == "":
-        out.pop()
-    return out
+    """Compare against the actual source body, preserving Markdown separators."""
+    # Parse only the leading frontmatter; do not repeat the old converter bug
+    # that stripped every --- line, including lines inside fenced examples.
+    if not text.startswith("---\n"):
+        raise ValueError("source has no leading frontmatter")
+    _, separator, body = text.partition("\n---\n")
+    if not separator:
+        raise ValueError("source frontmatter is not closed")
+    return body.rstrip("\n").split("\n")
 
 def fence_blocks(lines):
     """Inclusive (opener, closer) index pairs; closer = last line if unterminated."""

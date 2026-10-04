@@ -24,7 +24,7 @@
 #   ORIGINALITY_WARN   default 20  — at/above this %, surfaced as a warning (no fail)
 #
 # Calibration: across the existing agent library the worst same-pair
-# similarity is ~1.5% (median 0%). Anything in the double digits is a strong
+# similarity is ~5% (median 0.1%; imports scored on their capability notes). Anything in the double digits is a strong
 # anomaly; the defaults leave a wide safety margin against false positives.
 
 set -euo pipefail
@@ -70,8 +70,26 @@ def strip_frontmatter(t):
             return parts[2]
     return t
 
+# Imported agents (frontmatter carries source_repo:) share one canonical wrapper —
+# identity/source profile, core mission, critical rules, and provenance footer —
+# that is identical by design across every import. Comparing that boilerplate
+# measures the importer, not the agent, and pushed every import to ~25-38%
+# similarity (within a few points of FAIL). For imports, score only the
+# subordinate capability notes: the part that is actually specific to the agent.
+IMPORT_NOTES = re.compile(
+    r'^## \S* ?Imported Capability Notes[^\n]*\n(?:>[^\n]*\n|\s*\n)*(.*?)^## \S* ?Provenance & License',
+    re.S | re.M)
+
+def strip_import_wrapper(t):
+    fm = t.split('---', 2)[1] if t.startswith('---') and t.count('---') >= 2 else ''
+    if re.search(r'^source_repo:', fm, re.M):
+        m = IMPORT_NOTES.search(t)
+        if m:
+            return m.group(1)
+    return strip_frontmatter(t)
+
 def tokens(text):
-    text = ENTITY.sub(' ', strip_frontmatter(text).lower())
+    text = ENTITY.sub(' ', strip_import_wrapper(text).lower())
     text = re.sub(r'[^a-z0-9 ]', ' ', text)
     return text.split()
 
@@ -159,7 +177,7 @@ for p in candidates:
 
 print()
 print(f"Thresholds: WARN >= {WARN:.0f}%, FAIL >= {FAIL:.0f}%  "
-      f"(existing-library baseline max ~1.5%)")
+      f"(existing-library baseline max ~5%)")
 
 if fails:
     print()

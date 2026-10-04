@@ -7,20 +7,47 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check-tools:
     name: tools.json is the single source of truth
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+      - run: python3 -m pip install -r scripts/requirements-validation.txt
 
-      - name: Validate tool set
+      - name: Validate tool registry and implementation coverage
         run: |
           chmod +x scripts/check-tools.sh
           ./scripts/check-tools.sh
 
+      - name: Validate OpenClaw provenance verifier
+        run: python3 scripts/test-openclaw-import-provenance.py
+
+      - name: Validate Kimi current agent contract
+        run: python3 scripts/test-kimi-adapter.py
+
+      - name: Static shell analysis (errors only)
+        run: shellcheck -x -S error scripts/*.sh
+
       - name: Validate generated Hermes plugin
         run: python3 scripts/check-hermes-plugin.py
+
+      - name: Validate Hermes lifecycle behavior from a clean build
+        run: python3 scripts/test-hermes-plugin.py
+
+      - name: Validate incremental conversion state and pruning
+        run: python3 scripts/test-incremental-conversion.py
 
       - name: Validate converted YAML frontmatter
         run: bash scripts/test-convert-frontmatter.sh
@@ -32,36 +59,14 @@ jobs:
         run: bash scripts/test-convert-symlink-output.sh
 
       - name: Validate converted outputs (round-trip, strict parse, counts, drift)
-        # Drift is advisory on pull requests (agent PRs always move their own manifest line;
-        # maintainers regenerate at landing) and enforced on pushes to main.
-        run: bash scripts/test-convert-outputs.sh ${{ github.event_name == 'pull_request' && '--drift=advisory' || '' }}
+        # Commit regenerated outputs with profile/converter changes; enforce drift on PRs too.
+        run: bash scripts/test-convert-outputs.sh
+
+      - name: Validate host acceptance records (evidence cannot outrun its method)
+        run: python3 scripts/test-host-acceptance.py
 
       - name: Validate agent selection (install.sh --agent / --agents-file)
         run: bash scripts/test-agent-selection.sh
 
-      - name: Protect unrelated Hermes destinations
-        run: bash scripts/test-install-hermes-destination.sh
-
-      - name: Reject partial installs after conversion failure
-        run: bash scripts/test-install-conversion-failure.sh
-
-      - name: Validate shared destinations for detected tools
-        run: bash scripts/test-install-all-path-collision.sh
-
-      - name: Validate complete selected installs
-        run: bash scripts/test-install-selection-completeness.sh
-
-      - name: Surface parallel conversion failures and clean temp output
-        run: bash scripts/test-convert-parallel-failure.sh
-
-      - name: Reject unclosed agent frontmatter
-        run: bash scripts/test-frontmatter-closing.sh
-
-      - name: Reject code fences that do not nest or never close
-        run: bash scripts/test-lint-fences.sh
-
-      - name: Unknown options fail; --help lists every option
-        run: bash scripts/test-cli-usage.sh
-
-      - name: Keep installing after one tool fails, then exit non-zero
-        run: bash scripts/test-install-continue-after-failure.sh
+      - name: Validate generated catalog (CATALOG.md)
+        run: python3 scripts/build-catalog.py --check

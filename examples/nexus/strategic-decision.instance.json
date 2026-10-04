@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "id": "SYNTHETIC-STRATEGIC-DECISION-001",
+  "runbook_ref": "strategic-decision",
+  "doctrine_sha256": "f81abe2e06ee8311a98dfa61f980b0f9e3ebb2d8b7a90eaa142e413771963570",
+  "mandate": {
+    "owner": "fixture-owner",
+    "reviewers": [
+      "fixture-reviewer"
+    ],
+    "authority_ref": "synthetic fixture; no live authority",
+    "scope": "offline-analysis",
+    "expires": "2030-01-01T00:00:00Z"
+  },
+  "objective": {
+    "id": "PURPOSE-1",
+    "purpose": "Choose a supportable bounded course of action",
+    "non_object": "Maximize completed tasks or agent calls",
+    "success_condition": "The owner can reconstruct evidence, alternatives, limits and conservation",
+    "constraints": [
+      "No external actions; synthetic data only"
+    ]
+  },
+  "decision_state": "PROCEED",
+  "budget": {
+    "cost_limit": 10,
+    "reserve": 2,
+    "deadline": "2030-01-01T00:00:00Z",
+    "unit": "synthetic-cost-units"
+  },
+  "claims": [
+    {
+      "id": "CLM-1",
+      "revision": 1,
+      "statement": "Synthetic decision premise; not external evidence",
+      "status": "HYPOTHESIS",
+      "scope": "shared",
+      "source_refs": [
+        "fixture-source-note"
+      ],
+      "source_roots": [
+        "fixture-source"
+      ],
+      "depends_on": [],
+      "expires": "2030-01-01T00:00:00Z"
+    },
+    {
+      "id": "CLM-2",
+      "revision": 1,
+      "statement": "Synthetic decision premise; not external evidence",
+      "status": "HYPOTHESIS",
+      "scope": "shared",
+      "source_refs": [
+        "fixture-source-note"
+      ],
+      "source_roots": [
+        "fixture-source"
+      ],
+      "depends_on": [
+        "CLM-1"
+      ],
+      "expires": "2030-01-01T00:00:00Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "A",
+      "agent": "general-strategy-director",
+      "level": "strategic",
+      "vector": "causal",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Resolve a decision-critical uncertainty before commitment",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-A"
+      ]
+    },
+    {
+      "id": "B",
+      "agent": "research-synthesist",
+      "level": "strategic",
+      "vector": "evidence",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Resolve a decision-critical uncertainty before commitment",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {},
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-B"
+      ]
+    },
+    {
+      "id": "C",
+      "agent": "specialized-strategic-assurance-lead",
+      "level": "operational",
+      "vector": "assurance",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Resolve a decision-critical uncertainty before commitment",
+      "evidence_scope": "decision",
+      "depends_on": [
+        "A",
+        "B"
+      ],
+      "claim_revisions": {
+        "CLM-2": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-C"
+      ]
+    }
+  ],
+  "open_conditions": [],
+  "option_analysis": {
+    "factors": {
+      "cost": "lower",
+      "time_to_evidence_days": "lower"
+    },
+    "options": [
+      {
+        "id": "bounded-pilot",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 2,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "large-team",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 4,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "inadmissible-fast",
+        "admissibility": "INADMISSIBLE",
+        "fatal_defect": true,
+        "factors": {
+          "cost": {
+            "value": 1,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 5,
+            "status": "HYPOTHESIS"
+          }
+        }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "team-delivers-earlier",
+        "overrides": {
+          "large-team": {
+            "time_to_evidence_days": {
+              "value": 1,
+              "status": "HYPOTHESIS"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

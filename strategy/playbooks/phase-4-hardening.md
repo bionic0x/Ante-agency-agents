@@ -1,332 +1,148 @@
-# 🛡️ Phase 4 Playbook — Quality & Hardening
+# Phase 4 — Hardening & Independent Verification
 
-> **Duration**: 3-7 days | **Agents**: 8 | **Gate Keeper**: Reality Checker (sole authority)
+> **Status:** execution module subordinate to `strategy/STRATEGIC-CONTROL-PLANE.md`.
 
----
+## Function
 
-## Objective
+Challenge the release/commitment under conditions proportionate to its real impact and verify that the evidence supports the claims being made.
 
-The final quality gauntlet. The Reality Checker defaults to "NEEDS WORK" — you must prove production readiness with overwhelming evidence. This phase exists because first implementations typically need 2-3 revision cycles, and that's healthy.
+Hardening is not a ritual “quality gauntlet,” and the Reality Checker is not a sovereign release authority. Independent validators produce evidence and findings; Strategic Assurance tests coherence; the authorized decision owner controls the commitment.
 
-## Pre-Conditions
+## Governing question
 
-- [ ] Phase 3 Quality Gate passed (all tasks QA'd)
-- [ ] Phase 3 Handoff Package received
-- [ ] All features implemented and individually verified
+> What could still make this apparently successful implementation fail the governing object when exposed to realistic conditions?
 
-## Critical Mindset
+## Entry conditions
 
-> **The Reality Checker's default verdict is NEEDS WORK.**
-> 
-> This is not pessimism — it's realism. Production readiness requires:
-> - Complete user journeys working end-to-end
-> - Cross-device consistency (desktop, tablet, mobile)
-> - Performance under load (not just happy path)
-> - Security validation (not just "we added auth")
-> - Specification compliance (every requirement, not most)
->
-> A B/B+ rating on first pass is normal and expected.
+- a bounded implementation or release candidate exists;
+- material acceptance criteria and claims are explicit;
+- risk/impact and deployment context are known enough to select appropriate tests;
+- rollback/recovery expectations are explicit;
+- current strategic output permits verification work.
 
-## Agent Activation Sequence
+## Verification posture
 
-### Step 1: Evidence Collection (Day 1-2, All Parallel)
+Independent review should be skeptical but not pre-committed to failure.
 
-#### 📸 Evidence Collector — Comprehensive Visual Evidence
-```
-Activate Evidence Collector for comprehensive system evidence on [PROJECT].
+The burden of evidence grows with:
 
-Deliverables required:
-1. Full screenshot suite:
-   - Desktop (1920x1080) — every page/view
-   - Tablet (768x1024) — every page/view
-   - Mobile (375x667) — every page/view
-2. Interaction evidence:
-   - Navigation flows (before/after clicks)
-   - Form interactions (empty, filled, submitted, error states)
-   - Modal/dialog interactions
-   - Accordion/expandable content
-3. Theme evidence:
-   - Light mode — all pages
-   - Dark mode — all pages
-   - System preference detection
-4. Error state evidence:
-   - 404 pages
-   - Form validation errors
-   - Network error handling
-   - Empty states
+- irreversibility;
+- blast radius;
+- security/privacy/legal exposure;
+- dependence on uncertain assumptions;
+- external/public claims;
+- concentration of critical dependencies;
+- difficulty of recovery.
 
-Format: Screenshot Evidence Package with test-results.json
-Timeline: 2 days
-```
+“Overwhelming evidence” is not a universal standard. **Decision-appropriate evidence** is.
 
-#### 🔌 API Tester — Full API Regression
-```
-Activate API Tester for complete API regression on [PROJECT].
+## Candidate validators
 
-Deliverables required:
-1. Endpoint regression suite:
-   - All endpoints tested (GET, POST, PUT, DELETE)
-   - Authentication/authorization verification
-   - Input validation testing
-   - Error response verification
-2. Integration testing:
-   - Cross-service communication
-   - Database operation verification
-   - External API integration
-3. Edge case testing:
-   - Rate limiting behavior
-   - Large payload handling
-   - Concurrent request handling
-   - Malformed input handling
+| Risk / claim | Candidate function |
+|---|---|
+| acceptance / user-visible behavior | Evidence Collector, UX/design reviewer |
+| API / integration correctness | API Tester |
+| performance / capacity | Performance Benchmarker |
+| security | security specialist / auditor |
+| compliance | Legal Compliance Checker |
+| data/model quality | Test Results Analyzer, AI/data specialist |
+| workflow/reliability | Workflow Optimizer, Infrastructure Maintainer |
+| claim integrity | Reality Checker, Proposition Citation Auditor |
+| strategic coherence | Strategic Assurance Lead |
 
-Format: API Test Report with pass/fail per endpoint
-Timeline: 2 days
+Use only applicable validators.
+
+## Protocol
+
+### 1. Build a risk-to-test map
+
+```yaml
+risk_or_claim: ""
+materiality: ""
+evidence_needed: ""
+test_or_review: ""
+environment: ""
+pass_condition: ""
+not_tested_condition: ""
+owner: ""
 ```
 
-#### ⚡ Performance Benchmarker — Load Testing
-```
-Activate Performance Benchmarker for load testing on [PROJECT].
+### 2. Test the environment that matters
 
-Deliverables required:
-1. Load test at 10x expected traffic:
-   - Response time distribution (P50, P95, P99)
-   - Throughput under load
-   - Error rate under load
-   - Resource utilization (CPU, memory, network)
-2. Core Web Vitals measurement:
-   - LCP (Largest Contentful Paint) < 2.5s
-   - FID (First Input Delay) < 100ms
-   - CLS (Cumulative Layout Shift) < 0.1
-3. Database performance:
-   - Query execution times
-   - Connection pool utilization
-   - Index effectiveness
-4. Stress test results:
-   - Breaking point identification
-   - Graceful degradation behavior
-   - Recovery time after overload
+Do not claim production readiness from a test that omits the production condition responsible for the risk.
 
-Format: Performance Certification Report
-Timeline: 2 days
-```
+Where production-like testing is impossible, state the gap as `NOT_TESTED` or `ASSUMPTION`; do not silently infer equivalence.
 
-#### ⚖️ Legal Compliance Checker — Final Compliance Audit
-```
-Activate Legal Compliance Checker for final compliance audit on [PROJECT].
+### 3. Challenge the claims
 
-Deliverables required:
-1. Privacy compliance verification:
-   - Privacy policy accuracy
-   - Consent management functionality
-   - Data subject rights implementation
-   - Cookie consent implementation
-2. Security compliance:
-   - Data encryption (at rest and in transit)
-   - Authentication security
-   - Input sanitization
-   - OWASP Top 10 check
-3. Regulatory compliance:
-   - GDPR requirements (if applicable)
-   - CCPA requirements (if applicable)
-   - Industry-specific requirements
-4. Accessibility compliance:
-   - WCAG 2.1 AA verification
-   - Screen reader compatibility
-   - Keyboard navigation
+For each material release claim, Reality Checker or an equivalent independent function should classify it as:
 
-Format: Compliance Certification Report
-Timeline: 2 days
+- `VERIFIED`
+- `NOT_VERIFIED`
+- `CONTRADICTED`
+- `NOT_TESTED`
+
+This classification updates the Claim Register; it does not independently authorize launch.
+
+### 4. Test reversal and recovery
+
+When material, verify:
+
+- rollback or safe-state procedure;
+- dependency failure behavior;
+- degraded-mode behavior;
+- data/integrity recovery;
+- alerting/escalation path;
+- authority needed to execute recovery.
+
+### 5. Preserve dissent
+
+A minority technical finding survives synthesis when material. It is recorded with evidence and the owner who accepts residual risk.
+
+## Gate
+
+Apply the seven coherence tests to the proposed release/commitment.
+
+A technical test result and a strategic output are separate layers.
+
+Example:
+
+```text
+API validation: PASS
+Performance claim: NOT VERIFIED
+Security review: PASS WITH LIMITATIONS
+Strategic output: PROCEED_WITH_CONDITIONS
+Decision-owner condition: staged release only; performance claim may not be published
 ```
 
-### Step 2: Analysis (Day 3-4, Parallel, after Step 1)
+## Release finding classes
 
-#### 📊 Test Results Analyzer — Quality Metrics Aggregation
-```
-Activate Test Results Analyzer for quality metrics aggregation on [PROJECT].
+- `FATAL_DEFECT` — necessary condition fails; cannot proceed as proposed.
+- `ACCEPTED_RISK` — bounded residual risk explicitly owned within authority.
+- `PENDING_EVIDENCE` — commitment waits or is narrowed until evidence is obtained.
 
-Input: ALL Step 1 reports
-Deliverables required:
-1. Aggregate quality dashboard:
-   - Overall quality score
-   - Category breakdown (visual, functional, performance, security, compliance)
-   - Issue severity distribution
-   - Trend analysis (if multiple test cycles)
-2. Issue prioritization:
-   - Critical issues (must fix before production)
-   - High issues (should fix before production)
-   - Medium issues (fix in next sprint)
-   - Low issues (backlog)
-3. Risk assessment:
-   - Production readiness probability
-   - Remaining risk areas
-   - Recommended mitigations
+## Exit condition
 
-Format: Quality Metrics Dashboard
-Timeline: 1 day
-```
+Hardening is complete for the current commitment when:
 
-#### 🔄 Workflow Optimizer — Process Efficiency Review
-```
-Activate Workflow Optimizer for process efficiency review on [PROJECT].
+- material claims are verified, bounded, or explicitly not made;
+- material risk surfaces are tested or visibly accepted as gaps;
+- fatal defects are resolved or the plan is redesigned/rejected;
+- recovery/rollback is proportionate and owned;
+- the decision owner has the evidence needed for the next commitment;
+- Strategic Assurance has issued the current bounded output.
 
-Input: Phase 3 execution data + Step 1 findings
-Deliverables required:
-1. Process efficiency analysis:
-   - Dev↔QA loop efficiency (first-pass rate, average retries)
-   - Bottleneck identification
-   - Time-to-resolution for different issue types
-2. Improvement recommendations:
-   - Process changes for Phase 6 operations
-   - Automation opportunities
-   - Quality improvement suggestions
+## Handoff
 
-Format: Optimization Recommendations Report
-Timeline: 1 day
-```
+Carry forward:
 
-#### 🏗️ Infrastructure Maintainer — Production Readiness Check
-```
-Activate Infrastructure Maintainer for production readiness on [PROJECT].
+- Strategic Context Header;
+- release/evidence bundle;
+- verified and non-verified claims;
+- NOT_TESTED surfaces;
+- residual risks and owner;
+- rollback/recovery evidence;
+- launch/commitment conditions;
+- termination/culmination triggers.
 
-Deliverables required:
-1. Production environment validation:
-   - All services healthy and responding
-   - Auto-scaling configured and tested
-   - Load balancer configuration verified
-   - SSL/TLS certificates valid
-2. Monitoring validation:
-   - All critical metrics being collected
-   - Alert rules configured and tested
-   - Dashboard access verified
-   - Log aggregation working
-3. Disaster recovery validation:
-   - Backup systems operational
-   - Recovery procedures documented and tested
-   - Failover mechanisms verified
-4. Security validation:
-   - Firewall rules reviewed
-   - Access controls verified
-   - Secrets management confirmed
-   - Vulnerability scan clean
-
-Format: Infrastructure Readiness Report
-Timeline: 1 day
-```
-
-### Step 3: Final Judgment (Day 5-7, Sequential)
-
-#### 🔍 Reality Checker — THE FINAL VERDICT
-```
-Activate Reality Checker for final integration testing on [PROJECT].
-
-MANDATORY PROCESS — DO NOT SKIP:
-
-Step 1: Reality Check Commands
-- Verify what was actually built (ls, grep for claimed features)
-- Cross-check claimed features against specification
-- Run comprehensive screenshot capture
-- Review all evidence from Step 1 and Step 2
-
-Step 2: QA Cross-Validation
-- Review Evidence Collector findings
-- Cross-reference with API Tester results
-- Verify Performance Benchmarker data
-- Confirm Legal Compliance Checker findings
-
-Step 3: End-to-End System Validation
-- Test COMPLETE user journeys (not individual features)
-- Verify responsive behavior across ALL devices
-- Check interaction flows end-to-end
-- Review actual performance data
-
-Step 4: Specification Reality Check
-- Quote EXACT text from original specification
-- Compare with ACTUAL implementation evidence
-- Document EVERY gap between spec and reality
-- No assumptions — evidence only
-
-VERDICT OPTIONS:
-- READY: Overwhelming evidence of production readiness (rare first pass)
-- NEEDS WORK: Specific issues identified with fix list (expected)
-- NOT READY: Major architectural issues requiring Phase 1/2 revisit
-
-Format: Reality-Based Integration Report
-Default: NEEDS WORK unless proven otherwise
-```
-
-## Quality Gate — THE FINAL GATE
-
-| # | Criterion | Threshold | Evidence Required |
-|---|-----------|-----------|-------------------|
-| 1 | User journeys complete | All critical paths working end-to-end | Reality Checker screenshots |
-| 2 | Cross-device consistency | Desktop + Tablet + Mobile all working | Responsive screenshots |
-| 3 | Performance certified | P95 < 200ms, LCP < 2.5s, uptime > 99.9% | Performance Benchmarker report |
-| 4 | Security validated | Zero critical vulnerabilities | Security scan + compliance report |
-| 5 | Compliance certified | All regulatory requirements met | Legal Compliance Checker report |
-| 6 | Specification compliance | 100% of spec requirements implemented | Point-by-point verification |
-| 7 | Infrastructure ready | Production environment validated | Infrastructure Maintainer report |
-
-## Gate Decision
-
-**Sole authority**: Reality Checker
-
-### If READY (proceed to Phase 5):
-```markdown
-## Phase 4 → Phase 5 Handoff Package
-
-### For Launch Team:
-- Reality Checker certification report
-- Performance certification
-- Compliance certification
-- Infrastructure readiness report
-- Known limitations (if any)
-
-### For Growth Hacker:
-- Product ready for users
-- Feature list for marketing messaging
-- Performance data for credibility
-
-### For DevOps Automator:
-- Production deployment approved
-- Blue-green deployment plan
-- Rollback procedures confirmed
-```
-
-### If NEEDS WORK (return to Phase 3):
-```markdown
-## Phase 4 → Phase 3 Return Package
-
-### Fix List (from Reality Checker):
-1. [Critical Issue 1]: [Description + evidence + fix instruction]
-2. [Critical Issue 2]: [Description + evidence + fix instruction]
-3. [High Issue 1]: [Description + evidence + fix instruction]
-...
-
-### Process:
-- Issues enter Dev↔QA loop (Phase 3 mechanics)
-- Each fix must pass Evidence Collector QA
-- When all fixes complete → Return to Phase 4 Step 3
-- Reality Checker re-evaluates with updated evidence
-
-### Expected: 2-3 revision cycles is normal
-```
-
-### If NOT READY (return to Phase 1/2):
-```markdown
-## Phase 4 → Phase 1/2 Return Package
-
-### Architectural Issues Identified:
-1. [Fundamental Issue]: [Why it can't be fixed in Phase 3]
-2. [Structural Problem]: [What needs to change at architecture level]
-
-### Recommended Action:
-- [ ] Revise system architecture (Phase 1)
-- [ ] Rebuild foundation (Phase 2)
-- [ ] Descope and redefine (Phase 1)
-
-### Studio Producer Decision Required
-```
-
----
-
-*Phase 4 is complete when the Reality Checker issues a READY verdict with overwhelming evidence. NEEDS WORK is the expected first-pass result — it means the system is working but needs polish.*
+> **Completion criterion:** the organization knows what has actually been demonstrated, what has not, and what risk it is consciously carrying into the next commitment.

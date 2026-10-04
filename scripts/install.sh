@@ -5,7 +5,7 @@
 #
 # Reads converted files from integrations/ and copies them to the appropriate
 # config directory for each tool. Run scripts/convert.sh first if integrations/
-# is missing or stale.
+# is missing or stale. Python 3 is required for registry and freshness checks.
 #
 # Usage:
 #   ./scripts/install.sh [selection] [mode] [behavior]
@@ -23,6 +23,7 @@
 #   openclaw     -- Copy workspaces to ~/.openclaw/agency-agents/
 #   qwen         -- Copy SubAgents to ~/.qwen/agents/ (user-wide) or .qwen/agents/ (project)
 #   zcode        -- Copy agents to ~/.zcode/agents/ (global) or .zcode/agents/ (project)
+#   kimi         -- Copy agents to $KIMI_CODE_HOME/agents/ (default ~/.kimi-code/agents/)
 #   codex        -- Copy custom agent TOML files to ~/.codex/agents/
 #   osaurus      -- Copy skills to ~/.osaurus/skills/
 #   hermes       -- Copy lazy-router plugin to ~/.hermes/plugins/ and enable it
@@ -33,9 +34,9 @@
 # Selection (compose freely; empty = everything):
 #   --tool <a,b>          Only these tools
 #   --division <a,b>      Only these teams/divisions (comma-separated)
-#   --agent <id,id>       Only these specific agents (install slug, display name,
-#                         or file stem such as engineering-frontend-developer)
-#   --agents-file <path>  Agents listed in a file (one id per line, # comments ok)
+#   --agent <slug,slug>   Only these specific agents
+#   --agents-file <path>  Agents listed in a file (catalog ID or display name per line)
+#   --runbook <slug>      Install the complete roster from strategy/runbooks.json
 #
 # Mode:
 #   --link                Symlink instead of copy (updates propagate)
@@ -44,17 +45,16 @@
 # Behavior:
 #   --interactive         Show the interactive wizard (default when run in a terminal)
 #   --no-interactive      Skip the wizard, install all detected tools
-#   --no-convert          Don't auto-run convert.sh when integration files are missing
+#   --no-convert          Reuse adapters as-is; fail if selected files are incomplete
 #   --dry-run             Print the plan and exit without writing anything
-#   --list [tools|teams|agents]   List and exit
+#   --list [tools|teams|agents|runbooks]   List and exit
 #   --parallel            Install tools in parallel (output buffered per tool)
 #   --jobs N              Max parallel jobs (default: nproc or 4)
 #   --help                Show this help
 #
 # Env: CLAUDE_CONFIG_DIR, COPILOT_AGENT_DIR, CURSOR_RULES_DIR, GEMINI_AGENTS_DIR,
-#      OPENCODE_AGENTS_DIR, OPENCLAW_DIR, QWEN_AGENTS_DIR, ZCODE_AGENTS_DIR,
-#      CODEX_AGENTS_DIR, OSAURUS_SKILLS_DIR, HERMES_HOME, HERMES_PLUGIN_DIR,
-#      VIBE_HOME, DSH_HOME, DSH_SKILLS_DIR
+#      OPENCODE_AGENTS_DIR, OPENCLAW_DIR, QWEN_AGENTS_DIR, CODEX_AGENTS_DIR,
+#      OSAURUS_SKILLS_DIR, KIMI_CODE_HOME, HERMES_HOME, HERMES_PLUGIN_DIR, VIBE_HOME
 #      override default install paths (checked before hardcoded defaults).
 #
 # --- USAGE-END ---  (sentinel for usage(); do not remove)
@@ -123,7 +123,7 @@ box_row() {
 box_blank() { printf "  |%*s|\n" $BOX_INNER ''; }
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths + canonical registries
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -133,23 +133,22 @@ INTEGRATIONS="$REPO_ROOT/integrations"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-ALL_TOOLS=(claude-code copilot antigravity gemini-cli opencode openclaw cursor aider windsurf qwen zcode kimi codex osaurus hermes vibe dsh)
-
-# The division set is derived from divisions.json (the single source of truth)
-# so the installer can never drift from the catalog — a hardcoded copy silently
-# dropped healthcare (#655/#668) and can't be seen by check-divisions.sh. Same
-# no-jq awk/grep/sed parse as scripts/check-divisions.sh (macOS + Linux).
-divisions_from_json() {
-  local json="$REPO_ROOT/divisions.json"
-  [[ -f "$json" ]] || { err "divisions.json not found at $json"; exit 1; }
-  awk '/"divisions"[[:space:]]*:[[:space:]]*\{/{f=1; next} f' "$json" \
-    | grep -oE '"[a-z0-9-]+"[[:space:]]*:[[:space:]]*\{' \
-    | sed -E 's/"([a-z0-9-]+)".*/\1/'
+registry_keys() {
+  local section="$1" json="$REPO_ROOT/$1.json"
+  [[ -f "$json" ]] || { err "$json not found"; exit 1; }
+  command -v python3 >/dev/null 2>&1 || { err "python3 is required for the repository registries"; exit 1; }
+  python3 "$SCRIPT_DIR/registry.py" "$section" "$json"
 }
 
-# Selectable divisions = exactly the divisions.json entries.
+# Tool order and division membership come from their canonical JSON registries.
+# The explicit detect/install dispatch below is implementation coverage, not a
+# second supported-tool list; scripts/check-tools.sh enforces 1:1 coverage.
+ALL_TOOLS=()
+while IFS= read -r _tool; do [[ -n "$_tool" ]] && ALL_TOOLS+=("$_tool"); done < <(registry_keys tools)
+[[ ${#ALL_TOOLS[@]} -gt 0 ]] || { err "no tools parsed from tools.json"; exit 1; }
+
 ALL_DIVISIONS=()
-while IFS= read -r _div; do [[ -n "$_div" ]] && ALL_DIVISIONS+=("$_div"); done < <(divisions_from_json)
+while IFS= read -r _div; do [[ -n "$_div" ]] && ALL_DIVISIONS+=("$_div"); done < <(registry_keys divisions)
 [[ ${#ALL_DIVISIONS[@]} -gt 0 ]] || { err "no divisions parsed from divisions.json"; exit 1; }
 
 # Directories scanned for installable agents = the divisions plus strategy/.
@@ -162,6 +161,7 @@ AGENT_DIRS=("${ALL_DIVISIONS[@]}" strategy)
 # ---------------------------------------------------------------------------
 FILTER_DIVISIONS=()      # --division
 FILTER_AGENTS=()         # --agent
+RUNBOOK=""
 AGENTS_FILE=""           # --agents-file
 DRY_RUN=false            # --dry-run
 SELECTION_ACTIVE=false   # true once any agent-level filter is applied
@@ -180,84 +180,21 @@ division_files() {
 # division_count <division> — number of agents in a division.
 division_count() { division_files "$1" | grep -c . ; }
 
-# roster_index — fill _ROSTER_INDEX with one "<install slug>\t<file stem>" line
-# per agent, once. Call it in the parent shell before resolve_agent: a $(...)
-# caller would build its own copy and throw it away.
-#
-# Resolving each requested agent used to rescan the roster, running get_field
-# on all 279 files per request, so a 36-agent runbook roster cost ~10,000
-# get_field calls before anything installed.
-roster_index() {
-  [[ -n "$_ROSTER_INDEX" ]] && return 0
-  local div f
-  for div in "${ALL_DIVISIONS[@]}"; do
-    while IFS= read -r f; do
-      _ROSTER_INDEX+="$(agent_slug "$f")"$'\t'"$(basename "$f" .md)"$'\n'
-    done < <(division_files "$div")
-  done
-}
-
-# resolve_agent <requested> — print the install slug for a requested agent,
-# 1 if nothing matches. Selection filters should fail before installation when
-# they name nothing that can be installed; otherwise dry-run counts and
-# completion messages lie.
-#
-# Two spellings name an agent. The install slug comes from `name:` and is what
-# --list agents prints. The file stem is the corpus id strategy/runbooks.json
-# uses ("engineering-frontend-developer"), and for 206 of 279 agents it is not
-# the slug, so 35 of the 36 agents the runbooks list could not be selected by
-# the ids the runbooks give. Slugs are tried first; no stem equals another
-# agent's slug today, and slug-first keeps it unambiguous if one ever does.
-resolve_agent() {
-  local target="$1" slug stem
-  [[ -n "$target" ]] || return 1
-  while IFS=$'\t' read -r slug stem; do
-    [[ -n "$slug" && "$slug" == "$target" ]] && { printf '%s' "$slug"; return 0; }
-  done <<< "$_ROSTER_INDEX"
-  while IFS=$'\t' read -r slug stem; do
-    [[ -n "$slug" && "$stem" == "$target" ]] && { printf '%s' "$slug"; return 0; }
-  done <<< "$_ROSTER_INDEX"
-  return 1
-}
-
-# build_selection — compute the allowed slug set from --division/--agent/--agents-file.
-# With no filter flags, SELECTION_ACTIVE stays false (install everything).
+# Resolve both canonical filename IDs (catalog/runbooks) and adapter/name slugs.
+# Selection uses the same canonical catalog as runbooks.
 build_selection() {
-  if [[ ${#FILTER_DIVISIONS[@]} -eq 0 && ${#FILTER_AGENTS[@]} -eq 0 && -z "$AGENTS_FILE" ]]; then
+  if [[ ${#FILTER_DIVISIONS[@]} -eq 0 && ${#FILTER_AGENTS[@]} -eq 0 && -z "$AGENTS_FILE" && -z "$RUNBOOK" ]]; then
     SELECTION_ACTIVE=false
     return
   fi
+  command -v python3 >/dev/null 2>&1 || { err "python3 is required for agent selection"; exit 1; }
   SELECTION_ACTIVE=true
-  local slugs="" div f s line requested resolved
-  roster_index
-  for div in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do
-    while IFS= read -r f; do
-      s="$(agent_slug "$f")"; [[ -n "$s" ]] && slugs+="$s"$'\n'
-    done < <(division_files "$div")
-  done
-  for s in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do
-    requested="$(slugify "$s")"
-    if ! resolved="$(resolve_agent "$requested")"; then
-      err "Unknown agent '$s'. Use --list agents to see the available roster."
-      exit 1
-    fi
-    slugs+="$resolved"$'\n'
-  done
-  if [[ -n "$AGENTS_FILE" ]]; then
-    [[ -f "$AGENTS_FILE" ]] || { err "agents-file not found: $AGENTS_FILE"; exit 1; }
-    while IFS= read -r line || [[ -n "$line" ]]; do
-      line="${line%%#*}"                              # strip trailing comment
-      line="$(printf '%s' "$line" | xargs 2>/dev/null)" # trim
-      [[ -z "$line" ]] && continue
-      requested="$(slugify "$line")"
-      if ! resolved="$(resolve_agent "$requested")"; then
-        err "Unknown agent '$line' in agents-file '$AGENTS_FILE'."
-        exit 1
-      fi
-      slugs+="$resolved"$'\n'
-    done < "$AGENTS_FILE"
-  fi
-  _ALLOWED_SLUGS="$(printf '%s' "$slugs" | sort -u | sed '/^$/d')"
+  local args=() d a
+  for d in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do args+=(--division "$d"); done
+  for a in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do args+=(--agent "$a"); done
+  [[ -n "$AGENTS_FILE" ]] && args+=(--agents-file "$AGENTS_FILE")
+  [[ -n "$RUNBOOK" ]] && args+=(--runbook "$RUNBOOK")
+  _ALLOWED_SLUGS="$(python3 "$SCRIPT_DIR/resolve-agents.py" "${args[@]}")" || exit 1
 }
 
 # slug_allowed <slug> — true if installable under the active selection
@@ -285,18 +222,6 @@ selected_agent_count_all() {
   local d n=0; for d in "${ALL_DIVISIONS[@]}"; do incr_by n "$(division_count "$d")"; done; echo "$n"
 }
 
-# worker_flags — re-emit the active selection/mode flags for parallel workers.
-worker_flags() {
-  local out="" d a
-  $USE_LINK && out="$out --link"
-  $AUTO_CONVERT || out="$out --no-convert"
-  [[ -n "$OVERRIDE_PATH" ]] && out="$out --path $OVERRIDE_PATH"
-  for d in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do out="$out --division $d"; done
-  for a in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do out="$out --agent $a"; done
-  [[ -n "$AGENTS_FILE" ]] && out="$out --agents-file $AGENTS_FILE"
-  printf '%s' "$out"
-}
-
 # validate_division <name> — exit on unknown division.
 validate_division() {
   local _ad
@@ -313,32 +238,11 @@ OVERRIDE_PATH=""      # --path (single-destination override)
 
 # install_file <src> <dest> — copy, or symlink when --link is set.
 install_file() {
-  local target="$2"
-  # Directory destinations have a trailing slash. Do not follow a leaf
-  # symlink to a directory when deciding which file belongs to the installer.
-  if [[ "$target" == */ ]] || { ! $USE_LINK && [[ -d "$target" ]]; }; then
-    target="${target%/}/$(basename "$1")"
-  fi
-  if [[ -L "$target" ]]; then
-    local link_to; link_to="$(readlink "$target")"
-    if [[ "$link_to" == "$REPO_ROOT/"* ]]; then
-      # An installer-owned link may be refreshed or switched to a copy.
-      rm -f -- "$target"
-    else
-      warn "Skipped $target — it is a symlink to $link_to; not overwriting it."
-      [[ -n "${SKIPPED_LOG:-}" ]] && printf '%s -> %s\n' "$target" "$link_to" >> "$SKIPPED_LOG"
-      return 0
-    fi
-  elif $USE_LINK && [[ -e "$target" ]]; then
-    warn "Skipped $target — it already exists; not replacing it with a symlink."
-    [[ -n "${SKIPPED_LOG:-}" ]] && printf '%s (existing file)\n' "$target" >> "$SKIPPED_LOG"
-    return 0
-  fi
-  if $USE_LINK; then
-    ln -s "$1" "$target"
-  else
-    cp "$1" "$2"
-  fi
+  local dest="$2"
+  [[ -d "$dest" ]] && dest="${dest%/}/$(basename "$1")"
+  # Switching from links to copies must not follow a link back into the repo.
+  [[ -L "$dest" ]] && rm "$dest"
+  if $USE_LINK; then ln -sf "$1" "$dest"; else cp "$1" "$dest"; fi
 }
 
 # resolve_dest <tool> <default> — --path > $ENV_VAR > default.
@@ -394,6 +298,7 @@ resolve_dest() {
     openclaw)    var="OPENCLAW_DIR" ;;
     qwen)        var="QWEN_AGENTS_DIR" ;;
     zcode)       var="ZCODE_AGENTS_DIR" ;;
+    kimi)        var="KIMI_CODE_HOME" ;;
     codex)       var="CODEX_AGENTS_DIR" ;;
     osaurus)     var="OSAURUS_SKILLS_DIR" ;;
     hermes)      var="HERMES_PLUGIN_DIR" ;;
@@ -408,6 +313,10 @@ resolve_dest() {
       # so users who worked around the old bug are not double-nested.
       local cfg="${!var}"; cfg="${cfg%/}"
       if [[ "$cfg" == */agents ]]; then printf '%s' "$cfg"; else printf '%s' "$cfg/agents"; fi
+    elif [[ "$tool" == "kimi" ]]; then
+      # KIMI_CODE_HOME is Kimi Code's data root; custom agents live below agents/.
+      local cfg="${!var}"; cfg="${cfg%/}"
+      printf '%s' "$cfg/agents"
     else
       printf '%s' "${!var}"
     fi
@@ -437,25 +346,11 @@ ensure_converted() {
   local tool="$1"
   $AUTO_CONVERT || return 0
   case "$tool" in claude-code|copilot) return 0 ;; esac
-  local d="$INTEGRATIONS/$tool"
-  # Every integrations/<tool>/ ships a committed README.md, so "any file
-  # present" mistook the README for generated output and never converted in a
-  # fresh checkout (the installer then hard-failed "<tool> missing"). Only files
-  # other than the README count as output.
-  if [[ ! -d "$d" ]] || [[ -z "$(find "$d" -type f ! -name 'README.md' 2>/dev/null | head -1)" ]]; then
-    warn "$tool: integration files missing — running convert.sh --tool $tool"
-    if "$SCRIPT_DIR/convert.sh" --tool "$tool" >/dev/null 2>&1; then
-      ok "$tool: generated integration files"
-    else
-      # A failed conversion may have written only part of the roster. Remove
-      # that partial output so the next install retries conversion instead of
-      # treating it as a complete generated integration.
-      if [[ -d "$d" ]]; then
-        find "$d" -mindepth 1 -maxdepth 1 ! -name 'README.md' -exec rm -rf {} +
-      fi
-      err "$tool: convert.sh failed; run it manually"
-      return 1
-    fi
+  command -v python3 >/dev/null 2>&1 || { err "python3 is required for adapter freshness checks"; return 1; }
+  if ! python3 "$SCRIPT_DIR/integration-state.py" check "$tool"; then
+    warn "$tool: refreshing missing, changed or unverified integration files"
+    "$SCRIPT_DIR/convert.sh" --tool "$tool" || return 1
+    python3 "$SCRIPT_DIR/integration-state.py" record "$tool" || return 1
   fi
 }
 AUTO_CONVERT=true     # --no-convert disables
@@ -540,7 +435,7 @@ detect_openclaw()     { command -v openclaw >/dev/null 2>&1 || [[ -d "${HOME}/.o
 detect_windsurf()     { command -v windsurf >/dev/null 2>&1 || [[ -d "${HOME}/.codeium" ]]; }
 detect_qwen()         { command -v qwen >/dev/null 2>&1 || [[ -d "${HOME}/.qwen" ]]; }
 detect_zcode()        { command -v zcode >/dev/null 2>&1 || [[ -d "${HOME}/.zcode" ]]; }
-detect_kimi()         { command -v kimi >/dev/null 2>&1; }
+detect_kimi()         { command -v kimi >/dev/null 2>&1 || [[ -d "${KIMI_CODE_HOME:-${HOME}/.kimi-code}" ]]; }
 detect_codex()        { command -v codex >/dev/null 2>&1 || [[ -d "${HOME}/.codex" ]]; }
 detect_osaurus()      { command -v osaurus >/dev/null 2>&1 || [[ -d "${HOME}/.osaurus" ]]; }
 detect_hermes()       { command -v hermes >/dev/null 2>&1 || [[ -d "${HERMES_HOME:-${HOME}/.hermes}" ]]; }
@@ -584,7 +479,7 @@ tool_label() {
     windsurf)    printf "%-14s  %s" "Windsurf"     "(.windsurfrules)"        ;;
     qwen)        printf "%-14s  %s" "Qwen Code"    "(~/.qwen/agents)"        ;;
     zcode)       printf "%-14s  %s" "ZCode"        "(~/.zcode/agents)" ;;
-    kimi)        printf "%-14s  %s" "Kimi Code"    "(~/.config/kimi/agents)" ;;
+    kimi)        printf "%-14s  %s" "Kimi Code"    "(~/.kimi-code/agents)" ;;
     codex)       printf "%-14s  %s" "Codex"        "(~/.codex/agents)"       ;;
     osaurus)     printf "%-14s  %s" "Osaurus"      "(~/.osaurus/skills)"     ;;
     hermes)      printf "%-14s  %s" "Hermes"       "(~/.hermes/plugins)"     ;;
@@ -611,7 +506,7 @@ division_emoji() {
   if ! supports_unicode; then printf '*'; return; fi
   case "$1" in
     academic) printf '📚';; design) printf '🎨';; engineering) printf '💻';;
-    finance) printf '💵';; game-development) printf '🎮';; gis) printf '🌍';; marketing) printf '📢';;
+    finance) printf '💵';; game-development) printf '🎮';; gis) printf '🌍';; marketing) printf '📢';; mispriced-cmo) printf '⚖️';;
     paid-media) printf '💰';; product) printf '📊';; project-management) printf '🎬';;
     research) printf '🔍';; sales) printf '💼';; security) printf '🔒';; spatial-computing) printf '🥽';;
     specialized) printf '🎯';; support) printf '🛟';; testing) printf '🧪';; *) printf '•';;
@@ -859,6 +754,13 @@ interactive_wizard() {
 # Installers
 # ---------------------------------------------------------------------------
 
+verify_install_count() {
+  [[ "$2" -eq "$EXPECTED_AGENT_COUNT" ]] || {
+    err "$1: installed $2 of $EXPECTED_AGENT_COUNT requested agents; regenerate adapters and retry."
+    return 1
+  }
+}
+
 install_claude_code() {
   local dest; dest="$(resolve_dest claude-code "${HOME}/.claude/agents")"
   local count=0 dir f slug
@@ -871,17 +773,15 @@ install_claude_code() {
       install_file "$f" "$dest/"; incr count
     done < <(find "$REPO_ROOT/$dir" -name "*.md" -type f -print0)
   done
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Claude Code: $count agents -> $dest"
 }
 
 install_copilot() {
   local dest_github; dest_github="$(resolve_dest copilot "${HOME}/.github/agents")"
-  local dest_copilot=""
-  # The two default locations are intentional, but an explicit destination
-  # must not also write into the user's default Copilot directory.
-  if [[ -z "$OVERRIDE_PATH" && -z "${COPILOT_AGENT_DIR:-}" ]]; then
-    dest_copilot="${HOME}/.copilot/agents"
-  fi
+  local dest_copilot="${HOME}/.copilot/agents"
+  # An explicit destination must not also write into the global config.
+  [[ -n "$OVERRIDE_PATH" || -n "${COPILOT_AGENT_DIR:-}" ]] && dest_copilot="$dest_github"
   local count=0 dir f slug
   mkdir -p "$dest_github"
   [[ -n "$dest_copilot" ]] && mkdir -p "$dest_copilot"
@@ -891,10 +791,11 @@ install_copilot() {
       is_agent_file "$f" || continue
       slug="$(agent_slug "$f")"; slug_allowed "$slug" || continue
       install_file "$f" "$dest_github/"
-      [[ -n "$dest_copilot" ]] && install_file "$f" "$dest_copilot/"
+      if [[ "$dest_copilot" != "$dest_github" ]]; then install_file "$f" "$dest_copilot/"; fi
       incr count
     done < <(find "$REPO_ROOT/$dir" -name "*.md" -type f -print0)
   done
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Copilot: $count agents -> $dest_github"
   [[ -n "$dest_copilot" ]] && ok "Copilot: $count agents -> $dest_copilot"
   warn "Copilot: Verify VS Code setting 'chat.agentFilesLocations' includes your install path."
@@ -915,6 +816,7 @@ install_antigravity() {
     install_file "$d/SKILL.md" "$dest/$name/SKILL.md"
     incr count
   done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Antigravity: $count skills -> $dest"
 }
 
@@ -932,6 +834,7 @@ install_osaurus() {
     install_file "$d/SKILL.md" "$dest/$name/SKILL.md"
     incr count
   done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Osaurus: $count skills -> $dest"
 }
 
@@ -968,6 +871,7 @@ install_gemini_cli() {
     install_file "$f" "$dest/"
     incr count
   done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Gemini CLI: $count agents -> $dest"
 }
 
@@ -987,6 +891,7 @@ install_opencode() {
     slug_allowed "${base%.md}" || continue
     install_file "$f" "$dest/"; incr count
   done < <(find "$search_dir" -maxdepth 1 -name "*.md" -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   if (( count == 0 )); then
     warn "OpenCode: no agent files found in $search_dir. Run convert.sh --tool opencode first."
   else
@@ -1026,16 +931,12 @@ install_openclaw() {
     install_file "$d/IDENTITY.md" "$dest/$name/IDENTITY.md"
     if command -v openclaw >/dev/null 2>&1; then
       if [[ "$existing_agents" != *$'\n'"$name"$'\n'* ]]; then
-        if ! openclaw agents add "$name" --workspace "$dest/$name" --non-interactive; then
-          err "OpenClaw: failed to register '$name'; the copied workspace is not active."
-          # Keep registering the rest: one bad registration must not cost the others.
-          failed_names="${failed_names:+$failed_names }$name"
-          continue
-        fi
+        openclaw agents add "$name" --workspace "$dest/$name" --non-interactive || return 1
       fi
     fi
     (( count++ )) || true
   done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   if (( count == 0 )); then
     err "integrations/openclaw contains no generated workspaces. Run ./scripts/convert.sh --tool openclaw first."
     return 1
@@ -1061,14 +962,15 @@ install_cursor() {
     slug_allowed "$(basename "$f" .mdc)" || continue
     install_file "$f" "$dest/"; incr count
   done < <(find "$src" -maxdepth 1 -name "*.mdc" -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Cursor: $count rules -> $dest"
   warn "Cursor: project-scoped. Run from your project root to install there."
 }
 
 install_aider() {
   local src="$INTEGRATIONS/aider/CONVENTIONS.md"
-  local dest_dir; dest_dir="$(resolve_dest aider "$PWD")"
-  local dest="$dest_dir/CONVENTIONS.md"
+  local dest="${OVERRIDE_PATH:-${PWD}}/CONVENTIONS.md"
+  mkdir -p "$(dirname "$dest")"
   [[ -f "$src" ]] || { err "integrations/aider/CONVENTIONS.md missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest_dir"
   if [[ -f "$dest" ]]; then
@@ -1100,8 +1002,8 @@ install_aider() {
 
 install_windsurf() {
   local src="$INTEGRATIONS/windsurf/.windsurfrules"
-  local dest_dir; dest_dir="$(resolve_dest windsurf "$PWD")"
-  local dest="$dest_dir/.windsurfrules"
+  local dest="${OVERRIDE_PATH:-${PWD}}/.windsurfrules"
+  mkdir -p "$(dirname "$dest")"
   [[ -f "$src" ]] || { err "integrations/windsurf/.windsurfrules missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest_dir"
   if [[ -f "$dest" ]]; then
@@ -1130,6 +1032,7 @@ install_qwen() {
     incr count
   done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
 
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Qwen Code: installed $count agents to $dest"
   warn "Qwen Code: project-scoped. Run from your project root to install there."
   warn "Tip: Run '/agents manage' in Qwen Code to refresh, or restart session"
@@ -1151,31 +1054,30 @@ install_zcode() {
     incr count
   done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
 
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "ZCode: installed $count agents to $dest"
   warn "ZCode: set ZCODE_AGENTS_DIR=.zcode/agents (in a project) to install there instead."
 }
 
 install_kimi() {
-  local src="$INTEGRATIONS/kimi"
-  local dest; dest="$(resolve_dest kimi "${HOME}/.config/kimi/agents")"
+  local src="$INTEGRATIONS/kimi/agents"
+  local default_home="${KIMI_CODE_HOME:-${HOME}/.kimi-code}"
+  local dest; dest="$(resolve_dest kimi "${default_home%/}/agents")"
   local count=0
 
-  [[ -d "$src" ]] || { err "integrations/kimi missing. Run convert.sh first."; return 1; }
-
+  [[ -d "$src" ]] || { err "integrations/kimi/agents missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest"
 
-  local d
-  while IFS= read -r -d '' d; do
-    local name; name="$(basename "$d")"
-    slug_allowed "$name" || continue
-    mkdir -p "$dest/$name"
-    install_file "$d/agent.yaml" "$dest/$name/agent.yaml"
-    install_file "$d/system.md" "$dest/$name/system.md"
+  local f
+  while IFS= read -r -d '' f; do
+    slug_allowed "$(basename "$f" .md)" || continue
+    install_file "$f" "$dest/"
     incr count
-  done < <(find "$src" -mindepth 1 -maxdepth 1 -type d -print0)
+  done < <(find "$src" -maxdepth 1 -name "*.md" -print0)
 
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Kimi Code: installed $count agents to $dest"
-  ok "Usage: kimi --agent-file ~/.config/kimi/agents/<agent-name>/agent.yaml"
+  ok "Usage: kimi --agent <agent-name>"
 }
 
 install_codex() {
@@ -1190,6 +1092,7 @@ install_codex() {
     install_file "$f" "$dest/"
     incr count
   done < <(find "$src" -maxdepth 1 -name "*.toml" -print0)
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Codex: $count agents -> $dest"
 }
 
@@ -1212,13 +1115,14 @@ install_vibe() {
     # Find the corresponding prompt file
     prompt_file="$src_prompts/$slug.md"
     
-    [[ -f "$prompt_file" ]] || continue
+    [[ -f "$prompt_file" ]] || { err "Vibe: missing prompt for $slug"; return 1; }
     
     install_file "$agent_file" "$dest/agents/"
     install_file "$prompt_file" "$dest/prompts/"
     incr count
   done < <(find "$src_agents" -maxdepth 1 -name "*.toml" -print0)
   
+  verify_install_count "${FUNCNAME[0]}" "$count" || return 1
   ok "Mistral Vibe: $count agents -> $dest/agents/ and $dest/prompts/"
 }
 
@@ -1519,7 +1423,7 @@ install_hermes() {
   else
     cp -R "$src" "$dest"
   fi
-  ensure_hermes_plugin_enabled || warn "Hermes: plugin installed but config.yaml was not updated."
+  ensure_hermes_plugin_enabled || { err "Hermes: plugin copied but config.yaml was not updated"; return 1; }
   local count
   count="$(python3 - "$src/data/agents.json" <<'PY'
 from pathlib import Path
@@ -1535,7 +1439,7 @@ PY
 }
 
 install_tool() {
-  ensure_converted "$1"
+  ensure_converted "$1" || return 1
   case "$1" in
     claude-code) install_claude_code ;;
     copilot)     install_copilot     ;;
@@ -1575,20 +1479,23 @@ main() {
     case "$1" in
       --tool)            tool="${2:?'--tool requires a value'}"; shift 2; interactive_mode="no" ;;
       --division)
-        local _d
+        local _d _division_count_before=${#FILTER_DIVISIONS[@]}
         IFS=',' read -ra _divs <<< "${2:?'--division requires a value'}"
         for _d in "${_divs[@]}"; do
-          _d="$(printf '%s' "$_d" | xargs)"; [[ -z "$_d" ]] && continue
+          _d="$(printf '%s' "$_d" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"; [[ -z "$_d" ]] && continue
           validate_division "$_d"; FILTER_DIVISIONS+=("$_d")
         done
+        [[ ${#FILTER_DIVISIONS[@]} -gt $_division_count_before ]] || { err "--division selection is empty"; exit 1; }
         interactive_mode="no"; shift 2 ;;
       --agent)
-        local _a
+        local _a _agent_count_before=${#FILTER_AGENTS[@]}
         IFS=',' read -ra _ags <<< "${2:?'--agent requires a value'}"
         for _a in "${_ags[@]}"; do
-          _a="$(printf '%s' "$_a" | xargs)"; [[ -n "$_a" ]] && FILTER_AGENTS+=("$_a")
+          _a="$(printf '%s' "$_a" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"; [[ -n "$_a" ]] && FILTER_AGENTS+=("$_a")
         done
+        [[ ${#FILTER_AGENTS[@]} -gt $_agent_count_before ]] || { err "--agent selection is empty"; exit 1; }
         interactive_mode="no"; shift 2 ;;
+      --runbook)         RUNBOOK="${2:?'--runbook requires a value'}"; interactive_mode="no"; shift 2 ;;
       --agents-file)     AGENTS_FILE="${2:?'--agents-file requires a value'}"; interactive_mode="no"; shift 2 ;;
       --link)            USE_LINK=true; shift ;;
       --path)            OVERRIDE_PATH="${2:?'--path requires a value'}"; shift 2 ;;
@@ -1600,10 +1507,15 @@ main() {
       --parallel)        use_parallel=true; shift ;;
       --jobs)            parallel_jobs="${2:?'--jobs requires a value'}"; shift 2 ;;
       --help|-h)         usage ;;
-      *)                 err "Unknown option: $1"; usage 1 ;;
+      *)                 err "Unknown option: $1"; exit 1 ;;
     esac
   done
 
+  [[ "$parallel_jobs" =~ ^[1-9][0-9]*$ ]] || { err "--jobs must be a positive integer"; exit 1; }
+  if [[ "$list_what" == "runbooks" ]]; then
+    python3 "$SCRIPT_DIR/resolve-agents.py" --list-runbooks
+    exit $?
+  fi
   [[ -n "$list_what" ]] && { do_list "$list_what"; exit 0; }
   build_selection
 
@@ -1617,7 +1529,7 @@ main() {
     IFS=',' read -ra _tool_list <<< "$tool"
     local _cleaned=()
     for _t in "${_tool_list[@]}"; do
-      _t="$(printf '%s' "$_t" | xargs)"; [[ -z "$_t" ]] && continue
+      _t="$(printf '%s' "$_t" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"; [[ -z "$_t" ]] && continue
       local valid=false _vt
       for _vt in "${ALL_TOOLS[@]}"; do [[ "$_vt" == "$_t" ]] && valid=true && break; done
       $valid || { err "Unknown tool '$_t'. Valid: ${ALL_TOOLS[*]}"; exit 1; }
@@ -1631,7 +1543,9 @@ main() {
       fi
       $duplicate || _cleaned+=("$_t")
     done
+    [[ ${#_cleaned[@]} -gt 0 ]] || { err "--tool must name at least one tool"; exit 1; }
     _tool_list=("${_cleaned[@]}")
+
   fi
 
   # Decide whether to show interactive UI
@@ -1673,8 +1587,36 @@ main() {
     exit 0
   fi
 
-  # --tool all and the interactive wizard only know their selected tools now.
-  validate_path_collisions "${SELECTED_TOOLS[@]}"
+  # --path is one shared directory. Tools that write the same filenames into
+  # it silently overwrite each other; tools with distinct outputs coexist.
+  # Refuse only the colliding combinations (see path_collision_group).
+  if [[ -n "$OVERRIDE_PATH" && ${#SELECTED_TOOLS[@]} -gt 1 ]]; then
+    local _ta _tb _ga _gb
+    for _ta in "${SELECTED_TOOLS[@]}"; do
+      _ga="$(path_collision_group "$_ta")"; [[ -z "$_ga" ]] && continue
+      for _tb in "${SELECTED_TOOLS[@]}"; do
+        [[ "$_tb" == "$_ta" ]] && continue
+        _gb="$(path_collision_group "$_tb")"
+        if [[ "$_ga" == "$_gb" ]]; then
+          err "--path is one shared directory, and $_ta and $_tb write the same filenames into it — they would overwrite each other. Use one of them per --path (tools with distinct outputs may share one)."
+          exit 1
+        fi
+      done
+    done
+  fi
+
+  # Whole-roster adapters cannot honor a selected team; fail before any writes.
+  if $SELECTION_ACTIVE; then
+    local selected_tool
+    for selected_tool in "${SELECTED_TOOLS[@]}"; do
+      case "$selected_tool" in
+        aider|windsurf|hermes)
+          err "$selected_tool installs the full roster and does not support selection flags; choose a per-agent tool or omit the selection."
+          exit 1 ;;
+      esac
+    done
+  fi
+  EXPECTED_AGENT_COUNT="$(selected_agent_count)"
 
   # --dry-run: print the plan and exit without writing anything.
   if $DRY_RUN; then
@@ -1684,6 +1626,7 @@ main() {
     if $SELECTION_ACTIVE; then
       [[ ${#FILTER_DIVISIONS[@]} -gt 0 ]] && printf "  Teams:   %s\n" "${FILTER_DIVISIONS[*]}"
       [[ ${#FILTER_AGENTS[@]} -gt 0 ]]    && printf "  Agents:  %s\n" "${FILTER_AGENTS[*]}"
+      [[ -n "$RUNBOOK" ]]                 && printf "  Runbook: %s (roster only; read strategy/runbooks.json for activation conditions)\n" "$RUNBOOK"
       [[ -n "$AGENTS_FILE" ]]             && printf "  File:    %s\n" "$AGENTS_FILE"
     else
       printf "  Teams:   all (%s)\n" "${#ALL_DIVISIONS[@]}"
@@ -1730,13 +1673,25 @@ main() {
     install_out_dir="$(mktemp -d)"
     export AGENCY_INSTALL_OUT_DIR="$install_out_dir"
     export AGENCY_INSTALL_SCRIPT="$SCRIPT_DIR/install.sh"
-    export AGENCY_INSTALL_EXTRA="$(worker_flags)"
-    printf '%s\n' "${SELECTED_TOOLS[@]}" | xargs -P "$parallel_jobs" -I {} sh -c 'AGENCY_INSTALL_WORKER=1 "$AGENCY_INSTALL_SCRIPT" --tool "{}" --no-interactive $AGENCY_INSTALL_EXTRA > "$AGENCY_INSTALL_OUT_DIR/{}" 2>&1' || install_status=$?
+    # Positional arguments survive spaces, glob characters and quotes verbatim.
+    local worker_args=(--no-interactive) d a
+    $USE_LINK && worker_args+=(--link)
+    $AUTO_CONVERT || worker_args+=(--no-convert)
+    [[ -n "$OVERRIDE_PATH" ]] && worker_args+=(--path "$OVERRIDE_PATH")
+    for d in ${FILTER_DIVISIONS[@]+"${FILTER_DIVISIONS[@]}"}; do worker_args+=(--division "$d"); done
+    for a in ${FILTER_AGENTS[@]+"${FILTER_AGENTS[@]}"}; do worker_args+=(--agent "$a"); done
+    [[ -n "$AGENTS_FILE" ]] && worker_args+=(--agents-file "$AGENTS_FILE")
+    [[ -n "$RUNBOOK" ]] && worker_args+=(--runbook "$RUNBOOK")
+    local worker_status=0
+    printf '%s\n' "${SELECTED_TOOLS[@]}" | xargs -P "$parallel_jobs" -I {} sh -c 'tool="$1"; shift; AGENCY_INSTALL_WORKER=1 "$AGENCY_INSTALL_SCRIPT" --tool "$tool" "$@" > "$AGENCY_INSTALL_OUT_DIR/$tool" 2>&1' agency-install '{}' "${worker_args[@]}" || worker_status=$?
     for t in "${SELECTED_TOOLS[@]}"; do
       [[ -f "$install_out_dir/$t" ]] && cat "$install_out_dir/$t"
     done
     rm -rf "$install_out_dir"
-    [[ "$install_status" -eq 0 ]] || return "$install_status"
+    if [[ "$worker_status" -ne 0 ]]; then
+      err "One or more parallel installations failed; see worker output above."
+      return 1
+    fi
     installed=$n_selected
   else
     for t in "${SELECTED_TOOLS[@]}"; do

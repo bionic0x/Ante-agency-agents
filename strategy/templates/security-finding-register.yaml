@@ -1,0 +1,92 @@
+# Security finding register template
+#
+# Sibling of claim-register.yaml, for the security division. A finding is a claim
+# about an adversary or a control, so it carries the same canonical epistemic
+# states and the same obligation to name what would refute it.
+#
+# Two rules this register exists to enforce, from strategy/SECURITY-AUDIT-DOCTRINE.md:
+#
+#   1. Attribution is never EVIDENCE. Infrastructure overlap, tooling reuse and TTP
+#      similarity are evidence of those things. That a named actor is responsible,
+#      and what it intends next, is ATTRIBUTED_INTENT. Use notes to separate
+#      observed capability from inferred volition.
+#   2. Severity is not priority. A finding is prioritized by the capability it
+#      affects, the substitutes available and how long they take, and how the
+#      effect reaches the rest of the system. A finding that cannot answer those
+#      keeps exposure: UNKNOWN rather than being promoted on its score.
+#
+# Empty registers are valid at engagement start. A finding without adequate
+# support does not disappear; its status changes.
+
+schema_version: "1.0"
+engagement: ""
+engagement_class: ""        # passive-analysis | active-defensive | authorized-offensive
+authority_ref: ""           # the written mandate this engagement runs under
+owner: ""
+last_updated: ""
+
+allowed_status:
+  - EVIDENCE
+  - HYPOTHESIS
+  - ASSUMPTION
+  - ATTRIBUTED_INTENT
+  - UNKNOWN
+
+allowed_quantitative_status:
+  - MEASURED
+  - TARGET
+  - ESTIMATE
+  - HYPOTHESIS
+  - NOT_APPLICABLE
+
+findings: []
+
+# Example structure — keep commented until instantiated.
+# findings:
+#   - id: FND-001
+#     proposition: ""               # what is claimed, not the tool's message
+#     status: HYPOTHESIS            # from allowed_status
+#     quantitative_status: NOT_APPLICABLE
+#     severity_score: ""            # CVSS or equivalent — an input, never the priority
+#     source_refs: []               # telemetry query, test ID, commit, scan ID, ticket
+#     source_date: ""
+#     reproduction: ""              # how the observation was produced, or UNKNOWN
+#
+#     # Chapter III — priority follows the dependency, not the scanner
+#     affected_capability: ""       # a function, with a verb
+#     substitutes: []               # what covers this if it fails
+#     substitution_time: ""         # relative to the decision window
+#     transmission: ""              # how the effect reaches the rest of the system
+#     exposure: UNKNOWN             # set only when the three above are answered
+#
+#     # Chapter VIII — the discipline that keeps a finding honest
+#     alternatives: []              # other explanations of the same observation
+#     falsifier: ""                 # the observation that would retire this finding
+#     limitations: []
+#     attribution_basis: ""         # ATTRIBUTED_INTENT only: observed capability vs inferred volition
+#
+#     # Chapter VI — a fix that people route around is not a fix
+#     remediation: ""
+#     remediation_cost_to_users: ""
+#     predicted_workaround: ""      # what they will do instead if the cost is too high
+#
+#     # Chapter IX — a containment action is an escalation decision
+#     expected_adversary_reaction: ""
+#     reversible: null              # true | false
+#     pause_authority: ""           # who can stop this action once started
+#
+#     # Chapter XII — closure is four things, not one
+#     cease_verified: ""
+#     closure_accepted: ""
+#     transition_owner: ""
+#     conservation_owner: ""        # who keeps this true under ordinary budget
+#     conservation_signal: ""       # what would show it has decayed
+#
+#     # Chapter VIII.7 — risk acceptance expires
+#     accepted_risk: null           # true | false
+#     accepting_authority: ""       # at a level that can absorb the consequence
+#     acceptance_expires: ""
+#     acceptance_review_trigger: ""
+#     acceptance_count: 0           # more than 2 is a design finding, not an exception
+#
+#     notes: ""

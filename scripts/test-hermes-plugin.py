@@ -6,6 +6,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import runpy
+import tempfile
 import types
 import unittest
 from enum import Enum
@@ -101,6 +103,16 @@ def load_plugin(lifecycle):
 
 
 class DelegateBehaviorTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        global PLUGIN
+        cls.build_dir = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls.build_dir.cleanup)
+        builder = runpy.run_path(str(ROOT / "scripts/build-hermes-plugin.py"))
+        output = Path(cls.build_dir.name)
+        builder["build"](ROOT, output)
+        PLUGIN = output / builder["PLUGIN_NAME"] / "__init__.py"
+
     def invoke(self, lifecycle, slug="ux-architect"):
         module, context = load_plugin(lifecycle)
         schema, handler = context.tools["agency_agents_delegate"]

@@ -1,0 +1,2 @@
+# Validation only; installation and catalog resolution use the standard library.
+PyYAML>=6.0.2,<7

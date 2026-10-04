@@ -1,217 +1,332 @@
-# 🚨 Runbook: Incident Response
+# Runbook — Incident Response
 
-> **Mode**: NEXUS-Micro | **Duration**: Minutes to hours | **Agents**: 3-8
+> **Mode:** NEXUS-Micro  
+> **Duration:** incident-dependent  
+> **Purpose:** restore a critical function safely while preserving evidence, controlling blast radius, and preventing recurrence
 
 ---
 
-## Scenario
+## Governing frame
 
-Something is broken in production. Users are affected. Speed of response matters, but so does doing it right. This runbook covers detection through post-mortem.
+**Governing object:** return the affected service/function to a safe, supportable condition while preserving evidence and establishing the changes needed to prevent recurrence.
 
-## Severity Classification
+**Non-object:** minimize MTTR, close the incident, or restore green dashboards regardless of residual risk, evidence loss, unsafe shortcuts, or recurrence.
 
-| Level | Definition | Examples | Response Time |
-|-------|-----------|----------|--------------|
-| **P0 — Critical** | Service completely down, data loss, security breach | Database corruption, DDoS attack, auth system failure | Immediate (all hands) |
-| **P1 — High** | Major feature broken, significant performance degradation | Payment processing down, 50%+ error rate, 10x latency | < 1 hour |
-| **P2 — Medium** | Minor feature broken, workaround available | Search not working, non-critical API errors | < 4 hours |
-| **P3 — Low** | Cosmetic issue, minor inconvenience | Styling bug, typo, minor UI glitch | Next sprint |
+Speed matters because impact may be accumulating. Speed is still subordinate to authority, orientation, and safe recovery.
 
-## Response Teams by Severity
+## Decision owner / incident authority
 
-### P0 — Critical Response Team
-| Agent | Role | Action |
-|-------|------|--------|
-| **Infrastructure Maintainer** | Incident commander | Assess scope, coordinate response |
-| **DevOps Automator** | Deployment/rollback | Execute rollback if needed |
-| **Backend Architect** | Root cause investigation | Diagnose system issues |
-| **Frontend Developer** | UI-side investigation | Diagnose client-side issues |
-| **Support Responder** | User communication | Status page updates, user notifications |
-| **Executive Summary Generator** | Stakeholder communication | Real-time executive updates |
+Use the organization's actual incident policy. Name the person/role authorized to:
 
-### P1 — High Response Team
-| Agent | Role |
-|-------|------|
-| **Infrastructure Maintainer** | Incident commander |
-| **DevOps Automator** | Deployment support |
-| **Relevant Developer Agent** | Fix implementation |
-| **Support Responder** | User communication |
+- declare/alter severity;
+- approve containment actions;
+- accept degraded service;
+- authorize rollback/failover/hotfix within policy;
+- communicate externally;
+- close emergency mode.
 
-### P2 — Medium Response
-| Agent | Role |
-|-------|------|
-| **Relevant Developer Agent** | Fix implementation |
-| **Evidence Collector** | Verify fix |
+Agents cannot infer these rights from technical access.
 
-### P3 — Low Response
-| Agent | Role |
-|-------|------|
-| **Sprint Prioritizer** | Add to backlog |
+---
 
-## Incident Response Sequence
+## Core roster
 
-### Step 1: Detection & Triage (0-5 minutes)
+| Agent | Slug | Responsibility |
+|---|---|---|
+| Strategic Assurance Lead | `specialized-strategic-assurance-lead` | object/non-object, authority/exit checks, conservation |
+| Agents Orchestrator | `agents-orchestrator` | coordination and context continuity |
+| Infrastructure Maintainer | `support-infrastructure-maintainer` | system state and recovery coordination |
+| DevOps Automator | `engineering-devops-automator` | deployment/rollback automation inside authority |
+| Executive Summary Generator | `support-executive-summary-generator` | stakeholder synthesis without certainty inflation |
 
-```
-TRIGGER: Alert from monitoring / User report / Agent detection
+Activate relevant engineering, support, API/evidence, security, legal/compliance, product, or workflow specialists according to the incident.
 
-Infrastructure Maintainer:
-1. Acknowledge alert
-2. Assess scope and impact
-   - How many users affected?
-   - Which services are impacted?
-   - Is data at risk?
-3. Classify severity (P0/P1/P2/P3)
-4. Activate appropriate response team
-5. Create incident channel/thread
+---
 
-Output: Incident classification + response team activated
-```
+## Severity
 
-### Step 2: Investigation (5-30 minutes)
+Severity definitions, response-time objectives, escalation channels, and communication cadence must come from the organization's incident policy/SLOs.
 
-```
-PARALLEL INVESTIGATION:
+Do not invent universal P0/P1/P2/P3 clocks in this runbook.
 
-Infrastructure Maintainer:
-├── Check system metrics (CPU, memory, network, disk)
-├── Review error logs
-├── Check recent deployments
-└── Verify external dependencies
+If no policy exists, record that governance gap and use a provisional classification based on:
 
-Backend Architect (if P0/P1):
-├── Check database health
-├── Review API error rates
-├── Check service communication
-└── Identify failing component
+- user/business impact;
+- data/security/integrity risk;
+- rate of impact accumulation;
+- reversibility;
+- blast radius;
+- regulatory/contractual implications;
+- time sensitivity.
 
-DevOps Automator:
-├── Review recent deployment history
-├── Check CI/CD pipeline status
-├── Prepare rollback if needed
-└── Verify infrastructure state
+The provisional classification is an `ASSUMPTION` until accepted by the incident authority.
 
-Output: Root cause identified (or narrowed to component)
+---
+
+## Incident state machine
+
+```text
+DETECT
+  │
+  ▼
+TRIAGE ─────► HALT_UNKNOWN / obtain orientation when state is unreliable
+  │
+  ▼
+CONTAIN
+  │
+  ▼
+INVESTIGATE ◄────┐
+  │               │
+  ▼               │
+RECOVER ──failure─┘
+  │
+  ▼
+VERIFY
+  │
+  ▼
+CONSERVE
+  │
+  ▼
+CLOSE / TRANSFER
 ```
 
-### Step 3: Mitigation (15-60 minutes)
+Containment and investigation may run in parallel when authority and safety permit.
 
-```
-DECISION TREE:
+---
 
-IF caused by recent deployment:
-  → DevOps Automator: Execute rollback
-  → Infrastructure Maintainer: Verify recovery
-  → Evidence Collector: Confirm fix
+## 1. Detect and triage
 
-IF caused by infrastructure issue:
-  → Infrastructure Maintainer: Scale/restart/failover
-  → DevOps Automator: Support infrastructure changes
-  → Verify recovery
+Create an incident record immediately enough to preserve what was known at decision time.
 
-IF caused by code bug:
-  → Relevant Developer Agent: Implement hotfix
-  → Evidence Collector: Verify fix
-  → DevOps Automator: Deploy hotfix
-  → Infrastructure Maintainer: Monitor recovery
+Record separately:
 
-IF caused by external dependency:
-  → Infrastructure Maintainer: Activate fallback/cache
-  → Support Responder: Communicate to users
-  → Monitor for external recovery
+### EVIDENCE
+- observed symptom;
+- source/telemetry;
+- timestamp;
+- affected scope actually observed.
 
-THROUGHOUT:
-  → Support Responder: Update status page every 15 minutes
-  → Executive Summary Generator: Brief stakeholders (P0 only)
-```
+### HYPOTHESIS
+- suspected cause;
+- suspected propagation path;
+- estimated exposure.
 
-### Step 4: Resolution Verification (Post-fix)
+### UNKNOWN
+- state the team cannot currently observe.
 
-```
-Evidence Collector:
-1. Verify the fix resolves the issue
-2. Screenshot evidence of working state
-3. Confirm no new issues introduced
+Do not report an estimated blast radius as observed impact.
 
-Infrastructure Maintainer:
-1. Verify all metrics returning to normal
-2. Confirm no cascading failures
-3. Monitor for 30 minutes post-fix
+### Triage outputs
 
-API Tester (if API-related):
-1. Run regression on affected endpoints
-2. Verify response times normalized
-3. Confirm error rates at baseline
+- incident authority;
+- provisional/official severity;
+- governing object and non-object;
+- affected critical functions;
+- current safe-state/rollback options;
+- evidence-preservation needs;
+- initial response roster;
+- communication authority;
+- next material decision.
 
-Output: Incident resolved confirmation
-```
+---
 
-### Step 5: Post-Mortem (Within 48 hours)
+## 2. Contain
 
-```
-Workflow Optimizer leads post-mortem:
+Containment reduces further harm while preserving the ability to understand and recover.
 
-1. Timeline reconstruction
-   - When was the issue introduced?
-   - When was it detected?
-   - When was it resolved?
-   - Total user impact duration
+Candidate actions may include, only when authorized:
 
-2. Root cause analysis
-   - What failed?
-   - Why did it fail?
-   - Why wasn't it caught earlier?
-   - 5 Whys analysis
+- traffic/rate limiting;
+- feature isolation;
+- rollback;
+- failover;
+- disabling a compromised integration;
+- credential/key rotation;
+- temporary access restriction;
+- safe degraded mode;
+- user warning;
+- emergency protocol control.
 
-3. Impact assessment
-   - Users affected
-   - Revenue impact
-   - Reputation impact
-   - Data impact
+For each material action record:
 
-4. Prevention measures
-   - What monitoring would have caught this sooner?
-   - What testing would have prevented this?
-   - What process changes are needed?
-   - What infrastructure changes are needed?
+| Field | Value |
+|---|---|
+| action | |
+| authority / policy | |
+| expected containment mechanism | |
+| known side effects | |
+| rollback / expiry | |
+| evidence preserved | |
+| owner | |
 
-5. Action items
-   - [Action] → [Owner] → [Deadline]
-   - [Action] → [Owner] → [Deadline]
-   - [Action] → [Owner] → [Deadline]
+Emergency authority must have an expiry or transfer path.
 
-Output: Post-Mortem Report → Sprint Prioritizer adds prevention tasks to backlog
-```
+---
 
-## Communication Templates
+## 3. Investigate
 
-### Status Page Update (Support Responder)
-```
-[TIMESTAMP] — [SERVICE NAME] Incident
+Run competing explanations when the cause is not obvious.
 
-Status: [Investigating / Identified / Monitoring / Resolved]
-Impact: [Description of user impact]
-Current action: [What we're doing about it]
-Next update: [When to expect the next update]
-```
+Check relevant:
 
-### Executive Update (Executive Summary Generator — P0 only)
-```
-INCIDENT BRIEF — [TIMESTAMP]
+- recent deployments/configuration changes;
+- dependency/provider status;
+- infrastructure/resource state;
+- application/API errors;
+- data/storage integrity;
+- auth/security events;
+- network/routing state;
+- client/user behavior;
+- external change;
+- latent design weakness.
 
-SITUATION: [Service] is [down/degraded] affecting [N users/% of traffic]
-CAUSE: [Known/Under investigation] — [Brief description if known]
-ACTION: [What's being done] — ETA [time estimate]
-IMPACT: [Business impact — revenue, users, reputation]
-NEXT UPDATE: [Timestamp]
-```
+A successful rollback is evidence that a recent change is implicated; it is not automatically proof of the complete root cause.
 
-## Escalation Matrix
+### Root-cause discipline
 
-| Condition | Escalate To | Action |
-|-----------|------------|--------|
-| P0 not resolved in 30 min | Studio Producer | Additional resources, vendor escalation |
-| P1 not resolved in 2 hours | Project Shepherd | Resource reallocation |
-| Data breach suspected | Legal Compliance Checker | Regulatory notification assessment |
-| User data affected | Legal Compliance Checker + Executive Summary Generator | GDPR/CCPA notification |
-| Revenue impact > $X | Finance Tracker + Studio Producer | Business impact assessment |
+Distinguish:
+
+- trigger;
+- enabling condition;
+- propagation mechanism;
+- control/barrier failure;
+- organizational/process contribution where evidenced.
+
+Do not force a single “root cause” if the incident depends on interacting failures.
+
+---
+
+## 4. Recover
+
+Choose recovery based on the safest path to the governing object, not on the prestige of a permanent fix during the incident.
+
+Options include:
+
+- rollback to known good state;
+- failover;
+- bounded hotfix;
+- configuration correction;
+- dependency isolation;
+- controlled restart;
+- data restore/reconciliation;
+- degraded operation until a durable fix is verified.
+
+A temporary mitigation can be strategically correct if it preserves users/evidence/options better than a rushed permanent change.
+
+---
+
+## 5. Verify
+
+Independent validation should establish:
+
+- critical function restored to the declared acceptable condition;
+- original symptom absent under relevant test/observation;
+- no known new critical regression from the mitigation;
+- data/integrity state acceptable;
+- guardrail metrics within authoritative bounds;
+- rollback/recovery behavior understood;
+- remaining `UNKNOWN` and `NOT_TESTED` areas visible.
+
+Do not require a universal 30-minute observation window; use the failure mechanism and operating policy to determine an adequate period/condition.
+
+---
+
+## 6. Communicate
+
+Communication cadence and audience follow policy and impact.
+
+Every update separates:
+
+- observed impact;
+- current service state;
+- actions taken;
+- confirmed cause vs working hypothesis;
+- unresolved risk;
+- next decision/update trigger.
+
+Do not publish attribution or technical detail beyond evidence and authority.
+
+---
+
+## 7. Conserve
+
+Emergency recovery is not closure.
+
+Before incident mode ends, assign:
+
+- durable remediation;
+- regression/control test;
+- monitoring/alert improvement where causal;
+- runbook/policy change;
+- dependency/vendor follow-up;
+- data remediation;
+- user/customer remediation where needed;
+- security/compliance/legal follow-up;
+- owner and review date.
+
+Expire or transfer:
+
+- elevated access;
+- temporary credentials;
+- emergency feature flags;
+- bypasses;
+- temporary routing;
+- temporary staffing/communication process.
+
+---
+
+## Post-incident review
+
+Review timing should be soon enough to preserve evidence and far enough from immediate recovery to reconstruct the decision honestly.
+
+Evaluate:
+
+1. What was known at each material decision?
+2. Which hypotheses were wrong/right?
+3. Which signal existed but failed to reach authority?
+4. Was the load of proof appropriate to the action?
+5. Did response optimize a metric such as MTTR at the expense of integrity?
+6. Did an emergency workaround become an unowned permanent dependency?
+7. What allowed the incident to propagate?
+8. Which control should become institutional rather than heroic?
+9. Which data/access created during the incident should expire?
+10. Would the same decision still be reasonable using only information available then?
+
+Avoid hindsight certainty.
+
+---
+
+## Closure gate
+
+The incident can leave emergency mode when:
+
+- critical function is restored or deliberately changed by authority;
+- residual risks are explicit and owned;
+- material evidence is preserved;
+- temporary authority/access has expired or transferred;
+- durable remediation has owners;
+- user/stakeholder obligations are addressed;
+- monitoring/verification can show whether the result is conserved.
+
+Strategic Assurance may identify a `HOLD` on closure; actual incident closure remains with the authorized owner.
+
+---
+
+## Metrics
+
+Use policy-defined operational metrics plus learning metrics such as:
+
+- detection delay;
+- decision/authorization delay;
+- containment time;
+- recovery time;
+- recurrence;
+- impact duration and scope;
+- false alert / missed alert patterns;
+- temporary-control expiry compliance;
+- remediation completion;
+- evidence gaps.
+
+Do not optimize any one incident metric in isolation.
+
+> **Runbook success:** service/user harm is bounded, the critical function is safely conserved, and the organization becomes less dependent on emergency heroics the next time the same mechanism appears.

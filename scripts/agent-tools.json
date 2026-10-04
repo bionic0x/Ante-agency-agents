@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "classes": ["read", "network-read", "write", "execute"],
+  "tools": {
+    "Read": {
+      "class": "read",
+      "mutates": false,
+      "external_io": false,
+      "description": "Read repository or local context exposed by the host."
+    },
+    "WebSearch": {
+      "class": "network-read",
+      "mutates": false,
+      "external_io": true,
+      "description": "Issue external search queries through the host."
+    },
+    "WebFetch": {
+      "class": "network-read",
+      "mutates": false,
+      "external_io": true,
+      "description": "Fetch external web resources through the host."
+    },
+    "Write": {
+      "class": "write",
+      "mutates": true,
+      "external_io": false,
+      "description": "Create or replace host-exposed local files."
+    },
+    "Edit": {
+      "class": "write",
+      "mutates": true,
+      "external_io": false,
+      "description": "Modify host-exposed local files."
+    }
+  }
+}

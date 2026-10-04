@@ -1,0 +1,161 @@
+manifest:
+  id: gate0-sol-kamino-main-sol-usdc-2026-09-13
+  network_scope: solana
+  frozen_at: "2026-09-13"
+  status: frozen_with_blockers
+  purpose: >-
+    Freeze the documentary/static deployment identity for the first HTP Gate 0
+    review of Kamino Lend Main Market on SOL/USDC. Runtime state not directly
+    captured at the freeze point remains explicit and cannot be inferred.
+
+network:
+  name: solana-mainnet-beta
+  cluster_identity: mainnet-beta
+
+protocol:
+  name: Kamino Lend
+  program_id: KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD
+  public_source:
+    repository: Kamino-Finance/klend
+    commit: a08760976f51a3a58c4a0c6ea27b4a0e565bca79
+    release_context: "Prepare release 1.25.0 (#82)"
+    source_declares_mainnet_program_id: true
+    deployed_program_byte_identity: UNVERIFIED
+    programdata_account: PENDING_RUNTIME_SNAPSHOT
+    upgrade_authority: PENDING_RUNTIME_SNAPSHOT
+  sdk_source:
+    repository: Kamino-Finance/klend-sdk
+    commit: 38845294447623f6de3afc9dec29875f959f6f48
+
+market:
+  label: Main
+  address: 7u3HeHxYDLhnCoErrtycNokbQYbWGzLs6JSDqGAv5PfF
+  lookup_table: 284iwGtA9X9aLy3KsyV8uT2pXLARhYbiSi5SiM2g47M2
+
+assets:
+  - symbol: SOL
+    role: collateral_and_borrow_surface
+    reserve: d4A2prbA2whesmvHaL88BH6Ewn5N4bTSU2Ze8P6Bc4Q
+    liquidity_mint: So11111111111111111111111111111111111111112
+    mint_semantics: wrapped_SOL
+    token_program: PENDING_RUNTIME_SNAPSHOT
+    reserve_runtime_owner: PENDING_RUNTIME_SNAPSHOT
+    reserve_config_hash: PENDING_RUNTIME_SNAPSHOT
+    oracle_configuration: PENDING_RUNTIME_SNAPSHOT
+
+  - symbol: USDC
+    role: collateral_and_borrow_surface
+    reserve: D6q6wuQSrifJKZYpR1M8R4YawnLDtDsMmWM1NbBmgJ59
+    liquidity_mint: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+    token_program: PENDING_RUNTIME_SNAPSHOT
+    reserve_runtime_owner: PENDING_RUNTIME_SNAPSHOT
+    reserve_config_hash: PENDING_RUNTIME_SNAPSHOT
+    oracle_configuration: PENDING_RUNTIME_SNAPSHOT
+
+threat_scope:
+  allowed_classes:
+    - SOL-ORC
+    - SOL-ORD
+  class_state:
+    SOL-ORC:
+      state: active_but_runtime_manifest_incomplete
+      object: >-
+        Determine whether the exact valuation input consumed by the scoped Kamino
+        reserve path is invalid, unsupported, temporally incoherent, or degraded
+        under a policy frozen for the evaluation.
+    SOL-ORD:
+      state: hold_pending_execution_surface_manifest
+      object: >-
+        Determine whether a scoped Kamino user flow that includes an external swap
+        or liquidation route exhibits supported adverse ordering harm. Pure
+        lend/borrow state transitions are not treated as generic DEX-ordering events.
+
+oracle_policy:
+  source_of_truth: live_reserve_tokenInfo_required
+  scope_price_feed_accounts: PENDING_RUNTIME_SNAPSHOT
+  pyth_price_accounts: PENDING_RUNTIME_SNAPSHOT
+  switchboard_price_accounts: PENDING_RUNTIME_SNAPSHOT
+  max_age_price_seconds: PENDING_RUNTIME_SNAPSHOT
+  max_age_twap_seconds: PENDING_RUNTIME_SNAPSHOT
+  confidence_or_quality_rules: PENDING_RUNTIME_SNAPSHOT
+  rule: >-
+    Documentation examples or historical reserve configs are not substituted for
+    the live tokenInfo/configuration of these exact reserve accounts.
+
+account_and_authority_snapshot:
+  market_runtime_owner: PENDING_RUNTIME_SNAPSHOT
+  reserve_runtime_owners: PENDING_RUNTIME_SNAPSHOT
+  programdata_upgrade_authority: PENDING_RUNTIME_SNAPSHOT
+  market_owner_relationships: PENDING_RUNTIME_SNAPSHOT
+  reserve_market_relationships: PENDING_RUNTIME_SNAPSHOT
+  cpi_targets_in_scoped_paths: PENDING_RUNTIME_SNAPSHOT
+  signer_and_pda_contracts: PENDING_RUNTIME_SNAPSHOT
+
+execution_surface_for_SOL_ORD:
+  user_flow: PENDING
+  swap_router_or_aggregator: PENDING
+  dex_programs: []
+  pool_accounts: []
+  liquidation_path: PENDING
+  eligible_transaction_population: PENDING
+  reason: >-
+    The KLend program/market/reserves alone do not identify a complete external
+    swap/order-flow surface. SOL-ORD cannot be benchmarked until the actual
+    leveraged/swap/liquidation path under review is named and frozen.
+
+runtime_snapshot_requirements:
+  - slot_and_block_time
+  - program_account_and_programdata
+  - programdata_upgrade_authority
+  - market_account_owner_and_hash
+  - reserve_account_owner_and_hash_per_asset
+  - full_reserve_config_per_asset
+  - tokenInfo_oracle_configuration_per_asset
+  - oracle_account_addresses_and_provider_versions
+  - token_program_identity_per_mint_and_token_account
+  - relevant_token_2022_extensions_if_any
+  - cpi_program_ids_for_the_scoped_instruction_paths
+
+source_freeze:
+  primary:
+    - repository: Kamino-Finance/klend
+      commit: a08760976f51a3a58c4a0c6ea27b4a0e565bca79
+      evidence: >-
+        README and klend-interface identify
+        KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD as the Kamino Lending
+        mainnet program ID.
+    - repository: Kamino-Finance/klend-sdk
+      commit: 38845294447623f6de3afc9dec29875f959f6f48
+      evidence: >-
+        examples/utils/constants.ts fixes the Main market, LUT and USDC Main
+        reserve/mint constants used by this manifest.
+    - source: Kamino official documentation
+      evidence: >-
+        Borrow/market documentation identifies the Main market and SOL reserve,
+        and reserve configuration documentation defines tokenInfo/oracle fields.
+  secondary:
+    - source: Solana explorer transaction evidence
+      use: corroborates the SOL reserve's wrapped-SOL mint relationship only
+
+known_blockers:
+  - id: SOL-BLK-001
+    statement: >-
+      No immutable live on-chain dump of the SOL and USDC reserve configurations
+      has yet been captured for this instance.
+  - id: SOL-BLK-002
+    statement: >-
+      Repository release/source identity has not been cryptographically matched to
+      the deployed program bytes and ProgramData authority at a frozen slot.
+  - id: SOL-BLK-003
+    statement: >-
+      The external swap/liquidation execution surface needed to make SOL-ORD a
+      testable Kamino user-flow claim is not yet frozen.
+
+prohibited_inferences:
+  - "source release == deployed bytecode"
+  - "documented oracle example == current SOL/USDC reserve oracle config"
+  - "reserve address == validated owner/config relationship"
+  - "transaction proximity == adversarial provenance or intent"
+  - "post-inclusion reconstruction == prospective prevention"
+
+s1_ready_for_full_acceptance: false

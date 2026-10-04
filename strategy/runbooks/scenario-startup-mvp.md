@@ -1,154 +1,229 @@
-# 🚀 Runbook: Startup MVP Build
+# Runbook — Startup MVP
 
-> **Mode**: NEXUS-Sprint | **Duration**: 4-6 weeks | **Agents**: 18-22
+> **Mode:** NEXUS-Sprint  
+> **Planning range:** often 4–6 weeks, but not a promise  
+> **Purpose:** test a bounded product thesis with the smallest supportable evidence-generating product
 
 ---
 
-## Scenario
+## Governing frame
 
-You're building a startup MVP — a new product that needs to validate product-market fit quickly. Speed matters, but so does quality. You need to go from idea to live product with real users in 4-6 weeks.
+**Governing object:** establish whether a specific customer problem can be solved by a usable, supportable product strongly enough to justify the next material investment.
 
-## Agent Roster
+**Non-object:** maximize feature count, sprint velocity, launch speed, demo polish, or a predetermined calendar.
 
-### Core Team (Always Active)
-| Agent | Role |
-|-------|------|
-| Agents Orchestrator | Pipeline controller |
-| Senior Project Manager | Spec-to-task conversion |
-| Sprint Prioritizer | Backlog management |
-| UX Architect | Technical foundation |
-| Frontend Developer | UI implementation |
-| Backend Architect | API and database |
-| DevOps Automator | CI/CD and deployment |
-| Evidence Collector | QA for every task |
-| Reality Checker | Final quality gate |
+Launching an MVP is not evidence of product-market fit. The MVP exists to create better evidence about a product thesis while preserving enough reserve to redesign or stop.
 
-### Growth Team (Activated Week 3+)
-| Agent | Role |
-|-------|------|
-| Growth Hacker | Acquisition strategy |
-| Content Creator | Launch content |
-| Social Media Strategist | Social campaign |
+## Decision owner
 
-### Support Team (As Needed)
-| Agent | Role |
-|-------|------|
-| Brand Guardian | Brand identity |
-| Analytics Reporter | Metrics and dashboards |
-| Rapid Prototyper | Quick validation experiments |
-| AI Engineer | If product includes AI features |
-| Performance Benchmarker | Load testing before launch |
-| Infrastructure Maintainer | Production setup |
+An authorized founder, product owner, or executive owns the material commitment and residual risk.
 
-## Week-by-Week Execution
+The Strategic Assurance Lead tests coherence. The Agents Orchestrator coordinates work. Neither role creates authority by itself.
 
-### Week 1: Discovery + Architecture (Phase 0 + Phase 1 compressed)
+---
 
-```
-Day 1-2: Compressed Discovery
-├── Trend Researcher → Quick competitive scan (1 day, not full report)
-├── UX Architect → Wireframe key user flows
-└── Senior Project Manager → Convert spec to task list
+## Core roster
 
-Day 3-4: Architecture
-├── UX Architect → CSS design system + component architecture
-├── Backend Architect → System architecture + database schema
-├── Brand Guardian → Quick brand foundation (colors, typography, voice)
-└── Sprint Prioritizer → RICE-scored backlog + sprint plan
+### Strategic control — always active for material commitments
 
-Day 5: Foundation Setup
-├── DevOps Automator → CI/CD pipeline + environments
-├── Frontend Developer → Project scaffolding
-├── Backend Architect → Database + API scaffold
-└── Quality Gate: Architecture Package approved
-```
+| Agent | Slug | Responsibility |
+|---|---|---|
+| Strategic Assurance Lead | `specialized-strategic-assurance-lead` | governing object, causal thesis, seven tests, falsifier, exit |
+| Agents Orchestrator | `agents-orchestrator` | execution mesh and context continuity |
+| Senior Project Manager | `project-manager-senior` | dependencies, plan, gates |
+| Sprint Prioritizer | `product-sprint-prioritizer` | smallest evidence-bearing backlog |
 
-### Week 2-3: Core Build (Phase 2 + Phase 3)
+### Product & build — activate as needed
 
-```
-Sprint 1 (Week 2):
-├── Agents Orchestrator manages Dev↔QA loop
-├── Frontend Developer → Core UI (auth, main views, navigation)
-├── Backend Architect → Core API (auth, CRUD, business logic)
-├── Evidence Collector → QA every completed task
-├── AI Engineer → ML features if applicable
-└── Sprint Review at end of week
+| Agent | Slug |
+|---|---|
+| UX Architect | `design-ux-architect` |
+| Frontend Developer | `engineering-frontend-developer` |
+| Backend Architect | `engineering-backend-architect` |
+| DevOps Automator | `engineering-devops-automator` |
+| Evidence Collector | `testing-evidence-collector` |
+| Reality Checker | `testing-reality-checker` |
 
-Sprint 2 (Week 3):
-├── Continue Dev↔QA loop for remaining features
-├── Growth Hacker → Design viral mechanics + referral system
-├── Content Creator → Begin launch content creation
-├── Analytics Reporter → Set up tracking and dashboards
-└── Sprint Review at end of week
-```
+### Growth / support — conditional
 
-### Week 4: Polish + Hardening (Phase 4)
+Activate only where the thesis and stage justify them: Growth Hacker, Content Creator, Social Media Strategist, Brand Guardian, Analytics Reporter, Rapid Prototyper, AI Engineer, Performance Benchmarker, Infrastructure Maintainer.
 
-```
-Day 1-2: Quality Sprint
-├── Evidence Collector → Full screenshot suite
-├── Performance Benchmarker → Load testing
-├── Frontend Developer → Fix QA issues
-├── Backend Architect → Fix API issues
-└── Brand Guardian → Brand consistency audit
+---
 
-Day 3-4: Reality Check
-├── Reality Checker → Final integration testing
-├── Infrastructure Maintainer → Production readiness
-└── DevOps Automator → Production deployment prep
+## Mandatory artifacts
 
-Day 5: Gate Decision
-├── Reality Checker verdict
-├── IF NEEDS WORK: Quick fix cycle (2-3 days)
-├── IF READY: Proceed to launch
-└── Executive Summary Generator → Stakeholder briefing
+Before a material build commitment:
+
+1. instantiated `strategy/templates/strategic-decision-record.md`;
+2. instantiated `strategy/templates/claim-register.yaml`;
+3. product thesis and credible alternative explanation;
+4. falsifier;
+5. minimum sufficient result;
+6. current authority/constraint map;
+7. termination and conservation criteria.
+
+---
+
+## Execution topology
+
+The following is a **default dependency pattern**, not a fixed week-by-week script.
+
+### A. Orient
+
+Determine what decision-critical evidence is missing.
+
+Possible activities:
+
+- user/problem evidence;
+- market/alternative context;
+- regulatory or data perimeter;
+- technology feasibility;
+- measured baseline.
+
+Skip broad discovery when current evidence is already sufficient for the next bounded commitment.
+
+### B. Define the thin thesis
+
+Write:
+
+```text
+For [specific user/context],
+we believe [bounded capability]
+will change [behavior/problem state]
+because [mechanism].
+We will treat [observation] as evidence against the thesis.
 ```
 
-### Week 5-6: Launch + Growth (Phase 5)
+Separate:
 
-```
-Week 5: Launch
-├── DevOps Automator → Production deployment
-├── Growth Hacker → Activate acquisition channels
-├── Content Creator → Publish launch content
-├── Social Media Strategist → Cross-platform campaign
-├── Analytics Reporter → Real-time monitoring
-└── Support Responder → User support active
+- problem evidence;
+- product hypothesis;
+- willingness-to-use/pay hypothesis;
+- acquisition/distribution hypothesis;
+- operational supportability hypothesis.
 
-Week 6: Optimize
-├── Growth Hacker → Analyze and optimize channels
-├── Feedback Synthesizer → Collect early user feedback
-├── Experiment Tracker → Launch A/B tests
-├── Analytics Reporter → Week 1 analysis
-└── Sprint Prioritizer → Plan iteration sprint
-```
+Do not collapse them into “PMF.”
 
-## Key Decisions
+### C. Architecture for the first meaningful slice
 
-| Decision Point | When | Who Decides |
-|---------------|------|-------------|
-| Go/No-Go on concept | End of Day 2 | Studio Producer |
-| Architecture approval | End of Day 4 | Senior Project Manager |
-| Feature scope for MVP | Sprint planning | Sprint Prioritizer |
-| Production readiness | Week 4 Day 5 | Reality Checker |
-| Launch timing | After Reality Checker READY | Studio Producer |
+Choose the minimum system and UX architecture capable of producing the intended user outcome and evidence.
 
-## Success Criteria
+Explicitly state:
 
-| Metric | Target |
-|--------|--------|
-| Time to live product | ≤ 6 weeks |
-| Core features complete | 100% of MVP scope |
-| First users onboarded | Within 48 hours of launch |
-| System uptime | > 99% in first week |
-| User feedback collected | ≥ 50 responses in first 2 weeks |
+- critical dependencies;
+- source of truth;
+- security/access boundaries;
+- project-specific SLO/quality requirements and their source;
+- analytics/evidence instrumentation;
+- rollback/recovery;
+- intentionally deferred architecture.
 
-## Common Pitfalls & Mitigations
+### D. Build / validate loops
 
-| Pitfall | Mitigation |
-|---------|-----------|
-| Scope creep during build | Sprint Prioritizer enforces MoSCoW — "Won't" means won't |
-| Over-engineering for scale | Rapid Prototyper mindset — validate first, scale later |
-| Skipping QA for speed | Evidence Collector runs on EVERY task — no exceptions |
-| Launching without monitoring | Infrastructure Maintainer sets up monitoring in Week 1 |
-| No feedback mechanism | Analytics + feedback collection built into Sprint 1 |
+Use bounded tasks with independent validation.
+
+Retry/experiment budget is configured from cost, reversibility, learning value, time, and reserve. There is no universal three-attempt rule.
+
+When a failure repeats, classify it as:
+
+- execution defect;
+- design defect;
+- orientation defect.
+
+Do not keep repairing implementation if the thesis itself is failing.
+
+### E. Controlled exposure
+
+Choose the smallest real-user exposure that can test the thesis without unnecessary blast radius.
+
+Possible forms:
+
+- prototype/usability test;
+- concierge/manual service;
+- invitation cohort;
+- limited production pilot;
+- public MVP;
+- staged segment rollout.
+
+A public launch is not mandatory if a smaller test answers the decision better.
+
+### F. Decide
+
+After evidence arrives, return one of:
+
+- `PROCEED`
+- `PROCEED_WITH_CONDITIONS`
+- `HOLD`
+- `REDESIGN`
+- `REJECT`
+
+The decision owner authorizes the next material commitment.
+
+---
+
+## Metrics
+
+There are no universal Startup MVP thresholds in this runbook.
+
+Do **not** default to:
+
+- 100% feature completion;
+- launch in six weeks as proof of success;
+- first users within 48 hours;
+- >99% uptime without an authoritative SLO;
+- a fixed number of feedback responses;
+- a generic conversion target.
+
+Instead define:
+
+| Metric | Type | Why it matters | Baseline | Target / decision condition | Source |
+|---|---|---|---|---|---|
+| [metric] | outcome / effect / guardrail / activity | | | | |
+
+Guardrail metrics should reveal when metric optimization damages the governing object.
+
+---
+
+## Strategic gate
+
+Before the next irreversible commitment, apply all seven tests:
+
+1. governing-object;
+2. causal;
+3. interactive;
+4. conversion;
+5. legitimacy;
+6. epistemic;
+7. exit.
+
+A technical READY/PASS verdict is evidence for the gate, not the gate authority itself.
+
+---
+
+## Termination
+
+Close, redesign, or narrow the initiative when:
+
+- the declared falsifier is met;
+- the user problem is weaker/different than assumed;
+- the product cannot create the intended behavior/effect at acceptable cost/risk;
+- required authority/resources cannot be obtained;
+- the MVP generates no decision value relative to its cost;
+- the minimum sufficient result is achieved and ownership transfers to normal product/operations.
+
+Do not continue because a launch date, sunk cost, or prior sprint success makes stopping uncomfortable.
+
+---
+
+## Conservation
+
+If the MVP thesis survives:
+
+- transfer operational ownership;
+- expire temporary access/processes;
+- document real SLOs/constraints from evidence;
+- preserve the Claim Register;
+- convert repeatable controls into ordinary tests/policies;
+- open a new strategic decision for material scale expansion rather than treating MVP success as automatic permission.
+
+> **Runbook success:** the organization ends with a better decision and a supportable product thesis — not merely a shipped MVP.

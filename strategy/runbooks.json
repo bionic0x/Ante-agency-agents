@@ -1,21 +1,100 @@
 {
-  "_note": "Machine-readable rosters for the NEXUS scenario runbooks in strategy/runbooks/. Consumed by the Agency Agents app to turn a runbook into a one-click team deploy: it reads the roster, maps each slug to a catalog agent, and installs the set. `agents[]` entries are SLUGS — the agent .md filename stem (the corpus id), e.g. engineering/engineering-frontend-developer.md -> \"engineering-frontend-developer\"; specialized/agents-orchestrator.md -> \"agents-orchestrator\" (note: the stem is NOT always division-prefixed, and display names are prefixed/drift — so rosters reference slugs, which are rename-proof and testable). `mode` is the NEXUS activation mode (Full | Sprint | Micro) that sizes the team; `roster` groups preserve the runbook's phase structure via `activation`. `doc` is the prose runbook the app renders. Keep this in sync with the markdown in strategy/runbooks/; every slug must resolve to a real agent file (scripts/check-runbooks.sh can guard this, mirroring check-divisions.sh). strategy/ holds orchestration doctrine, not installable agents — it is NOT a division (see divisions.json).",
+  "_note": "Machine-readable NEXUS scenario contracts. Each runbook declares the governing object, explicit non-object, accountable decision owner, mandatory decision/evidence artifacts, termination criteria, and an installable roster. The Strategic Assurance Lead is mandatory in every material runbook. Agent entries are filename-stem slugs and must resolve to catalog agents. Strategy documentation constrains orchestration; it does not grant real-world execution authority.",
+  "schema_version": "2.0",
   "runbooks": [
+    {
+      "slug": "strategic-decision",
+      "title": "Strategic Decision & Transition",
+      "mode": "NEXUS-Sprint",
+      "duration": "decision-dependent",
+      "summary": "Frame a material decision from superior purpose through actor geometry, causal logic, reaction, concentration, evidence, and transition, with independent challenge before irreversible commitment.",
+      "governing_object": "Produce a decision-ready strategic choice whose superior purpose, causal mechanism, authority, resource concentration, alternatives, refutators, reactions, and transition conditions are explicit enough for an accountable human owner to decide.",
+      "non_object": "Generate strategy theater, maximize analysis volume, manufacture consensus, or convert an agent recommendation into execution authority.",
+      "decision_owner": "Named human or institutional authority accountable for the material decision",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Close the strategic decision cycle when the authorized owner records a bounded decision and review/termination conditions, or terminate/redesign when a fatal authority, admissibility, causal, evidence, or conservation defect remains unresolved.",
+      "termination_contract": {
+        "achieved": "The authorized decision owner has recorded proceed, stage, redesign, pause, or stop together with the superior purpose, minimum acceptable result, chosen mechanism, critical assumptions, Red Team findings, resource shift and reserve, refutators, residual risks, review trigger, and termination condition; any transition required by the decision has an explicit ordinary owner.",
+        "outstanding": "Accepted risks, pending information, open obligations, unresolved dependencies, and any condition not yet conserved are recorded explicitly with the evidence or action needed to close them; none is converted into implied completion by the decision itself.",
+        "accountable": "The named human or institutional decision owner remains accountable for the material choice and accepted residual risk; after transition, the named permanent institutional owner answers for conservation. Agents diagnose, challenge, recommend, and execute bounded work but do not inherit decision authority.",
+        "on_breach": "If a declared refutator, hard legal/ethical limit, authority defect, fatal Red Team finding, or termination trigger is reached, the current course is paused or stopped and returned to the decision owner for redesign or a new bounded decision; an executor may not waive the trigger by continuing execution.",
+        "conservation_resources": "A permanent owner, ordinary budget/capacity, verification procedure, retained decision/evidence record, and an exception path sufficient to keep the result functioning after extraordinary attention and reserve are withdrawn.",
+        "revision_conditions": "Reopen the decision when a refutator fires, actor authority or a decisive dependency materially changes, reserve falls below the level assumed by the choice, the initiative reaches culmination, or transition evidence shows that the result cannot be conserved under ordinary conditions."
+      },
+      "doc": "strategy/runbooks/scenario-strategic-decision.md",
+      "roster": [
+        {
+          "group": "Strategic Control",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "general-strategy-director",
+            "research-synthesist",
+            "business-strategist",
+            "strategic-red-team"
+          ]
+        },
+        {
+          "group": "Decision Support",
+          "activation": "as required by the decision geometry",
+          "agents": [
+            "specialized-master-plan-architect",
+            "chief-financial-officer",
+            "organizational-psychologist",
+            "support-legal-compliance-checker"
+          ]
+        },
+        {
+          "group": "Execution & Verification",
+          "activation": "only after an authorized bounded decision",
+          "agents": [
+            "project-management-project-shepherd",
+            "testing-reality-checker"
+          ]
+        }
+      ]
+    },
     {
       "slug": "startup-mvp",
       "title": "Startup MVP Build",
       "mode": "NEXUS-Sprint",
-      "duration": "4-6 weeks",
-      "summary": "Idea to live product with real users, fast — without skipping QA.",
+      "duration": "planning estimate: 4-6 weeks",
+      "summary": "Test a bounded product thesis and ship the smallest evidence-generating product without confusing feature delivery with product-market validation.",
+      "governing_object": "Establish whether a specific customer problem can be solved by a usable, supportable product strongly enough to justify the next material investment.",
+      "non_object": "Maximize feature count, sprint velocity, launch speed, or demo polish as ends in themselves.",
+      "decision_owner": "Product owner or authorized founder/executive",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Close, redesign, or narrow the initiative when the declared falsifier is met, required authority/resources cannot be obtained, or the minimum sufficient result is achieved and transferred to ordinary ownership.",
+      "termination_contract": {
+        "achieved": "The bounded MVP has generated decision-grade evidence against the declared product thesis, the decision owner has recorded PROCEED, PROCEED_WITH_CONDITIONS, HOLD, REDESIGN, or REJECT for the next material commitment, and any surviving product has an identified ordinary product/operations owner rather than remaining an experiment by inertia.",
+        "outstanding": "Untested or weakly tested problem, product, willingness-to-use/pay, acquisition/distribution, and operational-supportability hypotheses remain named in the Claim Register together with relevant UNKNOWN surfaces, intentionally deferred architecture, and the evidence needed before they can support a larger commitment.",
+        "accountable": "The authorized founder, product owner, or executive owns the next material investment and accepted residual risk; after transfer, the named product/operations owner answers for serviceability and controls. Strategic Assurance and orchestration roles do not acquire that authority.",
+        "on_breach": "If the declared falsifier is met, required authority/resources cannot be obtained, supportability becomes unacceptable, or the MVP stops generating decision value relative to cost, work is narrowed, redesigned, held, or rejected rather than extended because of launch dates, sunk cost, or prior sprint success.",
+        "conservation_resources": "A named operational owner, evidence-derived SLOs and constraints, ordinary support capacity, the preserved Claim Register, and repeatable controls/tests sufficient to operate the surviving product without temporary MVP access or process.",
+        "revision_conditions": "Reopen the thesis before material scale expansion when evidence weakens the user problem or causal mechanism, acquisition or support economics change materially, a critical dependency/constraint changes, or the next exposure would exceed the authority and blast radius tested by the MVP."
+      },
       "doc": "strategy/runbooks/scenario-startup-mvp.md",
       "roster": [
         {
-          "group": "Core Team",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
             "agents-orchestrator",
             "project-manager-senior",
-            "product-sprint-prioritizer",
+            "product-sprint-prioritizer"
+          ]
+        },
+        {
+          "group": "Product & Build",
+          "activation": "when permitted by the current strategic output",
+          "agents": [
             "design-ux-architect",
             "engineering-frontend-developer",
             "engineering-backend-architect",
@@ -26,7 +105,7 @@
         },
         {
           "group": "Growth Team",
-          "activation": "week 3+",
+          "activation": "only after the relevant value and audience hypothesis is testable",
           "agents": [
             "marketing-growth-hacker",
             "marketing-content-creator",
@@ -51,18 +130,41 @@
       "slug": "enterprise-feature",
       "title": "Enterprise Feature Development",
       "mode": "NEXUS-Sprint",
-      "duration": "6-12 weeks",
-      "summary": "Ship a major feature into an existing enterprise product with non-negotiable compliance, security, and quality gates, and multi-stakeholder alignment.",
+      "duration": "planning estimate: 6-12 weeks",
+      "summary": "Deliver a material enterprise capability without sacrificing system integrity, compliance, maintainability, or stakeholder authority for roadmap completion.",
+      "governing_object": "Produce a validated enterprise capability that improves the declared user/business outcome while remaining compatible with the existing product, controls, and operating model.",
+      "non_object": "Ship the roadmap item, maximize scope, or satisfy a single stakeholder metric regardless of system-level consequences.",
+      "decision_owner": "Authorized product/program owner with relevant security/compliance concurrence",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Stop or redesign when a fatal security/compliance/architecture condition emerges, the causal benefit thesis is falsified, or the validated capability is transferred to normal product and operations ownership.",
+      "termination_contract": {
+        "achieved": "The declared enterprise capability has evidence for its user/business mechanism, material requirements trace to authoritative sources, required integration/migration and project-specific quality evidence is sufficient, applicable security/compliance conditions are satisfied or explicitly accepted by their competent authorities, rollback/isolation is understood, and ordinary product/operations/support ownership has accepted the capability.",
+        "outstanding": "All remaining UNKNOWN and NOT_TESTED surfaces, conditional approvals, deferred requirements, migration liabilities, external dependencies, and operational burdens are recorded with owners and the evidence or decision required; roadmap completion does not erase them.",
+        "accountable": "The authorized product/program owner owns the business commitment; security, compliance, legal, data, architecture, and operational authorities retain their non-transferable decision rights; after release, the named ordinary product/operations owner answers for sustainment.",
+        "on_breach": "If the benefit thesis is falsified, a mandatory legal/security/control condition cannot be satisfied, integration becomes materially incompatible, operational burden exceeds authorized benefit, or safe operating reserve is consumed, exposure is held, rolled back where appropriate, or redesigned; schedule pressure and executive visibility cannot waive the affected authority's gate.",
+        "conservation_resources": "Named product/operations/support ownership, sufficient ordinary support capacity, outcome and technical monitoring, tested rollback/isolation where required, and the preserved decision/evidence record needed to sustain the capability after project staffing ends.",
+        "revision_conditions": "Open a new decision record when the user/business objective, authoritative requirement, architecture, control perimeter, material dependency, deployment population, or accepted risk changes enough that the prior evidence no longer supports the current exposure."
+      },
       "doc": "strategy/runbooks/scenario-enterprise-feature.md",
       "roster": [
         {
-          "group": "Core Team",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
             "agents-orchestrator",
             "project-management-project-shepherd",
             "project-manager-senior",
-            "product-sprint-prioritizer",
+            "product-sprint-prioritizer"
+          ]
+        },
+        {
+          "group": "Core Product & Engineering",
+          "activation": "when permitted by the current strategic output",
+          "agents": [
             "design-ux-architect",
             "design-ux-researcher",
             "design-ui-designer",
@@ -78,7 +180,7 @@
         },
         {
           "group": "Compliance & Governance",
-          "activation": "as needed",
+          "activation": "as required by scope and before the relevant commitment",
           "agents": [
             "support-legal-compliance-checker",
             "design-brand-guardian",
@@ -88,7 +190,7 @@
         },
         {
           "group": "Quality Assurance",
-          "activation": "as needed",
+          "activation": "as needed and at material gates",
           "agents": [
             "testing-test-results-analyzer",
             "testing-workflow-optimizer",
@@ -99,27 +201,60 @@
     },
     {
       "slug": "marketing-campaign",
-      "title": "Multi-Channel Marketing Campaign",
+      "title": "Strategy-Led Marketing Campaign",
       "mode": "NEXUS-Sprint",
-      "duration": "2-4 weeks",
-      "summary": "Launch a coordinated, brand-consistent campaign across channels that drives measurable acquisition and engagement.",
+      "duration": "campaign-dependent",
+      "summary": "Diagnose the demand constraint before selecting channels, then activate only interventions whose causal role, evidence plan, resources, reactions, and stopping rules are explicit.",
+      "governing_object": "Improve a defined superior commercial or behavioral outcome by diagnosing the binding demand constraint and selecting the smallest coherent set of marketing interventions capable of changing it.",
+      "non_object": "Maximize impressions, posting frequency, engagement, follower growth, channel coverage, or campaign activity as ends in themselves.",
+      "decision_owner": "Authorized marketing or business owner",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "Stop, reallocate, redesign, or re-diagnose when the demand/causal hypothesis is falsified, marginal effort no longer contributes to the governing object, a hard constraint is breached, or the sufficient result is reached and conserved.",
+      "termination_contract": {
+        "achieved": "The campaign's defined commercial or behavioral result is reported against its measured baseline or explicit UNKNOWN, the final Claim Register distinguishes supported and rejected audience/channel/creative hypotheses, attribution method and limitations are recorded, guardrail outcomes are visible, and the authorized owner has made the close, scale, hold, redesign, or reallocation decision.",
+        "outstanding": "Unresolved attribution limits, data-quality gaps, unsupported hypotheses, audience or market unknowns, guardrail issues, and any temporary platform/access/process obligations are recorded rather than converted into a universal channel or creative rule.",
+        "accountable": "The authorized marketing/business owner remains accountable for budget, publication, and material allocation; compliance, brand, platform, and legal authorities retain their respective rights. Named ordinary owners receive any learning or process that survives the campaign.",
+        "on_breach": "A falsifier, inadmissible guardrail breach, withdrawal of authority/platform access, or evidence that marginal spend/effort no longer contributes to the governing object triggers pause, reallocation, redesign, or stop; the team may not answer the breach by reflexively increasing spend, content cadence, or channel count.",
+        "conservation_resources": "The final Claim Register, baseline-versus-result record, attribution method and limitations, reusable brand/compliance learnings, and named owners for any retained capability; campaign-specific budgets, automation, access, and temporary processes expire when their authority ends.",
+        "revision_conditions": "Re-diagnose when the target audience, product/value proposition, platform access or policy, measurement model, market context, marginal economics, or material guardrails change enough that the prior causal allocation no longer explains the expected result."
+      },
       "doc": "strategy/runbooks/scenario-marketing-campaign.md",
       "roster": [
         {
-          "group": "Campaign Core",
+          "group": "Strategic Control",
           "activation": "always",
           "agents": [
-            "marketing-social-media-strategist",
-            "marketing-content-creator",
+            "specialized-strategic-assurance-lead",
+            "marketing-strategy-orchestrator",
+            "marketing-strategy-director",
+            "market-demand-mapper",
+            "marketing-evidence-lead",
+            "marketing-portfolio-allocator",
+            "marketing-strategic-red-team"
+          ]
+        },
+        {
+          "group": "Intervention Core",
+          "activation": "only after diagnosis selects the relevant mechanism",
+          "agents": [
             "marketing-growth-hacker",
+            "marketing-content-creator",
+            "marketing-social-media-strategist",
             "design-brand-guardian",
             "support-analytics-reporter"
           ]
         },
         {
-          "group": "Platform Specialists",
-          "activation": "as needed",
+          "group": "Platform & Channel Specialists",
+          "activation": "only when selected by the strategic thesis",
           "agents": [
+            "marketing-seo-specialist",
+            "marketing-aeo-foundations",
+            "marketing-agentic-search-optimizer",
+            "marketing-email-strategist",
             "marketing-twitter-engager",
             "marketing-tiktok-strategist",
             "marketing-instagram-curator",
@@ -128,10 +263,11 @@
           ]
         },
         {
-          "group": "Support",
+          "group": "Research & Compliance",
           "activation": "as needed",
           "agents": [
             "product-trend-researcher",
+            "research-synthesist",
             "project-management-experiment-tracker",
             "support-executive-summary-generator",
             "support-legal-compliance-checker"
@@ -143,30 +279,227 @@
       "slug": "incident-response",
       "title": "Incident Response",
       "mode": "NEXUS-Micro",
-      "duration": "Minutes to hours",
-      "summary": "Detection through post-mortem for a production incident — fast response without cutting corners.",
+      "duration": "incident-dependent; minutes to hours for containment, longer for conservation",
+      "summary": "Restore critical service safely, preserve evidence, and prevent recurrence without optimizing MTTR at the expense of integrity or learning.",
+      "governing_object": "Return the affected service to a safe, supportable condition while preserving evidence, controlling blast radius, and establishing the changes needed to prevent recurrence.",
+      "non_object": "Minimize MTTR, close the incident, or restore green dashboards regardless of residual risk, evidence loss, or recurrence.",
+      "decision_owner": "Named incident authority under the organization's incident policy",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml"
+      ],
+      "termination_criteria": "End emergency mode only when containment and recovery criteria are met, residual risks have owners, temporary authority/access is expired or transferred, and conservation actions are assigned to ordinary ownership.",
+      "termination_contract": {
+        "achieved": "The critical function is restored to the declared safe/supportable condition or deliberately changed by the authorized incident owner, material evidence is preserved, residual risks and durable remediation have named owners, stakeholder obligations are addressed, temporary emergency authority/access has expired or transferred, and monitoring/verification can show whether recovery is conserved.",
+        "outstanding": "Remaining residual risks, UNKNOWN and NOT_TESTED surfaces, durable remediation, regression/control tests, dependency or vendor follow-up, data/user remediation, and security/compliance/legal follow-up are recorded with owners and review dates; emergency closure does not imply that this work is complete.",
+        "accountable": "The named incident authority alone closes or changes emergency mode under organizational policy; each durable remediation has an ordinary owner after transfer. Technical access and agent participation do not create authority to accept degraded service or residual risk.",
+        "on_breach": "If the original mechanism recurs, a recovery guardrail or data/integrity condition fails, material evidence contradicts the closure basis, or an emergency bypass/elevated access persists without transfer, the incident is reopened or escalated to the authorized owner and the unsafe temporary state is not normalized by silence.",
+        "conservation_resources": "Named ordinary owners for durable remediation, regression/control tests and monitoring; preserved incident evidence and post-incident decision record; and removal or governed transfer of elevated access, temporary credentials, feature flags, bypasses, routing, and emergency process.",
+        "revision_conditions": "Reopen the incident analysis when recurrence reveals the same propagation mechanism, new evidence changes the causal account, a temporary workaround becomes a persistent dependency, or a control expected to prevent recurrence fails under ordinary operation."
+      },
       "doc": "strategy/runbooks/scenario-incident-response.md",
       "roster": [
         {
-          "group": "P0 Critical Response",
+          "group": "Strategic & Incident Control",
           "activation": "always",
           "agents": [
+            "specialized-strategic-assurance-lead",
+            "agents-orchestrator",
             "support-infrastructure-maintainer",
             "engineering-devops-automator",
-            "engineering-backend-architect",
-            "engineering-frontend-developer",
-            "support-support-responder",
             "support-executive-summary-generator"
           ]
         },
         {
-          "group": "Verification & Post-Mortem",
-          "activation": "post-fix",
+          "group": "Technical Response",
+          "activation": "according to the incident authority and affected system",
+          "agents": [
+            "engineering-backend-architect",
+            "engineering-frontend-developer",
+            "support-support-responder"
+          ]
+        },
+        {
+          "group": "Verification & Conservation",
+          "activation": "during validation and post-fix",
           "agents": [
             "testing-evidence-collector",
             "testing-api-tester",
             "testing-workflow-optimizer",
             "product-sprint-prioritizer"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "htp-gate0-solana-arbitrum",
+      "title": "HTP Gate 0 — Solana + Arbitrum",
+      "mode": "NEXUS-Sprint",
+      "duration": "planning window: 14 days",
+      "summary": "Close an evidence-first, non-executing Gate 0 for bounded Solana and Arbitrum One DeFi risk-monitoring workstreams with chain-specific engineering, security, research, and legal review.",
+      "governing_object": "Determine whether a bounded, defensive Solana + Arbitrum One monitoring MVP is coherent, supportable, legally reviewable, and falsifiable before any live-service or executing capability is authorized.",
+      "non_object": "Maximize chain coverage, MEV capture, exploitability knowledge, detector count, or speed to live execution.",
+      "decision_owner": "HTP Governance or explicitly delegated Gate 0 owner",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml",
+        "strategy/htp-gate0/gate0/01-object-non-object.md",
+        "strategy/htp-gate0/gate0/02-jurisdiction-activity.md",
+        "strategy/htp-gate0/gate0/03-threat-model.md",
+        "strategy/htp-gate0/gate0/04-domain-map.md",
+        "strategy/htp-gate0/gate0/05-claim-registers.yaml",
+        "strategy/htp-gate0/gate0/06-mvp-falsifiers.md"
+      ],
+      "termination_criteria": "Gate 0 closes with PROCEED, PROCEED_WITH_CONDITIONS, REDESIGN, or REJECT once the bounded artifacts and evidence are sufficient; HOLD persists only while a named evidence/authority condition remains unresolved. No Gate 0 result authorizes live offensive or executing capability.",
+      "termination_contract": {
+        "achieved": "For each network separately, all six Gate 0 artifacts and the final chain-specific E1↔S1 disposition are recorded, required competent legal-review status and named human product/security/governance owners are visible, and human governance has issued PASS_TO_EVIDENCE_FOUNDATION, REDESIGN, HOLD, or STOP without importing the other network's validation. A pass authorizes only the next bounded evidence stage, not production execution.",
+        "outstanding": "Every HOLD or incomplete condition is listed by network — including missing client/protocol scope, deployed manifest/adapters, quantitative evaluation parameters, competent legal sign-off, accountable human owner/reviewer, unresolved E1↔S1 finding, or evidence gap — and remains unresolved rather than being silently converted into a pass.",
+        "accountable": "Named human HTP governance decides each network's Gate 0 state; G1 owns package integrity and escalation, competent human/legal authority owns legal sign-off where required, and named technical/product reviewers own their decisions. No document author or agent may self-issue PASS_TO_EVIDENCE_FOUNDATION or live execution authority.",
+        "on_breach": "Any production write, real transaction/signing/custody action, unauthorized third-party interaction, unsupported empirical claim/status upgrade, cross-network evidence leakage, or material departure from the bounded object invalidates the affected Gate basis: stop the unauthorized path and return that network to HOLD, REDESIGN, or STOP until human governance records a new decision.",
+        "conservation_resources": "Immutable/versioned Gate artifacts, independent network claim registers, final manifests and evaluation parameters frozen before benchmark/shadow work, recorded E1↔S1 dispositions, and named human owners/review dates sufficient to preserve scope and evidence status after the Gate meeting ends.",
+        "revision_conditions": "Reopen the affected network Gate when the named protocol/market/program/feed manifest changes materially, threat definitions or observability assumptions change, the planned activity or jurisdiction/legal status changes, a client or accountable owner changes, or new evidence invalidates the scope, falsifier, or handoff disposition that supported the prior Gate decision."
+      },
+      "doc": "strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md",
+      "roster": [
+        {
+          "group": "Core Gate 0",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "specialized-chief-of-staff",
+            "product-manager",
+            "security-blockchain-security-auditor",
+            "research-synthesist",
+            "research-proposition-citation-auditor"
+          ]
+        },
+        {
+          "group": "Chain Engineering",
+          "activation": "domain map, technical reconciliation, and S1 handoff",
+          "agents": [
+            "engineering-solana-program-engineer",
+            "engineering-solidity-smart-contract-engineer"
+          ]
+        },
+        {
+          "group": "Mandatory Legal Review",
+          "activation": "jurisdiction/activity memo and before any live-service expansion",
+          "agents": [
+            "support-legal-compliance-checker"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "marketing-mispricing-diagnostic",
+      "title": "The Marketing Mispricing Diagnostic",
+      "mode": "NEXUS-Sprint",
+      "duration": "2 weeks (optional 4-6 week sprint)",
+      "summary": "Separate demand creation from demand extraction in two weeks: classify marketing capital by job, run nine evidence-graded modules, challenge the thesis, and deliver a board-safe Mispricing Report and Repricing Memo.",
+      "governing_object": "Determine where a company's marketing capital is creating future demand and where it is harvesting demand that earlier brand investment already built, and state the reallocation that follows, with every material claim graded by evidence.",
+      "non_object": "Judge creative taste, audit agency performance, redesign the brand, or produce a growth forecast the evidence does not fund.",
+      "decision_owner": "Engagement lead, or the client-side CMO/CFO sponsor named in the Strategic Decision Record",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml",
+        "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md",
+        "strategy/INSTITUTIONAL-SELF-TEST.md"
+      ],
+      "termination_criteria": "The diagnostic closes when the Availability Ledger, the nine modules, and the Repricing Memo are delivered with every material claim graded [FACT]/[INFERENCE]/[HYPOTHESIS]/[JUDGMENT] and every gap named. It terminates early, with findings stated as incomplete, if budget, spend or measurement data sufficient to separate creation from extraction cannot be obtained. No output authorizes a reallocation the client's own governance has not approved.",
+      "termination_contract": {
+        "achieved": "The Availability Ledger classifies the period's marketing capital by job, the nine modules are graded, and the Repricing Memo states the reallocation the evidence supports.",
+        "outstanding": "Every module the data could not close is listed by name with the data that would close it — not omitted and not softened into a judgement.",
+        "accountable": "The client-side sponsor named in the Strategic Decision Record owns the reallocation after handover; the engagement lead owns the findings and their evidence grades.",
+        "on_breach": "If the client presents a graded claim at a higher status than the register records, or attributes a reallocation to this work that the memo does not support, the engagement lead corrects the record in writing and the diagnostic is not cited as its basis.",
+        "conservation_resources": "A named owner for the Ratio Covenant and quarterly access to spend and measurement data; without both, the reallocation decays back to the prior split.",
+        "revision_conditions": "Revisit when the brand/activation split moves more than ten points, the measurement model changes, or a distinctive asset is retired or redesigned."
+      },
+      "doc": "strategy/runbooks/scenario-marketing-mispricing-diagnostic.md",
+      "roster": [
+        {
+          "group": "Engagement Core",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "mispriced-cmo-diagnostic-lead",
+            "mispriced-cmo-availability-ledger-analyst",
+            "mispriced-cmo-measurement-bias-reviewer",
+            "mispriced-cmo-recognition-equity-auditor",
+            "mispriced-cmo-voice-fame-analyst",
+            "mispriced-cmo-physical-availability-analyst",
+            "mispriced-cmo-governance-risk-analyst"
+          ]
+        },
+        {
+          "group": "Strategic Control & Challenge",
+          "activation": "always",
+          "agents": [
+            "market-demand-mapper",
+            "marketing-evidence-lead",
+            "marketing-portfolio-allocator",
+            "chief-financial-officer",
+            "marketing-strategic-red-team"
+          ]
+        },
+        {
+          "group": "Deliverable & Assurance",
+          "activation": "days 9-10",
+          "agents": [
+            "mispriced-cmo-repricing-memo-writer",
+            "mispriced-cmo-proposition-auditor"
+          ]
+        },
+        {
+          "group": "Commercial (internal)",
+          "activation": "qualification and next phase only",
+          "agents": [
+            "maxx-profit-offer-architect"
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "boring-wins-manuscript",
+      "title": "BORING WINS Chapter Production",
+      "mode": "NEXUS-Micro",
+      "duration": "1-5 days per chapter pass",
+      "summary": "Take a BORING WINS chapter from draft to publication-ready: architecture, argument, verified evidence, cross-work consistency, and line edit in the book's voice.",
+      "governing_object": "Bring a BORING WINS chapter to publishable state: the argument holds, every figure and citation traces to a verified source, and the prose keeps the book's register.",
+      "non_object": "Soften the cultural critique, convert the book into a framework or how-to manual, or let a hypothesis harden into doctrine because it has survived several drafts.",
+      "decision_owner": "Author (Javier Peiro Rius)",
+      "required_artifacts": [
+        "strategy/templates/strategic-decision-record.md",
+        "strategy/templates/claim-register.yaml",
+        "strategy/runbooks/scenario-boring-wins-manuscript.md",
+        "strategy/INSTITUTIONAL-SELF-TEST.md"
+      ],
+      "termination_criteria": "A chapter closes when its claims are registered and sourced, its tensions with the rest of the manuscript are recorded or resolved, and the author accepts the draft. It stops short of that when a load-bearing citation cannot be verified: the claim is cut or demoted to [HYPOTHESIS] rather than shipped as fact.",
+      "termination_contract": {
+        "achieved": "The chapter's claims are registered and sourced, its tensions with the rest of the manuscript are recorded or resolved, and the author has accepted the draft.",
+        "outstanding": "Claims demoted for want of a verifiable source stay in the register at their real status, with the source that would restore them.",
+        "accountable": "The author. Editorial agents hold no authority over what ships.",
+        "on_breach": "If a figure or citation is found unverifiable after acceptance, the claim is cut or demoted in the register and every downstream deliverable quoting it is corrected — the book, the framework, and any client material that inherited it.",
+        "conservation_resources": "The proposition register outlives the chapter; it is the artifact that keeps the manuscript and the commercial layer telling the same story.",
+        "revision_conditions": "Revisit when a cited source is superseded, when a chapter's argument changes upstream, or when the same claim appears at two different statuses in two documents."
+      },
+      "doc": "strategy/runbooks/scenario-boring-wins-manuscript.md",
+      "roster": [
+        {
+          "group": "Core",
+          "activation": "always",
+          "agents": [
+            "specialized-strategic-assurance-lead",
+            "boring-wins-manuscript-editor",
+            "mispriced-cmo-proposition-auditor"
+          ]
+        },
+        {
+          "group": "Support",
+          "activation": "as needed",
+          "agents": [
+            "research-synthesist",
+            "marketing-strategic-red-team",
+            "marketing-book-co-author"
           ]
         }
       ]
