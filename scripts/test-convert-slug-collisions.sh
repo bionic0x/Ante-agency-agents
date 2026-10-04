@@ -7,7 +7,11 @@ scratch="$(mktemp -d)"
 trap 'rm -rf "$scratch"' EXIT
 
 mkdir -p "$scratch/repo/scripts" "$scratch/repo/engineering" "$scratch/output/gemini-cli"
-cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$scratch/repo/scripts/"
+cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/convert-engine.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$scratch/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$scratch/repo/tools.json"
+cat > "$scratch/repo/divisions.json" <<'JSON'
+{"divisions":{"engineering":{"description":"fixture","path":"engineering"}}}
+JSON
 
 cat > "$scratch/repo/engineering/first.md" <<'EOF'
 ---
