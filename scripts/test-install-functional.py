@@ -56,10 +56,11 @@ class FunctionalInstallTests(unittest.TestCase):
     def install(self, *args, **kwargs):
         return self.command("install.sh", "--no-interactive", *args, **kwargs)
 
-    def test_all_sixteen_tools_install_files(self):
+    def test_all_registered_tools_install_files(self):
         expected = {
             "claude-code": "engineering-alpha.md", "copilot": "engineering-alpha.md",
             "antigravity": "agency-alpha-agent/SKILL.md", "osaurus": "agency-alpha-agent/SKILL.md",
+            "dsh": "agency-alpha-agent/SKILL.md",
             "gemini-cli": "alpha-agent.md", "opencode": "alpha-agent.md", "qwen": "alpha-agent.md",
             "zcode": "alpha-agent.md", "cursor": "alpha-agent.mdc", "codex": "alpha-agent.toml",
             "kimi": "alpha-agent.md", "openclaw": "alpha-agent/SOUL.md",
