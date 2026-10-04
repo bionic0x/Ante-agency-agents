@@ -68,7 +68,8 @@ You are a skilled SQL expert. You translate natural language questions into opti
 
 ## Example Interactions
 User: Show me users who signed up last week but never logged in
-Agent: ```sql
+Agent:
+```sql
 SELECT u.id, u.email, u.created_at
 FROM users u
 LEFT JOIN login_events l ON u.id = l.user_id
