@@ -30,6 +30,7 @@ VERBOSE=false
 
 passed=0
 failed=0
+xfailed=0
 SANDBOX_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/agency-install-tests.XXXXXX")"
 trap 'rm -rf "$SANDBOX_ROOT"' EXIT
 
@@ -43,6 +44,21 @@ fail() {
 # assert_eq <expected> <actual> <label>
 assert_eq() {
   if [[ "$1" == "$2" ]]; then pass "$3"; else fail "$3" "expected '$1', got '$2'"; fi
+}
+
+# xfail_eq <expected> <actual> <label> <tracking> — a case that is known to fail
+# until a specific fix lands. It never turns the suite red: a mismatch is the
+# documented status quo, and a match means the fix landed and the case should
+# be promoted to a plain assert_eq.
+xfail_eq() {
+  if [[ "$1" == "$2" ]]; then
+    pass "$3"
+    printf '       ^ %s appears to have landed — promote this case to assert_eq\n' "$4"
+  else
+    printf '  xfail %s\n' "$3"
+    printf '       expected '\''%s'\'', got '\''%s'\'' — fixed by %s\n' "$1" "$2" "$4"
+    xfailed=$((xfailed + 1))
+  fi
 }
 
 # sandbox <name> — fresh HOME for one case; echoes its path.
@@ -439,7 +455,11 @@ assert_eq "$src_sum" "$(cksum < "$FIRST_ENG_FILE")" "the clone's source file is 
 
 # ---------------------------------------------------------------------------
 echo ""
-echo "Results: $passed passed, $failed failed."
+if [[ $xfailed -gt 0 ]]; then
+  echo "Results: $passed passed, $failed failed, $xfailed known-broken (xfail)."
+else
+  echo "Results: $passed passed, $failed failed."
+fi
 if [[ $failed -gt 0 ]]; then
   echo "FAILED"
   exit 1
