@@ -42,7 +42,7 @@ class CapabilityTests(unittest.TestCase):
             with self.assertRaises(ValueError): m.inspect(self.agent, o, at=NOW)
 
     def test_policy_requires_registered_tokens_and_live_scope(self):
-        for field, value in [('allowed_tools', ['Bash']), ('expires', '2020-01-01T00:00:00Z'), ('owner', '')]:
+        for field, value in [('allowed_tools', ['UnreviewedTool']), ('expires', '2020-01-01T00:00:00Z'), ('owner', '')]:
             with self.assertRaises(ValueError): m.inspect(self.agent, policy={**self.policy, field: value}, at=NOW)
 
     def test_render_is_scoped_and_refuses_overwrite(self):
