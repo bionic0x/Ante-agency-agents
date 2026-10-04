@@ -1712,7 +1712,7 @@ main() {
     rm -rf "$install_out_dir"
     if [[ "$worker_status" -ne 0 ]]; then
       err "One or more parallel installations failed; see worker output above."
-      return 1
+      return "$worker_status"
     fi
     installed=$n_selected
   else
