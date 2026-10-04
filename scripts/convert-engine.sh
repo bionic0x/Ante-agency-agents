@@ -754,12 +754,12 @@ run_conversions() {
   local divisions
 
   if [[ "$tool" == "hermes" ]]; then
-    clean_tool_output "$tool"
+    clean_tool_output "$tool" || return 1
     python3 "$SCRIPT_DIR/build-hermes-plugin.py" --repo-root "$REPO_ROOT" --out "$OUT_DIR/hermes"
     return
   fi
 
-  clean_tool_output "$tool"
+  clean_tool_output "$tool" || return 1
   divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
 
   while IFS= read -r dir; do
