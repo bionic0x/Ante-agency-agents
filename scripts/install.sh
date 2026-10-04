@@ -969,8 +969,8 @@ install_cursor() {
 
 install_aider() {
   local src="$INTEGRATIONS/aider/CONVENTIONS.md"
-  local dest="${OVERRIDE_PATH:-${PWD}}/CONVENTIONS.md"
-  mkdir -p "$(dirname "$dest")"
+  local dest_dir; dest_dir="$(resolve_dest aider "$PWD")"
+  local dest="$dest_dir/CONVENTIONS.md"
   [[ -f "$src" ]] || { err "integrations/aider/CONVENTIONS.md missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest_dir"
   if [[ -f "$dest" ]]; then
@@ -1002,8 +1002,8 @@ install_aider() {
 
 install_windsurf() {
   local src="$INTEGRATIONS/windsurf/.windsurfrules"
-  local dest="${OVERRIDE_PATH:-${PWD}}/.windsurfrules"
-  mkdir -p "$(dirname "$dest")"
+  local dest_dir; dest_dir="$(resolve_dest windsurf "$PWD")"
+  local dest="$dest_dir/.windsurfrules"
   [[ -f "$src" ]] || { err "integrations/windsurf/.windsurfrules missing. Run convert.sh first."; return 1; }
   mkdir -p "$dest_dir"
   if [[ -f "$dest" ]]; then
