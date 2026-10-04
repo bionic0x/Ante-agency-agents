@@ -238,11 +238,32 @@ OVERRIDE_PATH=""      # --path (single-destination override)
 
 # install_file <src> <dest> — copy, or symlink when --link is set.
 install_file() {
-  local dest="$2"
-  [[ -d "$dest" ]] && dest="${dest%/}/$(basename "$1")"
-  # Switching from links to copies must not follow a link back into the repo.
-  [[ -L "$dest" ]] && rm "$dest"
-  if $USE_LINK; then ln -sf "$1" "$dest"; else cp "$1" "$dest"; fi
+  local target="$2"
+  # Directory destinations have a trailing slash. Do not follow a leaf
+  # symlink to a directory when deciding which file belongs to the installer.
+  if [[ "$target" == */ ]] || { ! $USE_LINK && [[ -d "$target" ]]; }; then
+    target="${target%/}/$(basename "$1")"
+  fi
+  if [[ -L "$target" ]]; then
+    local link_to; link_to="$(readlink "$target")"
+    if [[ "$link_to" == "$REPO_ROOT/"* ]]; then
+      # An installer-owned link may be refreshed or switched to a copy.
+      rm -f -- "$target"
+    else
+      warn "Skipped $target — it is a symlink to $link_to; not overwriting it."
+      [[ -n "${SKIPPED_LOG:-}" ]] && printf '%s -> %s\n' "$target" "$link_to" >> "$SKIPPED_LOG"
+      return 0
+    fi
+  elif $USE_LINK && [[ -e "$target" ]]; then
+    warn "Skipped $target — it already exists; not replacing it with a symlink."
+    [[ -n "${SKIPPED_LOG:-}" ]] && printf '%s (existing file)\n' "$target" >> "$SKIPPED_LOG"
+    return 0
+  fi
+  if $USE_LINK; then
+    ln -s "$1" "$target"
+  else
+    cp "$1" "$2"
+  fi
 }
 
 # resolve_dest <tool> <default> — --path > $ENV_VAR > default.
