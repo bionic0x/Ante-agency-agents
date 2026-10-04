@@ -163,6 +163,30 @@ ${body}
 HEREDOC
 }
 
+convert_dsh() {
+  local file="$1"
+  local name description slug outdir outfile body
+
+  name="$(get_field "name" "$file")"
+  description="$(get_field "description" "$file")"
+  slug="agency-$(slugify "$name")"
+  body="$(get_body "$file")"
+
+  outdir="$OUT_DIR/dsh/$slug"
+  outfile="$outdir/SKILL.md"
+  mkdir -p "$outdir"
+
+  # DeepSeek Harness consumes Agent-Skills SKILL.md directories. Keep the
+  # standard name/description frontmatter and the source persona as the body.
+  cat > "$outfile" <<HEREDOC
+---
+name: $(yaml_quote "$slug")
+description: $(yaml_quote "$description")
+---
+${body}
+HEREDOC
+}
+
 convert_codex() {
   local file="$1"
   local name description slug outfile body
@@ -695,6 +719,7 @@ run_conversions() {
         zcode)       convert_zcode       "$file" ;;
         kimi)        convert_kimi        "$file" ;;
         osaurus)     convert_osaurus     "$file" ;;
+        dsh)         convert_dsh         "$file" ;;
         vibe)        convert_vibe        "$file" ;;
         aider)       accumulate_aider    "$file" ;;
         windsurf)    accumulate_windsurf "$file" ;;
