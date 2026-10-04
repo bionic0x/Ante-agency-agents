@@ -82,6 +82,19 @@ def main():
     out = routed(instance([task()]), [future])
     check(any('future-dated' in n for n in out['observation_notes']), 'future-dated must be refused')
 
+    # Empty, malformed and wrong-shape observation files degrade to NOT_OBSERVED.
+    for payload, fragment in [('', 'empty'), ('{', 'invalid JSON'), ('{}', 'JSON array')]:
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False) as fh:
+            fh.write(payload); path = fh.name
+        try:
+            out = r.route(instance([task()]), path, at=NOW)
+            check(out['tasks'][0]['selection'] == 'NO_OBSERVED_TARGET',
+                  f'{fragment}: bad observation input must fail closed')
+            check(any(fragment in note for note in out['observation_notes']),
+                  f'{fragment}: diagnostic must name the input defect')
+        finally:
+            Path(path).unlink(missing_ok=True)
+
     # Capability shortfall excludes with a specific reason, never a lower score.
     t = task(execution={'requires': {'reasoning_depth': 'extended'}})
     out = routed(instance([t]), [observation('shallow-one', depth='standard')])

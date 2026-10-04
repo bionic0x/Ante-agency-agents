@@ -47,6 +47,11 @@ jobs:
       - name: Validate vector coverage and execution routing
         run: python3 scripts/test-nexus-routing.py
 
+      - name: Validate bounded Anthropic execution pilot
+        run: |
+          python3 scripts/test-nexus-anthropic.py
+          python3 scripts/test-nexus-pilot.py
+
       - name: Keep HTP Gate 0 handoffs single-network and non-executing
         run: |
           python3 scripts/check-htp-gate0.py
