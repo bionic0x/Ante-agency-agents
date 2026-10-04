@@ -713,8 +713,39 @@ clean_tool_output() {
   # caller can never steer this rm -rf outside $OUT_DIR via "../" or "/".
   [[ "$1" =~ ^[a-z0-9-]+$ ]] || { echo "ERROR: clean_tool_output: refusing non-slug tool name '$1'" >&2; return 1; }
   local dir="$OUT_DIR/$1"
+  [[ ! -L "$dir" ]] || { error "refusing symlinked output directory: $dir"; return 1; }
   [[ -d "$dir" ]] || return 0
   find "$dir" -mindepth 1 -maxdepth 1 ! -name 'README.md' -exec rm -rf {} +
+}
+
+# Every per-agent integration writes to a path derived from the normalized
+# name. Refuse collisions before cleaning any existing output.
+check_agent_slug_collisions() {
+  local divisions dir dirpath file slug relative i
+  local seen_slugs=() seen_files=()
+  local collisions=0
+  divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
+  while IFS= read -r dir; do
+    [[ -n "$dir" ]] || continue
+    dirpath="$REPO_ROOT/$dir"
+    [[ -d "$dirpath" ]] || continue
+    while IFS= read -r -d '' file; do
+      is_agent_file "$file" || continue
+      slug="$(agent_slug "$file")"
+      [[ -n "$slug" ]] || continue
+      relative="${file#"$REPO_ROOT"/}"
+      for i in "${!seen_slugs[@]}"; do
+        if [[ "${seen_slugs[i]}" == "$slug" ]]; then
+          error "duplicate agent slug '$slug': ${seen_files[i]} and $relative"
+          collisions=$((collisions + 1))
+          break
+        fi
+      done
+      seen_slugs+=("$slug")
+      seen_files+=("$relative")
+    done < <(find "$dirpath" -name "*.md" -type f -print0)
+  done <<< "$divisions"
+  (( collisions == 0 ))
 }
 
 run_conversions() {
@@ -786,6 +817,8 @@ main() {
   done
 
   [[ "$parallel_jobs" =~ ^[1-9][0-9]*$ ]] || { error "--jobs must be a positive integer"; exit 1; }
+
+  check_agent_slug_collisions || exit 1
 
   local converted_tools=()
   local t
