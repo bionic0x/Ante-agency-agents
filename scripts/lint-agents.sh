@@ -24,13 +24,15 @@ RECOMMENDED_SECTIONS=("Identity" "Core Mission" "Critical Rules")
 # the work. A name that is not in it falls through to grey in the OpenCode
 # integration, which reads as a deliberate grey instead of a miss: `slate` and
 # `navy` sat there unnoticed across four agents.
+COLOR_MAP_SOURCE="$SCRIPT_DIR/convert-engine.sh"
+[[ -f "$COLOR_MAP_SOURCE" ]] || COLOR_MAP_SOURCE="$SCRIPT_DIR/convert.sh"
 KNOWN_COLORS="$(
-  awk '/^resolve_opencode_color\(\)/{f=1; next} f && /^}/{exit} f' "$SCRIPT_DIR/convert.sh" 2>/dev/null \
-    | grep -oE '^ +[a-z-]+\)' | tr -d ' )'
+  awk '/^resolve_opencode_color\(\)/{f=1; next} f && /^}/{exit} f' "$COLOR_MAP_SOURCE" 2>/dev/null \
+    | grep -oE '^ +[a-z-]+\)' | tr -d ' )' || true
 )"
 # If the map could not be read, check hex values only rather than rejecting
 # every named color on the strength of an empty list.
-[[ -n "$KNOWN_COLORS" ]] || echo "WARN  could not read resolve_opencode_color() from $SCRIPT_DIR/convert.sh — skipping the color-name check"
+[[ -n "$KNOWN_COLORS" ]] || echo "WARN  could not read resolve_opencode_color() from $COLOR_MAP_SOURCE — skipping the color-name check"
 
 errors=0
 warnings=0
