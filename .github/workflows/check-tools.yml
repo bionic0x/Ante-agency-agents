@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,26 +60,20 @@ jobs:
       - name: Refuse symlinked conversion output directories
         run: bash scripts/test-convert-symlink-output.sh
 
-      - name: Commit generated conversion manifest for sync
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Generate conversion manifest for sync
         run: |
-          export GIT_TERMINAL_PROMPT=0
           out="$RUNNER_TEMP/convert-out"
           mkdir -p "$out"
           bash scripts/convert.sh --tool all --parallel --jobs 4 --out "$out" >/dev/null
           bash scripts/test-convert-outputs.sh --out="$out" --update
-          if git diff --quiet -- scripts/convert-outputs.sha256; then
-            echo 'convert-outputs.sha256 already current'
-            exit 1
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/convert-outputs.sha256
-          git commit -m 'test(sync): update converted output manifest'
-          target="${GITHUB_HEAD_REF:-sync/upstream-2026-10-01}"
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${target}"
-          exit 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: convert-outputs-sha256
+          path: scripts/convert-outputs.sha256
+
+      - name: Stop after manifest artifact
+        run: exit 1
 
       - name: Validate host acceptance records (evidence cannot outrun its method)
         run: python3 scripts/test-host-acceptance.py
