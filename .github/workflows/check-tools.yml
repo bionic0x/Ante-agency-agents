@@ -52,8 +52,13 @@ jobs:
       - name: Validate converted YAML frontmatter
         run: bash scripts/test-convert-frontmatter.sh
 
+      - name: Reject colliding agent slugs before conversion
+        run: bash scripts/test-convert-slug-collisions.sh
+
+      - name: Refuse symlinked conversion output directories
+        run: bash scripts/test-convert-symlink-output.sh
+
       - name: Validate converted outputs (round-trip, strict parse, counts, drift)
-        # Commit regenerated outputs with profile/converter changes; enforce drift on PRs too.
         run: bash scripts/test-convert-outputs.sh
 
       - name: Validate host acceptance records (evidence cannot outrun its method)

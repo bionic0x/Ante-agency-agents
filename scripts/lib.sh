@@ -161,17 +161,27 @@ fence_open_p() {
 }
 
 # fence_closes_p <line> <open_marker> <open_len> <open_indent> — 0 if <line>
-# closes the open fence (same char, run len >= open, indent <= open); 1
-# otherwise, including non-fence lines (callers need not pre-classify).
+# closes the open fence (same char, run len >= open, indent <= open, nothing
+# but whitespace after the run); 1 otherwise, including non-fence lines
+# (callers need not pre-classify).
+#
+# The "nothing after the run" part is CommonMark's rule, and GitHub renders by
+# it: inside an open ``` block, a "```python" line is content, not a closer
+# and not a nested opener. Accepting it as a closer made these helpers read a
+# ```markdown template holding a ```bash example as two short blocks, while
+# GitHub saw one block that closed at the example's bare ``` — so a ## line
+# the split treated as code rendered as a heading, and the reverse.
 fence_closes_p() {
   local line="$1" open_marker="$2" open_len="$3" open_indent="$4"
   local re='^( {0,3})(`{3,}|~{3,})'
   [[ "$line" =~ $re ]] || return 1
   local close_indent=${#BASH_REMATCH[1]}
   local close_run="${BASH_REMATCH[2]}"
+  local rest="${line:${#BASH_REMATCH[0]}}"
   [[ "${close_run:0:1}" == "$open_marker" ]] || return 1
   (( ${#close_run} >= open_len )) || return 1
   (( close_indent <= open_indent )) || return 1
+  [[ -z "${rest//[[:space:]]/}" ]] || return 1
   return 0
 }
 

@@ -70,7 +70,7 @@ You've built these systems for real workloads: multilingual corpora, domain-spec
 ### Chunking Strategy — Semantic + Structural
 
 ```python
-from langchain.text_splitter import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
 def chunk_document(text: str, doc_type: str) -> list[dict]:
     """
@@ -96,7 +96,7 @@ def chunk_document(text: str, doc_type: str) -> list[dict]:
         for doc in header_chunks:
             sub_chunks = char_splitter.split_documents([doc])
             chunks.extend(sub_chunks)
-        return chunks
+        return [{"content": doc.page_content, "metadata": doc.metadata} for doc in chunks]
 
     else:
         # Semantic chunking for unstructured text
@@ -105,7 +105,10 @@ def chunk_document(text: str, doc_type: str) -> list[dict]:
             chunk_overlap=80,
             separators=["\n\n", "\n", ". ", "! ", "? ", " "]
         )
-        return splitter.create_documents([text])
+        return [
+            {"content": doc.page_content, "metadata": doc.metadata}
+            for doc in splitter.create_documents([text])
+        ]
 ```
 
 ### pgvector Schema & HNSW Index
@@ -141,6 +144,7 @@ CREATE INDEX ON document_chunks (document_id);
 
 ```python
 import asyncio
+import json
 from openai import AsyncOpenAI
 from pgvector.asyncpg import register_vector
 import asyncpg
@@ -177,7 +181,7 @@ async def ingest_document(document_id: str, chunks: list[dict], pool: asyncpg.Po
             VALUES ($1, $2, $3, $4, $5)
             """,
             [
-                (document_id, c["content"], emb, idx, c.get("metadata", {}))
+                (document_id, c["content"], emb, idx, json.dumps(c.get("metadata", {})))
                 for idx, (c, emb) in enumerate(zip(chunks, embeddings))
             ]
         )

@@ -267,6 +267,7 @@ def build_ingest_graph(driver):
     g.add_node("merge",   merge_node)     # MERGE into Neo4j
     g.add_node("detect",  detect_node)    # contradiction Cypher
     g.add_node("verify",  verify_node)    # integrity gates
+    g.set_entry_point("extract")
     g.add_edge("extract", "merge")
     g.add_edge("merge",   "detect")
     g.add_edge("detect",  "verify")

@@ -54,15 +54,30 @@ You are **Internationalization Engineer**, an expert in making software genuinel
 ```
 
 ```javascript
-// Rendering with FormatJS — the same message file drives web, and its format
-// (ICU) is what Android, iOS, and most TMS platforms speak natively.
-import { createIntl } from '@formatjs/intl';
+// Rendering with FormatJS: retain descriptions in the translator catalog,
+// but pass message strings (or compiled ASTs) to createIntl, not descriptors.
+import { createIntl, createIntlCache } from '@formatjs/intl';
 
-const intl = createIntl({ locale: 'ar', messages: arMessages });
+const arMessages = {
+  'cart.itemCount': {
+    message: '{count, plural, =0 {سلتك فارغة} one {عنصر واحد} two {عنصران} few {# عناصر} many {# عنصرًا} other {# عنصر}}',
+    description: 'Cart header; count = item count.',
+  },
+};
+const messages = Object.fromEntries(
+  Object.entries(arMessages).map(([id, descriptor]) => [id, descriptor.message])
+);
+const intl = createIntl({ locale: 'ar', messages }, createIntlCache());
 intl.formatMessage({ id: 'cart.itemCount' }, { count: 3 });
 // Arabic resolves count=3 to the CLDR "few" category — a form English doesn't have,
 // which is exactly why the ternary-operator version was a bug.
 ```
+
+Keep each target locale's ICU text and translator metadata separate at the
+runtime boundary. Passing `{message, description}` objects as `messages` entries
+causes formatting errors and can display the message ID instead of the translation.
+Mobile resource formats need a platform-specific export; an ICU catalog is not
+automatically an Android resource or an iOS String Catalog.
 
 ### Locale-Aware Formatting: Delete the Hand-Rolled Helpers
 

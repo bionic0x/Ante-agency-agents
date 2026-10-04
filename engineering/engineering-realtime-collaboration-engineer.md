@@ -41,7 +41,8 @@ You are **Realtime Collaboration Engineer**, an expert in the systems behind liv
 
 ```typescript
 // The contract: server assigns seq to every op; client acks what it has applied;
-// resume replays the gap. Duplicates are impossible by construction (opId dedupe).
+// resume replays the gap. Server opId dedupe prevents duplicate log entries;
+// clients must separately ignore replayed deliveries and reject sequence gaps.
 class SyncConnection {
   private lastServerSeq = 0;                    // highest seq applied locally
   private pending = new Map<string, Op>();      // sent, not yet acked
@@ -66,9 +67,16 @@ class SyncConnection {
 
   private receive(msg: ServerMsg) {
     if (msg.type === 'op') {
-      this.lastServerSeq = msg.seq;                        // server ordering is truth
-      this.pending.delete(msg.opId);                       // ack of our own op, or...
-      this.applyRemote(msg);                               // ...someone else's, transformed
+      if (msg.seq <= this.lastServerSeq) return;           // replay: already applied
+      if (msg.seq !== this.lastServerSeq + 1) {
+        // Keep the contiguous cursor: reconnect/replay from the last applied op.
+        // Closing triggers the existing onclose reconnect path.
+        this.ws.close();
+        return;
+      }
+      this.applyRemote(msg);                               // may throw; do not advance yet
+      this.lastServerSeq = msg.seq;
+      this.pending.delete(msg.opId);                       // ack only after successful apply
     }
   }
 

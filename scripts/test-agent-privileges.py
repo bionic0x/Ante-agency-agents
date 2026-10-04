@@ -39,12 +39,15 @@ class ToolDeclarationTests(unittest.TestCase):
 
     def test_registry_is_closed_over_current_least_privilege_universe(self):
         self.assertEqual(
-            {"Edit", "Read", "WebFetch", "WebSearch", "Write"},
+            {"Bash", "Edit", "Read", "WebFetch", "WebSearch", "Write"},
             set(self.policy),
         )
-        for token in ("Bash", "UnreviewedTool"):
-            with self.assertRaisesRegex(ValueError, "unregistered tool token"):
-                module.validate_registered_tools(["Read", token], self.policy)
+        module.validate_registered_tools(["Read", "Bash"], self.policy)
+        with self.assertRaisesRegex(ValueError, "unregistered tool token"):
+            module.validate_registered_tools(["Read", "UnreviewedTool"], self.policy)
+        self.assertEqual("execute", self.policy["Bash"]["class"])
+        self.assertTrue(self.policy["Bash"]["mutates"])
+        self.assertTrue(self.policy["Bash"]["external_io"])
 
     def test_declared_class_uses_highest_registered_privilege(self):
         self.assertEqual("read", module.declared_class(["Read"], self.classes, self.policy))
@@ -55,6 +58,10 @@ class ToolDeclarationTests(unittest.TestCase):
         self.assertEqual(
             "write",
             module.declared_class(["Read", "Write", "Edit"], self.classes, self.policy),
+        )
+        self.assertEqual(
+            "execute",
+            module.declared_class(["Read", "Write", "Bash"], self.classes, self.policy),
         )
 
 

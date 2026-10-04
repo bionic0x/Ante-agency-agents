@@ -163,6 +163,30 @@ ${body}
 HEREDOC
 }
 
+convert_dsh() {
+  local file="$1"
+  local name description slug outdir outfile body
+
+  name="$(get_field "name" "$file")"
+  description="$(get_field "description" "$file")"
+  slug="agency-$(slugify "$name")"
+  body="$(get_body "$file")"
+
+  outdir="$OUT_DIR/dsh/$slug"
+  outfile="$outdir/SKILL.md"
+  mkdir -p "$outdir"
+
+  # DeepSeek Harness consumes Agent-Skills SKILL.md directories. Keep the
+  # standard name/description frontmatter and the source persona as the body.
+  cat > "$outfile" <<HEREDOC
+---
+name: $(yaml_quote "$slug")
+description: $(yaml_quote "$description")
+---
+${body}
+HEREDOC
+}
+
 convert_codex() {
   local file="$1"
   local name description slug outfile body
@@ -236,6 +260,8 @@ resolve_opencode_color() {
     lime)           mapped="#84CC16" ;;
     gray)           mapped="#6B7280" ;;
     fuchsia)        mapped="#D946EF" ;;
+    slate)          mapped="#64748B" ;;
+    navy)           mapped="#000080" ;;
     *)              mapped="$c" ;;
   esac
 
@@ -414,13 +440,42 @@ HEREDOC
   fi
 }
 
+# Translate source/Claude tool names to Qwen's canonical tool registry.
+qwen_tools() {
+  local out="" t q
+  local IFS=','
+  for t in $1; do
+    t="${t#"${t%%[![:space:]]*}"}"; t="${t%"${t##*[![:space:]]}"}"
+    [[ -n "$t" ]] || continue
+    case "$t" in
+      Read)         q="read_file" ;;
+      Write)        q="write_file" ;;
+      Edit)         q="edit" ;;
+      MultiEdit)    q="edit" ;;
+      Bash)         q="run_shell_command" ;;
+      Grep)         q="grep_search" ;;
+      Glob)         q="glob" ;;
+      LS)           q="list_directory" ;;
+      WebFetch)     q="web_fetch" ;;
+      WebSearch)    q="web_search" ;;
+      TodoWrite)    q="todo_write" ;;
+      NotebookEdit) q="notebook_edit" ;;
+      Task)         q="agent" ;;
+      *)            q="$t" ;;
+    esac
+    case ", $out, " in *", $q, "*) continue ;; esac
+    out="${out:+$out, }$q"
+  done
+  printf '%s' "$out"
+}
+
 convert_qwen() {
   local file="$1"
   local name description tools slug outfile body
 
   name="$(get_field "name" "$file")"
   description="$(get_field "description" "$file")"
-  tools="$(get_field "tools" "$file")"
+  tools="$(qwen_tools "$(get_field "tools" "$file")")"
   slug="$(slugify "$name")"
   body="$(get_body "$file")"
 
@@ -511,13 +566,16 @@ convert_kimi() {
       case "$token" in
         Read|Write|Edit|WebSearch) ;;
         WebFetch) token="FetchURL" ;;
+        # Current Kimi agent contract intentionally does not grant shell access.
+        # Preserve Bash in the canonical source for targets that support it, but
+        # omit it here rather than widening Kimi privileges or failing the whole render.
+        Bash) continue ;;
         *) error "Kimi: no tool mapping for '$token' in $file"; IFS="$old_ifs"; return 1 ;;
       esac
       mapped+="  - ${token}"$'\n'
     done
     IFS="$old_ifs"
   fi
-
   if [[ -n "$mapped" ]]; then
     cat > "$outfile" <<HEREDOC
 ---
@@ -655,8 +713,39 @@ clean_tool_output() {
   # caller can never steer this rm -rf outside $OUT_DIR via "../" or "/".
   [[ "$1" =~ ^[a-z0-9-]+$ ]] || { echo "ERROR: clean_tool_output: refusing non-slug tool name '$1'" >&2; return 1; }
   local dir="$OUT_DIR/$1"
+  [[ ! -L "$dir" ]] || { error "refusing symlinked output directory: $dir"; return 1; }
   [[ -d "$dir" ]] || return 0
   find "$dir" -mindepth 1 -maxdepth 1 ! -name 'README.md' -exec rm -rf {} +
+}
+
+# Every per-agent integration writes to a path derived from the normalized
+# name. Refuse collisions before cleaning any existing output.
+check_agent_slug_collisions() {
+  local divisions dir dirpath file slug relative i
+  local seen_slugs=() seen_files=()
+  local collisions=0
+  divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
+  while IFS= read -r dir; do
+    [[ -n "$dir" ]] || continue
+    dirpath="$REPO_ROOT/$dir"
+    [[ -d "$dirpath" ]] || continue
+    while IFS= read -r -d '' file; do
+      is_agent_file "$file" || continue
+      slug="$(agent_slug "$file")"
+      [[ -n "$slug" ]] || continue
+      relative="${file#"$REPO_ROOT"/}"
+      for i in "${!seen_slugs[@]}"; do
+        if [[ "${seen_slugs[i]}" == "$slug" ]]; then
+          error "duplicate agent slug '$slug': ${seen_files[i]} and $relative"
+          collisions=$((collisions + 1))
+          break
+        fi
+      done
+      seen_slugs+=("$slug")
+      seen_files+=("$relative")
+    done < <(find "$dirpath" -name "*.md" -type f -print0)
+  done <<< "$divisions"
+  (( collisions == 0 ))
 }
 
 run_conversions() {
@@ -665,12 +754,12 @@ run_conversions() {
   local divisions
 
   if [[ "$tool" == "hermes" ]]; then
-    clean_tool_output "$tool"
+    clean_tool_output "$tool" || return 1
     python3 "$SCRIPT_DIR/build-hermes-plugin.py" --repo-root "$REPO_ROOT" --out "$OUT_DIR/hermes"
     return
   fi
 
-  clean_tool_output "$tool"
+  clean_tool_output "$tool" || return 1
   divisions="$(python3 "$SCRIPT_DIR/registry.py" divisions "$REPO_ROOT/divisions.json")" || return 1
 
   while IFS= read -r dir; do
@@ -695,6 +784,7 @@ run_conversions() {
         zcode)       convert_zcode       "$file" ;;
         kimi)        convert_kimi        "$file" ;;
         osaurus)     convert_osaurus     "$file" ;;
+        dsh)         convert_dsh         "$file" ;;
         vibe)        convert_vibe        "$file" ;;
         aider)       accumulate_aider    "$file" ;;
         windsurf)    accumulate_windsurf "$file" ;;
@@ -727,6 +817,8 @@ main() {
   done
 
   [[ "$parallel_jobs" =~ ^[1-9][0-9]*$ ]] || { error "--jobs must be a positive integer"; exit 1; }
+
+  check_agent_slug_collisions || exit 1
 
   local converted_tools=()
   local t

@@ -39,6 +39,9 @@ jobs:
         run: |
           chmod +x scripts/test-install.sh scripts/install.sh
           ./scripts/test-install.sh
+          bash scripts/test-install-openclaw-registration.sh
+          bash scripts/test-install-link-ownership.sh
+          bash scripts/test-install-parallel-logs.sh
 
       - name: All adapter installation and failure-mode regressions
         run: python3 scripts/test-install-functional.py

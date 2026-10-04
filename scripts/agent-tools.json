@@ -1,6 +1,11 @@
 {
   "schema_version": 1,
-  "classes": ["read", "network-read", "write", "execute"],
+  "classes": [
+    "read",
+    "network-read",
+    "write",
+    "execute"
+  ],
   "tools": {
     "Read": {
       "class": "read",
@@ -31,6 +36,12 @@
       "mutates": true,
       "external_io": false,
       "description": "Modify host-exposed local files."
+    },
+    "Bash": {
+      "class": "execute",
+      "mutates": true,
+      "external_io": true,
+      "description": "Execute host-exposed shell commands; commands may mutate local state, spawn subprocesses, or access external resources."
     }
   }
 }
