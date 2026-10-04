@@ -103,6 +103,21 @@ def unique_json(pairs):
     return result
 
 
+# Chapter VIII of the strategy framework requires that established fact,
+# hypothesis, attributed intent and unknown never be mixed. The security division
+# is the one that attributes intrusions to actors and grades controls as
+# effective, so it is the division where an unlabeled claim does the most damage.
+# These are the canonical states from strategy/contracts.json.
+EPISTEMIC_STATES = ('EVIDENCE', 'HYPOTHESIS', 'ASSUMPTION', 'ATTRIBUTED_INTENT', 'UNKNOWN')
+FINDING_REGISTER = 'security-finding-register'
+
+
+def contracts_states(root=ROOT):
+    """Read the canonical states rather than trusting the constant above."""
+    data = json.loads((root / 'strategy' / 'contracts.json').read_text(encoding='utf-8'))
+    return tuple(data['epistemic_states'])
+
+
 def load_registry(path=REGISTRY):
     reg = json.loads(Path(path).read_text(encoding='utf-8'), object_pairs_hook=unique_json)
     if not isinstance(reg, dict) or type(reg.get('schema_version')) is not int or reg['schema_version'] != 1:
@@ -202,6 +217,18 @@ def check_file(path, registry, root=ROOT):
     spec = registry['definitions'][declared]
     # Examples and HTML comments cannot satisfy required policy prose.
     body_lower = policy_prose(body).lower()
+
+    # Epistemic discipline — required of every security agent, whatever its class.
+    states = contracts_states(root)
+    missing_states = [s for s in states if s not in body]
+    if missing_states:
+        findings.append(f'{rel}: does not carry the canonical epistemic states '
+                        f"({', '.join(missing_states)}); a security finding is a claim and must "
+                        'declare its status — see strategy/SECURITY-AUDIT-DOCTRINE.md')
+    if FINDING_REGISTER not in body:
+        findings.append(f'{rel}: does not bind findings to {FINDING_REGISTER}.yaml; an agent that '
+                        'produces findings must record them where their status, falsifier and '
+                        'alternatives are kept')
 
     for token in spec['required_language']:
         if not phrase_present(body_lower, token, registry):

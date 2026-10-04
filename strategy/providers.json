@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "_note": "Closed registry of execution providers for NEXUS tasks. It declares PROVIDERS and the capability tiers a task may require. It deliberately ships ZERO verified models: a model catalog written from memory is stale the week it merges, and an unverified model id is a claim this repository cannot check. A model becomes usable when an observation record supplies its id, host, version, resolved limits and valid_until — the same contract agent-capabilities.py already applies to tool capabilities, and the same reason examples/nexus/host-trials.json ships empty rather than plausible.",
+  "status": "MODELS_NOT_OBSERVED",
+
+  "capability_tiers": {
+    "_note": "What a task requires of an execution target, declared as a requirement rather than a model name. Routing matches a requirement to an observed model; it never matches a requirement to a brand.",
+    "reasoning_depth": ["shallow", "standard", "extended"],
+    "context_class": ["small", "large"],
+    "modality": ["text", "vision", "audio"],
+    "tool_use": ["none", "declared", "enforced"],
+    "determinism_need": ["exploratory", "repeatable"]
+  },
+
+  "providers": {
+    "anthropic": {
+      "label": "Anthropic",
+      "adapter": "unimplemented",
+      "observation_required": true,
+      "models": [],
+      "notes": "Claude Code is the one host with a recorded acceptance record; that record covers tool resolution, not model selection."
+    },
+    "openai": {
+      "label": "OpenAI",
+      "adapter": "unimplemented",
+      "observation_required": true,
+      "models": []
+    },
+    "google": {
+      "label": "Google",
+      "adapter": "unimplemented",
+      "observation_required": true,
+      "models": [],
+      "notes": "gemini-cli is already a conversion destination; conversion is not execution."
+    },
+    "moonshot": {
+      "label": "Moonshot (Kimi)",
+      "adapter": "unimplemented",
+      "observation_required": true,
+      "models": [],
+      "notes": "kimi is already a conversion destination with a current-contract adapter test."
+    },
+    "xai": {
+      "label": "xAI (Grok)",
+      "adapter": "unimplemented",
+      "observation_required": true,
+      "models": []
+    }
+  },
+
+  "model_observation_contract": {
+    "_note": "Required fields for a model entry. Missing or expired -> the model is NOT_OBSERVED and routing refuses to select it.",
+    "required": [
+      "model_id",
+      "provider",
+      "observed_at",
+      "valid_until",
+      "evidence_ref",
+      "host",
+      "host_version",
+      "capabilities",
+      "context_window",
+      "declared_cost_per_1k_input",
+      "declared_cost_per_1k_output"
+    ],
+    "limits": "Costs and context windows are DECLARED values from the operator's own observation, not quoted prices. They are inputs to admissibility, never a claim about a vendor's current pricing."
+  },
+
+  "routing_discipline": {
+    "_note": "Selection reuses the option-comparison discipline already in scripts/nexus-options.py.",
+    "rules": [
+      "Admissibility first: a target that cannot meet a declared requirement is INADMISSIBLE and is excluded, never scored lower.",
+      "No weighted score and no ranking: report the undominated set and the dominance edges, with the evidence basis of each.",
+      "A fatal defect is never compensated by another factor.",
+      "UNKNOWN is preserved: a requirement with no observed target returns NO_ADMISSIBLE_TARGET, not a best guess.",
+      "Provider diversity is not itself a benefit; it is justified only by a requirement no single observed target satisfies, or by a measured difference under the evaluation protocol."
+    ]
+  }
+}

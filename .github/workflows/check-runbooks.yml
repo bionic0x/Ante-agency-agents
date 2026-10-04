@@ -44,6 +44,9 @@ jobs:
           python3 scripts/test-nexus-evaluation.py
           python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json
 
+      - name: Validate vector coverage and execution routing
+        run: python3 scripts/test-nexus-routing.py
+
       - name: Keep HTP Gate 0 handoffs single-network and non-executing
         run: |
           python3 scripts/check-htp-gate0.py
