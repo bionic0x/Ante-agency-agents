@@ -440,13 +440,42 @@ HEREDOC
   fi
 }
 
+# Translate source/Claude tool names to Qwen's canonical tool registry.
+qwen_tools() {
+  local out="" t q
+  local IFS=','
+  for t in $1; do
+    t="${t#"${t%%[![:space:]]*}"}"; t="${t%"${t##*[![:space:]]}"}"
+    [[ -n "$t" ]] || continue
+    case "$t" in
+      Read)         q="read_file" ;;
+      Write)        q="write_file" ;;
+      Edit)         q="edit" ;;
+      MultiEdit)    q="edit" ;;
+      Bash)         q="run_shell_command" ;;
+      Grep)         q="grep_search" ;;
+      Glob)         q="glob" ;;
+      LS)           q="list_directory" ;;
+      WebFetch)     q="web_fetch" ;;
+      WebSearch)    q="web_search" ;;
+      TodoWrite)    q="todo_write" ;;
+      NotebookEdit) q="notebook_edit" ;;
+      Task)         q="agent" ;;
+      *)            q="$t" ;;
+    esac
+    case ", $out, " in *", $q, "*) continue ;; esac
+    out="${out:+$out, }$q"
+  done
+  printf '%s' "$out"
+}
+
 convert_qwen() {
   local file="$1"
   local name description tools slug outfile body
 
   name="$(get_field "name" "$file")"
   description="$(get_field "description" "$file")"
-  tools="$(get_field "tools" "$file")"
+  tools="$(qwen_tools "$(get_field "tools" "$file")")"
   slug="$(slugify "$name")"
   body="$(get_body "$file")"
 
