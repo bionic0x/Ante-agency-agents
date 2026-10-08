@@ -160,7 +160,8 @@ export class DOMSnapshotSerializer {
     const dangerousTags = clone.querySelectorAll('script, iframe, object, embed, applet');
     dangerousTags.forEach((el) => el.remove());
 
-    const allElements = clone.querySelectorAll('*');
+    // querySelectorAll('*') excludes the root itself.
+    const allElements = [clone, ...Array.from(clone.querySelectorAll('*'))];
     allElements.forEach((el) => {
       Array.from(el.attributes).forEach((attr) => {
         if (attr.name.toLowerCase().startsWith('on')) {
@@ -277,22 +278,32 @@ export class PageGeometryEngine {
   };
 
   public static getDimensions(format: PageFormat, custom?: CustomPageDimensions) {
-    const dim = format === 'custom' && custom ? custom : this.PRESETS[format as keyof typeof this.PRESETS] || this.PRESETS.a4;
-    const widthPt = (dim.widthMm * 72) / 25.4;
-    const heightPt = (dim.heightMm * 72) / 25.4;
-    const widthPx = (dim.widthMm * 96) / 25.4;
-    const heightPx = (dim.heightMm * 96) / 25.4;
+    const dim = format === 'custom' ? custom : this.PRESETS[format as keyof typeof this.PRESETS];
+    if (!dim || !Number.isFinite(dim.widthMm) || !Number.isFinite(dim.heightMm) ||
+        dim.widthMm <= 0 || dim.heightMm <= 0) {
+      throw new Error('A supported format or finite positive custom page dimensions are required.');
+    }
+    const widthPt = Number(((dim.widthMm * 72) / 25.4).toFixed(2));
+    const heightPt = Number(((dim.heightMm * 72) / 25.4).toFixed(2));
+    const widthPx = Number(((dim.widthMm * 96) / 25.4).toFixed(2));
+    const heightPx = Number(((dim.heightMm * 96) / 25.4).toFixed(2));
+    const heightBudgetPx = Number(((dim.heightMm * 96) / 25.4 - 0.5).toFixed(2));
+    if (![widthPt, heightPt, widthPx, heightPx].every(Number.isFinite) ||
+        widthPt <= 0 || heightPt <= 0 || widthPx <= 0 || heightPx <= 0 ||
+        heightBudgetPx <= 0) {
+      throw new Error('Page geometry must leave a positive finite layout budget.');
+    }
 
     return {
       name: dim.name || 'Custom',
       widthMm: dim.widthMm,
       heightMm: dim.heightMm,
-      widthPt: Number(widthPt.toFixed(2)),
-      heightPt: Number(heightPt.toFixed(2)),
-      widthPx: Number(widthPx.toFixed(2)),
-      heightPx: Number(heightPx.toFixed(2)),
+      widthPt,
+      heightPt,
+      widthPx,
+      heightPx,
       // Epsilon-buffered maximum height to prevent LayoutUnit quantization blank pages
-      heightBudgetPx: Number((heightPx - 0.5).toFixed(2))
+      heightBudgetPx
     };
   }
 

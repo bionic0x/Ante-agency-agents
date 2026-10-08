@@ -61,6 +61,9 @@ jobs:
       - name: Validate converted outputs (round-trip, strict parse, counts, drift)
         run: bash scripts/test-convert-outputs.sh
 
+      - name: Parse indented code fences like lib.sh in the outputs eval
+        run: bash scripts/test-convert-fence-model.sh
+
       - name: Validate host acceptance records (evidence cannot outrun its method)
         run: python3 scripts/test-host-acceptance.py
 

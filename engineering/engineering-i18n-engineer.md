@@ -87,8 +87,11 @@ const locale = user.locale; // e.g. 'de-DE', 'ar-EG', 'ja-JP'
 new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(1234.5);
 // de-DE: "1.234,50 €"   en-US: "€1,234.50"   ar-EG: "١٬٢٣٤٫٥٠ €"
 
-new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date('2026-07-04'));
-// de-DE: "4. Juli 2026"   ja-JP: "2026年7月4日"
+// This is a civil date, not an instant: avoid shifting July 4 to July 3 west of UTC.
+new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' })
+  .format(new Date('2026-07-04'));
+// de-DE: "4. Juli 2026"   ja-JP: "2026年7月4日" in every machine time zone
+// Real event timestamps instead use the user's explicitly chosen time zone.
 
 new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(-1, 'day');
 // en: "yesterday"   de: "gestern" — free, correct, zero maintenance
@@ -123,16 +126,28 @@ new Intl.ListFormat(locale, { type: 'conjunction' }).format(['Ana', 'Luis', 'Mei
 ### Pseudo-Localization in CI: Catch It Before Translators Do
 
 ```javascript
-// Pseudo-locale transform: "Save changes" → "[!!! Šàvé çhàñĝéš one two !!!]"
-// - Accented chars expose encoding bugs
-// - +40% padding exposes truncation and fixed-width layouts
-// - Brackets expose concatenation (fragments render as separate bracketed chunks)
-// - Untransformed text on screen = hardcoded string, fail the check
+// Transform literal AST nodes, never ICU arguments, selectors or skeletons.
+import { parse, TYPE } from '@formatjs/icu-messageformat-parser';
+import { printAST } from '@formatjs/icu-messageformat-parser/printer.js';
+
 export function pseudoLocalize(message) {
   const map = { a: 'à', e: 'é', i: 'î', o: 'ö', u: 'ü', c: 'ç', n: 'ñ', s: 'š', g: 'ĝ' };
-  const swapped = message.replace(/[aeioucnsg]/g, (ch) => map[ch] ?? ch);
-  const padding = ' one two three'.slice(0, Math.ceil(message.length * 0.4));
-  return `[!!! ${swapped}${padding} !!!]`;
+  function transform(elements) {
+    for (const element of elements) {
+      if (element.type === TYPE.literal) {
+        const swapped = element.value.replace(/[aeioucnsg]/g, (ch) => map[ch] ?? ch);
+        const extra = Math.ceil(element.value.length * 0.4);
+        element.value = swapped + ' ~'.repeat(Math.ceil(extra / 2)).slice(0, extra);
+      } else if (element.type === TYPE.select || element.type === TYPE.plural) {
+        for (const option of Object.values(element.options)) transform(option.value);
+      } else if (element.type === TYPE.tag) {
+        transform(element.children);
+      }
+    }
+  }
+  const ast = parse(message);
+  transform(ast);
+  return `[!!! ${printAST(ast)} !!!]`;
 }
 ```
 
