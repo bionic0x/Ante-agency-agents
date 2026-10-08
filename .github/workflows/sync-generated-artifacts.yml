@@ -24,3 +24,7 @@ jobs:
           echo "SYNC_MANIFEST_BLOB_SHA=$(git hash-object -w scripts/convert-outputs.sha256)"
           echo "SYNC_CATALOG_BLOB_SHA=$(git hash-object -w CATALOG.md)"
           wc -l scripts/convert-outputs.sha256 CATALOG.md
+
+      - name: Export validated manifest in chunks for GitHub API import
+        run: |
+          python3 -c 'import base64,pathlib; b=base64.b64encode(pathlib.Path("scripts/convert-outputs.sha256").read_bytes()).decode("ascii"); print("".join("SYNC_B64_PART="+b[i:i+700]+"\\n" for i in range(0,len(b),700)))'
