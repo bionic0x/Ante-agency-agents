@@ -25,8 +25,14 @@ scratch="$(mktemp -d "${TMPDIR:-/tmp}/agency-fence-model.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
 
 mkdir -p "$scratch/repo/scripts" "$scratch/repo/engineering"
-cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/build-hermes-plugin.py" \
+# The fork separates the conversion engine from its registry-driven orchestrator.
+# In a minimal fixture, run the real engine as convert.sh; the full orchestrator
+# depends on the checkout-wide integration-state and is tested separately.
+cp "$SCRIPT_DIR/convert-engine.sh" "$scratch/repo/scripts/convert.sh"
+cp "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$SCRIPT_DIR/build-hermes-plugin.py" \
    "$SCRIPT_DIR/test-convert-outputs.sh" "$scratch/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$scratch/repo/tools.json"
+chmod +x "$scratch/repo/scripts/convert.sh"
 
 cat > "$scratch/repo/divisions.json" <<'EOF'
 {
