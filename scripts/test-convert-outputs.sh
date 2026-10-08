@@ -328,7 +328,9 @@ elif not colour_bad:
 # block in half and leaves each file holding a dangling fence, which renders as
 # broken markdown for every user of that integration (#849). So every fenced
 # block in a source must land intact in exactly one of the two files.
-SPLIT_FENCE = re.compile(r"^(`{3,}|~{3,})(.*)$")
+# Match lib.sh and CommonMark: indented opening fences are valid (0–3 spaces).
+# The close must use the same marker, have at least the opener length and no suffix.
+OPEN_FENCE = re.compile(r"^( {0,3})(`{3,}|~{3,})")
 
 def body_lines(text):
     """Compare against the actual source body, preserving Markdown separators."""
@@ -345,10 +347,10 @@ def fence_blocks(lines):
     """Inclusive (opener, closer) index pairs; closer = last line if unterminated."""
     res, marker, mlen, start = [], "", 0, None
     for i, line in enumerate(lines):
-        m = SPLIT_FENCE.match(line)
+        m = OPEN_FENCE.match(line)
         if not m:
             continue
-        tok, rest = m.group(1), m.group(2)
+        tok, rest = m.group(2), line[m.end():]
         if not marker:
             marker, mlen, start = tok[0], len(tok), i
         elif tok[0] == marker and len(tok) >= mlen and not rest.strip():

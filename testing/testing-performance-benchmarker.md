@@ -139,6 +139,11 @@ export function handleSummary(data) {
 }
 
 function generateHTMLReport(data) {
+  const number = (metric, key, scale = 1) => {
+    const value = data.metrics[metric]?.values?.[key];
+    return typeof value === 'number' && Number.isFinite(value)
+      ? (value * scale).toFixed(2) : 'N/A (no measurement)';
+  };
   return `
     <!DOCTYPE html>
     <html>
@@ -147,10 +152,10 @@ function generateHTMLReport(data) {
       <h1>Performance Test Results</h1>
       <h2>Key Metrics</h2>
       <ul>
-        <li>Average Response Time: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms</li>
-        <li>95th Percentile: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms</li>
-        <li>Error Rate: ${(data.metrics.http_req_failed.values.rate * 100).toFixed(2)}%</li>
-        <li>Total Requests: ${data.metrics.http_reqs.values.count}</li>
+        <li>Average Response Time: ${number('http_req_duration', 'avg')}ms</li>
+        <li>95th Percentile: ${number('http_req_duration', 'p(95)')}ms</li>
+        <li>Error Rate: ${number('http_req_failed', 'rate', 100)}%</li>
+        <li>Total Requests: ${number('http_reqs', 'count')}</li>
       </ul>
     </body>
     </html>

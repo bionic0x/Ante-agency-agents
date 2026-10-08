@@ -73,7 +73,7 @@ server.tool(
   {
     status: z.enum(["open", "in_progress", "resolved", "closed"]).describe("Filter by ticket status"),
     priority: z.enum(["low", "medium", "high", "critical"]).optional().describe("Filter by priority level"),
-    limit: z.number().min(1).max(100).default(20).describe("Max results to return"),
+    limit: z.number().int().min(1).max(100).default(20).describe("Max results to return"),
   },
   async ({ status, priority, limit }) => {
     try {

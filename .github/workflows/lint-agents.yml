@@ -114,8 +114,14 @@ jobs:
         id: rules
         run: |
           RULES="scripts/lint-agents.sh scripts/convert.sh scripts/lib.sh"
-          CHANGED=$(git diff --name-only --diff-filter=ACMR \
-            "origin/${{ github.base_ref }}...HEAD" -- $RULES)
+          BASE_REF="${{ github.base_ref }}"
+          if [ -n "$BASE_REF" ]; then
+            DIFF_RANGE="origin/$BASE_REF...HEAD"
+          else
+            # Push events do not define github.base_ref. Diff against first parent.
+            DIFF_RANGE="HEAD^...HEAD"
+          fi
+          CHANGED=$(git diff --name-only --diff-filter=ACMR "$DIFF_RANGE" -- $RULES)
           if [ -n "$CHANGED" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "Linting the whole roster because these changed:"
