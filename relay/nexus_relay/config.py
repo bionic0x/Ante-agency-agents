@@ -49,6 +49,7 @@ class RuntimeConfig:
     pids: int
     timeout_seconds: int
     allow_rootful_engine: bool = False
+    workspace_max_bytes: int = 10 * 1024 ** 3
 
 
 @dataclass(frozen=True)
@@ -115,6 +116,10 @@ def _upstream(value: str) -> str:
     return f"https://{parts.netloc}"
 
 
+def size_bytes(value: str) -> int:
+    return int(value[:-1]) * {"k": 1024, "m": 1024 ** 2, "g": 1024 ** 3}[value[-1]]
+
+
 def check_private(path: Path, *, directory: bool) -> None:
     """Refuse group/other access: these files hold sessions, invites and the event chain."""
     mode = stat.S_IMODE(path.stat().st_mode)
@@ -132,7 +137,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(type(bind["port"]) is int and 1024 <= bind["port"] <= 65535, "bind.port: 1024-65535")
 
     rt = raw["runtime"]
-    _keys(rt, {"engine", "image", "agent_command", "memory", "cpus", "pids", "timeout_seconds", "allow_rootful_engine"},
+    _keys(rt, {"engine", "image", "agent_command", "memory", "cpus", "pids", "timeout_seconds", "allow_rootful_engine", "workspace_max"},
           {"engine", "image", "agent_command"}, "runtime")
     _require(rt["engine"] in ("docker", "podman"), "runtime.engine: docker or podman")
     image = _text(rt["image"], "runtime.image")
@@ -150,6 +155,8 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(type(timeout) is int and 30 <= timeout <= 6 * 3600, "runtime.timeout_seconds: 30-21600")
     rootful = rt.get("allow_rootful_engine", False)
     _require(type(rootful) is bool, "runtime.allow_rootful_engine: boolean")
+    workspace_max = rt.get("workspace_max", "10g")
+    _require(isinstance(workspace_max, str) and bool(_SIZE_RE.match(workspace_max)), "runtime.workspace_max: e.g. 10g")
 
     model = raw["model"]
     _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths"},
@@ -180,7 +187,8 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
         host=bind["host"],
         port=bind["port"],
         public_origin=_origin(raw["public_origin"]),
-        runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout, rootful),
+        runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout, rootful,
+                              size_bytes(workspace_max)),
         model=ModelConfig(_upstream(model["upstream"]), _text(model["api_key_env"], "model.api_key_env"),
                           model["cost_unit"], prices, paths),
     )
