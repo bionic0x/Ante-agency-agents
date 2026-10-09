@@ -262,6 +262,46 @@ class Store:
     def has_hash(self, digest: str) -> bool:
         return self.one("SELECT 1 FROM log WHERE hash = ?", (digest,)) is not None
 
+    def authentic_entry(self, r) -> None:
+        """Check one entry without walking the whole chain: its own hash (an HMAC when keyed),
+        its link to the entry before it, and that it is not a plain entry after keying began.
+        `verify` still checks the full chain; this lets decisions trust a single entry."""
+        stored_id = self.one("SELECT value FROM meta WHERE key = 'chain_key_id'")
+        if stored_id is not None and (self._key is None or not hmac.compare_digest(stored_id["value"], key_id(self._key))):
+            raise ChainError(f"this log is keyed; {CHAIN_KEY_ENV} is missing or does not match")
+        expected_prev = self.hash_at(r["seq"] - 1) if r["seq"] > 1 else GENESIS
+        if r["prev_hash"] != expected_prev:
+            raise ChainError(f"log seq {r['seq']}: prev_hash mismatch")
+        if r["alg"] == ALG_KEYED:
+            if self._key is None:
+                raise ChainError(f"log seq {r['seq']} is keyed; set {CHAIN_KEY_ENV} to check it")
+            key = self._key
+        elif r["alg"] == ALG_PLAIN:
+            if self.one("SELECT 1 FROM log WHERE alg = ? AND seq < ? LIMIT 1", (ALG_KEYED, r["seq"])) is not None:
+                raise ChainError(f"log seq {r['seq']}: unkeyed entry after the chain became keyed")
+            key = None
+        else:
+            raise ChainError(f"log seq {r['seq']}: unknown hash algorithm {r['alg']!r}")
+        expected = entry_hash(r["prev_hash"], r["seq"], r["at"], r["kind"], r["actor"], r["payload"], key)
+        if not hmac.compare_digest(expected, r["hash"]):
+            raise ChainError(f"log seq {r['seq']}: content does not match its hash")
+
+    def run_completion(self, run_id: str) -> dict | None:
+        """The authenticated `run.completed` payload for a run: the record evidence checks trust.
+        The `runs` table is a mutable index; the chained entry is what was recorded at the time."""
+        rows = self.query("SELECT seq, at, kind, actor, payload, prev_hash, hash, alg FROM log "
+                          "WHERE kind = 'run.completed' AND json_extract(payload, '$.run_id') = ? ORDER BY seq",
+                          (run_id,))
+        if not rows:
+            return None
+        if len(rows) > 1:
+            raise ChainError(f"run {run_id} has {len(rows)} completion entries in the log")
+        self.authentic_entry(rows[0])
+        payload = json.loads(rows[0]["payload"])
+        if not isinstance(payload, dict):
+            raise ChainError(f"log seq {rows[0]['seq']}: completion payload is not an object")
+        return payload
+
     def member(self, member_id: str):
         return self.one("SELECT * FROM members WHERE id = ?", (member_id,))
 

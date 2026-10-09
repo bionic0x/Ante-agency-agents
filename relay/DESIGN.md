@@ -57,9 +57,9 @@ loopback, such as `tailscale serve`. The relay refuses to bind a non-loopback ad
 | # | Threat | Control |
 |---|---|---|
 | T1 | An agent is manipulated (prompt injection in a message or file) into harming the host | Container per run: `--network none`, `--read-only`, `--cap-drop ALL`, `--security-opt no-new-privileges`, non-root UID, pids/memory/CPU limits, `--pull never`, no host home, no container-engine socket. The only writable mount is the task workspace; the proxy socket and agent profile are read-only. The relay refuses a root-owned engine unless the owner opts in (`runtime.allow_rootful_engine`), because access to such an engine is root on the host. |
-| T2 | An agent exfiltrates data or calls arbitrary hosts | No network interface. The proxy forwards only `POST /v1/messages` to the configured model endpoint; every other path is refused. |
+| T2 | An agent exfiltrates data or calls arbitrary hosts, directly or through the model provider | No network interface. The proxy forwards only allowlisted model paths to the configured endpoint, and only requests it understands (`policy.py`): known fields, client tools (executed in the container), inline content sources. Remote MCP servers (`mcp_servers`), server tools (web search, web fetch, code execution, MCP toolsets), URL and Files-API sources, code-execution containers and the beta families that enable them are refused with 403, never stripped. The owner can allow a named extra field (`model.extra_request_fields`), but never one of these. |
 | T3 | An agent steals the model API key | The key never enters the container. The proxy adds it upstream and strips any client-supplied credential headers. |
-| T4 | An agent overspends | `reserved_cost` is reserved in NEXUS at `start`. The proxy holds each request's worst case (request bytes + margin + `max_tokens`) under a lock before forwarding, lowers `max_tokens` to what remains, caps requests in flight, settles at metered usage (an incomplete response is charged its full hold) and stops the run when nothing more fits. Spent never exceeds the reservation while the upstream reports usage honestly. |
+| T4 | An agent overspends | `reserved_cost` is reserved in NEXUS at `start`. The proxy holds each request's worst case (request bytes + margin + `max_tokens`) under a lock before forwarding, lowers `max_tokens` to what remains, caps requests in flight, settles at metered usage (an incomplete response is charged its full hold) and stops the run when nothing more fits. Requests that would be billed outside token usage (server tools) or at another rate (`service_tier`, `speed`, `inference_geo`, fast mode) are refused. Spent never exceeds the reservation while the upstream reports usage honestly. |
 | T5 | Unauthenticated access to the room | Loopback bind; every route except login requires a session; invite tokens are 256-bit, single-use, expiring and stored only as SHA-256 hashes. |
 | T6 | Session theft or CSRF | Session cookie `HttpOnly; SameSite=Strict; Path=/`, named `__Host-relay_session` with `Secure` behind TLS; tokens stored hashed; 14-day absolute and 12-hour idle lifetime; the owner can list and revoke sessions. State-changing requests also require a matching `Origin` and an `X-Relay-CSRF` header bound to the session. |
 | T7 | Stored XSS in the room | Server-side length limits; the UI renders all user and agent text with `textContent` only; CSP `default-src 'none'`, `script-src 'self'`, Trusted Types enforced with no policy, `frame-ancestors 'none'`; `nosniff` on every response. |
@@ -102,7 +102,12 @@ input rate, even when they exceed the normal input rate.
 Workspace scanning fails closed: an unreadable subtree/file or an exhausted scan budget
 cannot produce acceptable evidence. The partial manifest remains available for diagnosis,
 but no valid workspace digest is attached to that run. Acceptance and `verify` check
-archived output/manifest hashes. `verify` also detects a NEXUS finish absent from the
+archived output/manifest hashes against the digests in the run's chained `run.completed`
+entry, whose own hash (an HMAC when keyed) is checked first. The `runs` table is only an
+index: if it disagrees with that entry, acceptance is refused, a rejection reports the
+logged cost to NEXUS and restores the row, and `verify` reports the difference. Editing an
+artifact and its table row together therefore no longer passes. `verify` also checks that a
+NEXUS finish cites the logged digests. `verify` also detects a NEXUS finish absent from the
 SQLite terminal state. Automatic crash reconciliation and immutable artifact storage
 remain separate work; neither is provided by these checks.
 
@@ -119,6 +124,7 @@ accept `offline-analysis`; the relay refuses to execute any other scope.
 | `nexus.py` | Loads the instance and events; admits `start`/`finish` through the engine; atomic append |
 | `runner.py` | Builds the hardened container command; runs and stops containers |
 | `proxy.py` | Per-run unix-socket model proxy: path allowlist, key injection, worst-case holds, metering, budget stop, resource caps |
+| `policy.py` | Request allowlist: fields, client tools, inline content sources, denied betas; no provider-side egress or repricing |
 | `evidence.py` | Workspace manifest and control-file change detection |
 | `server.py` | HTTP routes, security headers, log polling endpoint |
 | `static/` | Room UI (no inline code) |

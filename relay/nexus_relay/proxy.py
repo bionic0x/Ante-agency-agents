@@ -10,6 +10,10 @@ as a hard ceiling:
   lowered to what the remaining budget can pay for; a request that cannot fit is refused.
 * After the response, the hold is settled at the metered cost. An incomplete response is
   charged at its full hold, never at a partial count.
+* The request itself is checked against `policy`: nothing that makes the provider act on
+  the network (server tools, remote MCP servers, URL or Files-API sources, containers) or
+  change the price per token is forwarded. The container has no network; the provider
+  must not become its network either.
 * Concurrency, connection count, request size and idle time are all bounded, so a
   container cannot exhaust the relay's threads or memory.
 """
@@ -26,6 +30,8 @@ from pathlib import Path
 import socketserver
 import threading
 from urllib.parse import urlsplit
+
+from .policy import PolicyViolation, check_betas, check_request
 
 MAX_BODY = 8 * 1024 * 1024
 MAX_CONNECTIONS = 8
@@ -245,12 +251,13 @@ class ModelProxy:
     def __init__(self, socket_path: Path, run_token: str, api_key: str, upstream: str,
                  allowed_paths: tuple[str, ...], meter: Meter, connection_factory=None, *,
                  max_connections: int = MAX_CONNECTIONS, max_in_flight: int = MAX_IN_FLIGHT,
-                 idle_timeout: float = IDLE_TIMEOUT_SECONDS):
+                 idle_timeout: float = IDLE_TIMEOUT_SECONDS, extra_request_fields: tuple[str, ...] = ()):
         self.socket_path = socket_path
         self.run_token = run_token
         self.api_key = api_key
         self.upstream = urlsplit(upstream)
         self.allowed_paths = allowed_paths
+        self.extra_request_fields = tuple(extra_request_fields)
         self.meter = meter
         self.on_exhausted = None
         self.max_connections = max_connections
@@ -348,6 +355,11 @@ class ModelProxy:
             return handler._reply(400, "JSON body required")
         if not isinstance(request, dict):
             return handler._reply(400, "JSON object required")
+        try:
+            check_betas(handler.headers.get("anthropic-beta"))
+            check_request(path, request, self.extra_request_fields)
+        except (PolicyViolation, RecursionError) as exc:
+            return handler._reply(403, f"refused by relay policy: {exc}"[:500])
         model = request.get("model")
         if not isinstance(model, str) or not self.meter.priced(model):
             return handler._reply(403, f"model {model!r} has no configured price")
