@@ -36,6 +36,7 @@ attempt("dns", lambda: socket.getaddrinfo("example.com", 443))
 attempt("write_root", lambda: open("/pwned", "w").write("x"))
 attempt("write_etc", lambda: open("/etc/pwned", "w").write("x"))
 attempt("docker_socket", lambda: socket.socket(socket.AF_UNIX).connect("/var/run/docker.sock"))
+attempt("write_socket_dir", lambda: open("/run/relay/planted", "w").write("x"))
 r["uid"] = os.getuid()
 r["key_seen"] = os.environ.get("ANTHROPIC_API_KEY", "")
 r["profile_readable"] = os.path.exists("/agent/profile.md")
@@ -90,7 +91,7 @@ class ContainerIsolation(unittest.TestCase):
             port = stub.server_address[1]
             paths = runner.prepare(cfg, "e2e1", {"id": "A", "resource_scope": []})
             token = runner.new_run_token()
-            meter = proxy.Meter("tokens", {}, 1000)
+            meter = proxy.Meter("tokens", {}, 100_000)
             p = proxy.ModelProxy(paths.socket, token, "sk-real-upstream-key", cfg.model.upstream,
                                  cfg.model.allowed_paths, meter,
                                  connection_factory=lambda: http.client.HTTPConnection("127.0.0.1", port, timeout=30))
@@ -104,7 +105,8 @@ class ContainerIsolation(unittest.TestCase):
             out = paths.output.read_text()
             self.assertEqual(0, code, out)
             r = json.loads((paths.workspace / "result.json").read_text())
-            for name in ("internet", "dns", "write_root", "write_etc", "docker_socket", "write_profile", "other_path"):
+            for name in ("internet", "dns", "write_root", "write_etc", "docker_socket", "write_profile",
+                         "other_path", "write_socket_dir"):
                 self.assertTrue(r[name].startswith("blocked"), f"{name}: {r[name]}")
             self.assertEqual(os.getuid(), r["uid"])
             self.assertNotEqual(0, r["uid"])

@@ -10,8 +10,9 @@ import sys
 from . import auth
 from .config import CONFIG_NAME, ConfigError, load, model_api_key, parse
 from .nexus import AdmissionError, Contract, engine
+from .runner import RunError, check_engine, image_is_pinned
 from .service import Relay
-from .store import ChainError, Store
+from .store import CHAIN_KEY_ENV, ChainError, Store, chain_key_from_env
 
 DEFAULT_DIR = Path(os.environ.get("NEXUS_RELAY_HOME", "~/.ante-relay")).expanduser()
 
@@ -44,7 +45,12 @@ def cmd_init(args) -> int:
         "bind": {"host": "127.0.0.1", "port": args.port},
         "public_origin": args.public_origin or f"http://127.0.0.1:{args.port}",
         "runtime": {"engine": args.engine, "image": args.image,
-                    "agent_command": ["sh", "-c", "exec claude -p --dangerously-skip-permissions "
+                    # --bare: no hooks, CLAUDE.md discovery, auto-memory or keychain, and auth only
+                    # from ANTHROPIC_API_KEY (the per-run token). Nothing the workspace contains can
+                    # reconfigure the agent (audit R-6). Permissions are bypassed because the
+                    # container, not the agent, is the security boundary.
+                    "agent_command": ["sh", "-c", "exec claude -p --bare --strict-mcp-config "
+                                      "--dangerously-skip-permissions "
                                       "--append-system-prompt \"$(cat \"$AGENT_PROFILE\")\""],
                     "memory": "4g", "cpus": "2", "pids": 512, "timeout_seconds": 1800},
         "model": {"upstream": "https://api.anthropic.com", "api_key_env": "ANTHROPIC_API_KEY",
@@ -54,7 +60,7 @@ def cmd_init(args) -> int:
     data_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.chmod(data_dir, 0o700)
     _write_private(data_dir / CONFIG_NAME, json.dumps(raw, indent=2) + "\n")
-    store = Store(data_dir / "relay.db")
+    store = Store(data_dir / "relay.db", chain_key=chain_key_from_env())
     owner = instance["mandate"]["owner"]
     member_id = auth.create_member(store, owner, "owner", "init")
     token = auth.create_invite(store, member_id, "init")
@@ -62,12 +68,19 @@ def cmd_init(args) -> int:
     print(f"Initialised {data_dir}")
     print(f"Owner sign-in link (single use, 24 h): {raw['public_origin']}/join#{token}")
     print("Edit relay.json for the container image and agent command before `serve`.")
+    if not store_keyed_hint():
+        print(f"Warning: {CHAIN_KEY_ENV} is not set, so the room log is tamper-evident only against "
+              "careless edits. Set it (32+ bytes, kept outside this machine's disk) for a keyed log.")
     return 0
+
+
+def store_keyed_hint() -> bool:
+    return chain_key_from_env() is not None
 
 
 def cmd_invite(args) -> int:
     cfg = load(args.data_dir)
-    store = Store(cfg.db_path)
+    store = Store(cfg.db_path, chain_key=chain_key_from_env())
     row = store.one("SELECT id, role FROM members WHERE name = ? AND disabled_at IS NULL", (args.name,))
     if row is None:
         print(f"no active member named {args.name!r}", file=sys.stderr)
@@ -82,9 +95,28 @@ def cmd_serve(args) -> int:
         print("refusing to serve as root", file=sys.stderr)
         return 2
     cfg = load(args.data_dir)
+    try:
+        engine_mode = check_engine(cfg)
+    except RunError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     api_key = model_api_key(cfg)
-    store = Store(cfg.db_path)
-    store.verify_chain()
+    store = Store(cfg.db_path, chain_key=chain_key_from_env())
+    try:
+        store.verify_chain()
+    except ChainError as exc:
+        if not (args.adopt_chain_key and "not keyed" in str(exc)):
+            raise
+        store.verify_chain(adopt_key=True)
+        with store.tx() as db:
+            store.append(db, "chain.keyed", "cli", {"note": "log is keyed from this entry on"})
+        print("The log is keyed from now on. Entries before this point are only as trustworthy as "
+              "the anchors you recorded for them.", file=sys.stderr)
+    if not image_is_pinned(cfg.runtime.image):
+        print(f"Warning: runtime.image {cfg.runtime.image!r} is a mutable tag; pin it as name@sha256:<digest> "
+              "so a re-tag cannot change what agents run.", file=sys.stderr)
+    if not store.keyed:
+        print(f"Warning: {CHAIN_KEY_ENV} is not set; the room log is not keyed.", file=sys.stderr)
     contract = Contract(cfg.instance_path, cfg.events_path)
     contract.state()
     relay = Relay(cfg, store, contract, api_key=api_key)
@@ -92,7 +124,8 @@ def cmd_serve(args) -> int:
         print(f"recovered interrupted run {run_id}; review it to reconcile its cost", file=sys.stderr)
     from .server import serve
     server = serve(relay)
-    print(f"NEXUS Relay listening on http://{cfg.host}:{cfg.port} (public origin {cfg.public_origin})")
+    print(f"NEXUS Relay listening on http://{cfg.host}:{cfg.port} (public origin {cfg.public_origin}); "
+          f"engine: {cfg.runtime.engine}, {engine_mode}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
@@ -102,9 +135,16 @@ def cmd_serve(args) -> int:
     return 0
 
 
-def verify(cfg) -> list[str]:
+def verify(cfg, expect_head: str | None = None) -> list[str]:
+    store = Store(cfg.db_path, chain_key=chain_key_from_env())
+    try:
+        return _verify(cfg, store, expect_head)
+    finally:
+        store.close()
+
+
+def _verify(cfg, store, expect_head: str | None) -> list[str]:
     problems = []
-    store = Store(cfg.db_path)
     try:
         count = store.verify_chain()
     except ChainError as exc:
@@ -117,6 +157,21 @@ def verify(cfg) -> list[str]:
     except (AdmissionError, ValueError, KeyError, TypeError) as exc:
         problems.append(f"NEXUS replay failed: {exc}")
         events = []
+    if expect_head:
+        try:
+            seq_text, digest = expect_head.split(":", 1)
+            seq = int(seq_text)
+        except ValueError:
+            return [f"--expect-head must be SEQ:HASH as printed by `anchor`, got {expect_head!r}"]
+        actual = store.hash_at(seq)
+        if actual != digest:
+            problems.append(f"anchor mismatch at seq {seq}: recorded {digest}, log has {actual}")
+    for e in events:
+        if e.get("type") != "finish":
+            continue
+        for ref in e.get("evidence_refs", []):
+            if isinstance(ref, str) and ref.startswith("relay-log:sha256:") and not store.has_hash(ref.split(":", 2)[2]):
+                problems.append(f"NEXUS event {e.get('id')} cites a log entry that is not in the chain")
     ids = {e.get("id") for e in events}
     for row in store.query("SELECT id, state FROM runs"):
         started = f"relay-{row['id']}-start" in ids
@@ -132,8 +187,22 @@ def verify(cfg) -> list[str]:
     return problems
 
 
+def cmd_anchor(args) -> int:
+    cfg = load(args.data_dir)
+    store = Store(cfg.db_path, chain_key=chain_key_from_env())
+    try:
+        store.verify_chain()
+        seq, digest = store.head()
+    finally:
+        store.close()
+    print(f"{seq}:{digest}")
+    print("Record this somewhere the relay account cannot write (a signed commit, a ticket, paper); "
+          "`verify --expect-head` checks it later.", file=sys.stderr)
+    return 0
+
+
 def cmd_verify(args) -> int:
-    problems = verify(load(args.data_dir))
+    problems = verify(load(args.data_dir), args.expect_head)
     for p in problems:
         print(f"FAIL: {p}", file=sys.stderr)
     return 1 if problems else 0
@@ -154,8 +223,14 @@ def main(argv=None) -> int:
     p = sub.add_parser("invite", help="print a new single-use sign-in link for an existing member")
     p.add_argument("name")
     p.set_defaults(func=cmd_invite)
-    sub.add_parser("serve", help="run the relay").set_defaults(func=cmd_serve)
-    sub.add_parser("verify", help="check the log chain and replay the NEXUS events").set_defaults(func=cmd_verify)
+    p = sub.add_parser("serve", help="run the relay")
+    p.add_argument("--adopt-chain-key", action="store_true",
+                   help=f"start keying an existing unkeyed log with {CHAIN_KEY_ENV}")
+    p.set_defaults(func=cmd_serve)
+    p = sub.add_parser("verify", help="check the log chain and replay the NEXUS events")
+    p.add_argument("--expect-head", help="SEQ:HASH recorded earlier with `anchor`")
+    p.set_defaults(func=cmd_verify)
+    sub.add_parser("anchor", help="print the current log head to record outside this machine").set_defaults(func=cmd_anchor)
     args = parser.parse_args(argv)
     try:
         return args.func(args)

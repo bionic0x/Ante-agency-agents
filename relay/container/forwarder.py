@@ -4,13 +4,15 @@
 The container has no network. This bridges 127.0.0.1:8787 to the relay's per-run unix
 socket so standard HTTP clients (ANTHROPIC_BASE_URL) can reach the model proxy, then runs
 the agent command with the instruction on stdin and exits with its status."""
+import os
+import signal
 import socket
 import subprocess
 import sys
 import threading
 
 SOCKET = "/run/relay/model.sock"
-LISTEN = ("127.0.0.1", 8787)
+LISTEN = ("127.0.0.1", int(os.environ.get("RELAY_LISTEN_PORT", "8787")))
 
 
 def pipe(src, dst):
@@ -53,7 +55,18 @@ def main(argv):
     listener.bind(LISTEN)
     listener.listen(16)
     threading.Thread(target=serve, args=(listener,), daemon=True).start()
-    return subprocess.run(argv[1:]).returncode
+    deadline = int(os.environ.get("RELAY_DEADLINE_SECONDS", "0")) or None
+    agent = subprocess.Popen(argv[1:], start_new_session=True)
+    try:
+        return agent.wait(timeout=deadline)
+    except subprocess.TimeoutExpired:
+        print("relay: deadline reached, stopping agent", file=sys.stderr)
+        try:
+            os.killpg(agent.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        agent.wait()
+        return 124
 
 
 if __name__ == "__main__":

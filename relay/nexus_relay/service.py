@@ -2,10 +2,11 @@
 here, so the HTTP layer cannot forget a check."""
 from __future__ import annotations
 
+import json
 import threading
 import uuid
 
-from . import auth
+from . import auth, evidence
 from .config import RelayConfig, model_api_key
 from .nexus import AdmissionError, Contract
 from .proxy import Meter, ModelProxy
@@ -76,6 +77,14 @@ class Relay:
         _role(member, "owner")
         auth.disable_member(self.store, member_id, member["id"])
 
+    def sessions(self, member: dict) -> list[dict]:
+        _role(member, "owner")
+        return auth.list_sessions(self.store)
+
+    def revoke_session(self, member: dict, sid: str) -> None:
+        _role(member, "owner")
+        auth.revoke_session_by_id(self.store, sid, member["id"])
+
     def plan(self, member: dict) -> dict:
         plan = self.contract.plan()
         predicates = {t["id"]: list(t["acceptance_predicates"]) for t in self.contract.instance()["tasks"]}
@@ -85,8 +94,14 @@ class Relay:
 
     def runs(self, member: dict) -> list[dict]:
         rows = self.store.query("SELECT id, task_id, instruction, requested_by, state, reserved_cost, actual_cost, "
-                                "exit_code, error, artifact_digest, created_at, updated_at FROM runs ORDER BY created_at DESC LIMIT 200")
-        return [dict(r) for r in rows]
+                                "exit_code, error, artifact_digest, workspace_digest, control_changes, created_at, updated_at "
+                                "FROM runs ORDER BY created_at DESC LIMIT 200")
+        out = []
+        for r in rows:
+            item = dict(r)
+            item["control_changes"] = json.loads(item["control_changes"] or "[]")
+            out.append(item)
+        return out
 
     def output(self, member: dict, run_id: str) -> str:
         if self.store.run(run_id) is None:
@@ -155,6 +170,7 @@ class Relay:
     def _execute(self, run_id: str, task: dict, profile, reserved: float, instruction: str) -> None:
         meter = Meter(self.cfg.model.cost_unit, self.cfg.model.prices, reserved)
         proxy = None
+        paths = None
         code, digest, error = -1, None, None
         try:
             paths = prepare(self.cfg, run_id, task)
@@ -179,11 +195,30 @@ class Relay:
                 proxy.stop()
             with self._lock:
                 self._active.pop(run_id, None)
+        workspace_digest, changes = None, []
+        if paths is not None:
+            try:
+                workspace_digest, changes, size = self._record_workspace(run_id, task["id"], paths.workspace)
+                if size > self.cfg.runtime.workspace_max_bytes:
+                    error = error or (f"workspace holds {size} bytes, above the {self.cfg.runtime.workspace_max_bytes}"
+                                      " byte limit; clean it before the next run")
+            except OSError as exc:
+                error = error or f"workspace manifest failed: {exc}"[:2000]
         with self.store.tx() as db:
             self._set_state(db, run_id, "completed", "relay", "run.completed",
                             {"exit_code": code, "actual_cost": meter.spent, "requests": meter.requests,
-                             "artifact_digest": digest, "error": error},
-                            exit_code=code, actual_cost=meter.spent, artifact_digest=digest, error=error)
+                             "artifact_digest": digest, "workspace_digest": workspace_digest,
+                             "control_changes": changes, "error": error},
+                            exit_code=code, actual_cost=meter.spent, artifact_digest=digest, error=error,
+                            workspace_digest=workspace_digest, control_changes=json.dumps(changes))
+
+    def _record_workspace(self, run_id: str, task_id: str, workspace) -> tuple[str, list[str], int]:
+        man = evidence.manifest(workspace)
+        evidence.save(man, self.cfg.runs_dir / run_id / "manifest.json")
+        last = self.store.one("SELECT id FROM runs WHERE task_id = ? AND state = 'accepted' "
+                              "ORDER BY updated_at DESC LIMIT 1", (task_id,))
+        previous = evidence.load(self.cfg.runs_dir / last["id"] / "manifest.json") if last else None
+        return evidence.digest(man), evidence.control_changes(previous, man), evidence.size_bytes(man)
 
     def recover(self) -> list[str]:
         """After a restart, no run is executing. Anything left approved or running is
@@ -215,7 +250,8 @@ class Relay:
             raise Conflict("run is not executing")
         run.stop("cancelled by owner")
 
-    def review(self, member: dict, run_id: str, accepted: bool, confirmed_predicates: list[str], note: str) -> None:
+    def review(self, member: dict, run_id: str, accepted: bool, confirmed_predicates: list[str], note: str,
+               acknowledged_control_changes: list[str] | None = None) -> None:
         _role(member, "owner")
         if type(accepted) is not bool:
             raise ValueError("accepted must be a boolean")
@@ -228,11 +264,20 @@ class Relay:
         row = self.store.run(run_id)
         if row is None or row["state"] != "completed":
             raise Conflict("only a completed run can be reviewed")
-        if accepted and (row["error"] or not row["artifact_digest"]):
+        if accepted and (row["error"] or not row["artifact_digest"] or not row["workspace_digest"]):
             raise Conflict("a run that failed or produced no output cannot be accepted; reject it instead")
+        if acknowledged_control_changes is not None and (not isinstance(acknowledged_control_changes, list) or
+                                                         not all(isinstance(p, str) for p in acknowledged_control_changes)):
+            raise ValueError("acknowledged_control_changes must be a list of strings")
+        changes = json.loads(row["control_changes"] or "[]")
+        if accepted and changes and sorted(acknowledged_control_changes or []) != sorted(changes):
+            raise Conflict("this run changed files that steer future agent sessions; acknowledge each by name "
+                           f"before accepting: {', '.join(changes)}")
         head = self.store.one("SELECT hash FROM log ORDER BY seq DESC LIMIT 1")["hash"]
-        evidence = [f"relay-output:sha256:{row['artifact_digest']}", f"relay-log:sha256:{head}"] if row["artifact_digest"] \
-            else [f"relay-log:sha256:{head}"]
+        evidence = [f"relay-output:sha256:{row['artifact_digest']}"] if row["artifact_digest"] else []
+        if row["workspace_digest"]:
+            evidence.append(f"relay-workspace:sha256:{row['workspace_digest']}")
+        evidence.append(f"relay-log:sha256:{head}")
         try:
             self.contract.finish(run_id, row["task_id"], owner, float(row["actual_cost"] or 0), accepted,
                                  evidence, confirmed_predicates if accepted else [])
@@ -241,4 +286,5 @@ class Relay:
         with self.store.tx() as db:
             self._set_state(db, run_id, "accepted" if accepted else "rejected", member["id"],
                             "run.accepted" if accepted else "run.rejected",
-                            {"note": note, "predicates": confirmed_predicates if accepted else [], "evidence_refs": evidence})
+                            {"note": note, "predicates": confirmed_predicates if accepted else [], "evidence_refs": evidence,
+                             "acknowledged_control_changes": changes if accepted else []})

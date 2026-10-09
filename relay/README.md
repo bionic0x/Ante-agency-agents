@@ -16,8 +16,10 @@ remains the simpler path. The relay is for shared rooms and agents that need too
 ## Requirements
 
 - Linux or macOS, Python 3.10+, standard library only.
-- Podman (rootless, recommended) or Docker. Rootless Docker is not supported: the model
-  proxy socket must be reachable by the container user, which runs as your own uid.
+- Rootless Podman. `serve` checks how the engine runs and refuses a root-owned engine,
+  because any account that can use it is root on the host. Rootful Docker or Podman works
+  only if you accept that explicitly with `runtime.allow_rootful_engine: true`. Rootless
+  Docker is not supported (the proxy socket is unreachable across its uid mapping).
 - An agent image with `python3` and your agent CLI. [`container/Dockerfile`](container/Dockerfile)
   builds one with Claude Code.
 - A model API key in an environment variable (default `ANTHROPIC_API_KEY`).
@@ -39,8 +41,10 @@ python3 scripts/nexus-relay.py init \
   --instance ~/my-decision.instance.json --events ~/my-decision.events.jsonl \
   --engine podman --image ante-relay-agent:latest
 
-# 3. Serve (loopback only)
+# 3. Serve (loopback only). The chain key makes the room log rewrite-proof; keep it in a
+#    secret manager, not on this disk. Set it before `init` to key the log from the start.
 export ANTHROPIC_API_KEY=...
+export NEXUS_RELAY_CHAIN_KEY="$(your-secret-manager get relay-chain-key)"   # 32+ bytes
 python3 scripts/nexus-relay.py serve
 
 # 4. Optional: let tailnet members in over TLS, then set public_origin in relay.json
@@ -64,13 +68,16 @@ permissions). Unknown keys are errors.
 | `runtime.engine`, `runtime.image` | `podman` or `docker`, and the agent image |
 | `runtime.agent_command` | Command run in the container; the instruction arrives on stdin and the catalog profile at `$AGENT_PROFILE` |
 | `runtime.memory`, `cpus`, `pids`, `timeout_seconds` | Per-run limits |
+| `runtime.workspace_max` | Largest workspace a run may leave (default `10g`); larger runs fail. Put workspaces on a volume with a quota to also stop the disk filling during a run |
+| `runtime.allow_rootful_engine` | `false` by default; see Requirements |
 | `model.upstream`, `api_key_env` | Model API origin (https) and the variable holding the key |
 | `model.cost_unit`, `prices` | `tokens`, or `usd` with per-model prices per million tokens; must equal the instance `budget.unit` |
 
 ## Verify
 
 ```bash
-python3 scripts/nexus-relay.py verify                     # log chain + NEXUS replay + run/event consistency
+python3 scripts/nexus-relay.py anchor                     # print SEQ:HASH; record it off this machine
+python3 scripts/nexus-relay.py verify --expect-head SEQ:HASH   # chain, anchors, NEXUS replay and citations
 python3 scripts/nexus-instance.py replay <instance> --events <events> --output /tmp/state.json
 ```
 
@@ -81,10 +88,15 @@ python3 -m unittest discover -s relay/tests               # unit and HTTP tests
 RELAY_E2E=1 RELAY_E2E_ENGINE=podman python3 relay/tests/e2e_container.py   # real container escape probe
 ```
 
+Pin `runtime.image` by digest (`name@sha256:...`); runs never pull, and `serve` warns
+about mutable tags. When a run changes files that steer later agent sessions
+(`.claude/`, `CLAUDE.md`, hooks, MCP or CI config), the owner must acknowledge each one
+before accepting it.
+
 ## Limits
 
-- A run can overshoot its reservation by at most one model response: the proxy checks the
-  budget before each request and stops the container once it is spent. Size `cost_limit`
-  with that margin.
+- Spend is held at the worst case before each request: request bytes count as input tokens
+  (an upper bound for text) plus a 4,096-token margin, plus `max_tokens`. Near the end of a
+  reservation this refuses requests that might still have fit; that is deliberate.
 - Behind a tunnel every client appears as `127.0.0.1`, so the join rate limit is shared.
 - Holds, claim revisions and decisions are made with the existing NEXUS tooling, not the UI.

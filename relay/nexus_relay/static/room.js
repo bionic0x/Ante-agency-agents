@@ -136,6 +136,9 @@ async function renderRuns() {
     li.append(el("div", `${r.id} · task ${r.task_id} · ${r.state}${r.actual_cost !== null ? ` · cost ${r.actual_cost}` : ""}`));
     li.append(el("div", r.instruction, "muted"));
     if (r.error) li.append(el("div", r.error, "error"));
+    if (r.control_changes && r.control_changes.length) {
+      li.append(el("div", `Changed files that steer future agent runs: ${r.control_changes.join(", ")}`, "error"));
+    }
     const actions = el("div", null, "actions");
     if (["completed", "accepted", "rejected", "running"].includes(r.state)) {
       actions.append(actionButton("Output", async () => {
@@ -159,8 +162,11 @@ async function renderRuns() {
       actions.append(actionButton("Accept", async () => {
         const confirmed = predicatesFor(r.task_id);
         if (confirmed === null) return;
+        const changes = r.control_changes || [];
+        if (changes.length && !confirm(`This run changed files that steer future agent runs:\n\n- ${changes.join("\n- ")}\n\nOpen the workspace and review them first. Accept anyway?`)) return;
         const note = prompt("Review note:");
-        if (note) await api("POST", "/api/runs/review", { run_id: r.id, accepted: true, confirmed_predicates: confirmed, note });
+        if (note) await api("POST", "/api/runs/review", { run_id: r.id, accepted: true, confirmed_predicates: confirmed, note,
+                                                         acknowledged_control_changes: changes });
       }));
       actions.append(actionButton("Reject", async () => {
         const note = prompt("Why is this result rejected?");
@@ -191,8 +197,20 @@ async function renderMembers() {
   }
 }
 
+async function renderSessions() {
+  if (state.me.role !== "owner") return;
+  const { sessions } = await api("GET", "/api/sessions");
+  const list = $("sessions");
+  list.replaceChildren();
+  for (const sess of sessions) {
+    const li = el("li", `${sess.member} · last active ${new Date(sess.last_seen_at).toLocaleString()} `);
+    li.append(actionButton("Revoke", () => api("POST", "/api/sessions/revoke", { session_id: sess.id })));
+    list.append(li);
+  }
+}
+
 async function refresh() {
-  await Promise.all([renderPlan(), renderRuns(), renderMembers()]);
+  await Promise.all([renderPlan(), renderRuns(), renderMembers(), renderSessions()]);
 }
 
 async function boot() {

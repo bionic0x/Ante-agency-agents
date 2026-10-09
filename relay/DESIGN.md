@@ -56,21 +56,27 @@ loopback, such as `tailscale serve`. The relay refuses to bind a non-loopback ad
 
 | # | Threat | Control |
 |---|---|---|
-| T1 | An agent is manipulated (prompt injection in a message or file) into harming the host | Container per run: `--network none`, `--read-only`, `--cap-drop ALL`, `--security-opt no-new-privileges`, non-root UID, pids/memory/CPU limits, no host home, no container-engine socket. The only mount besides the workspace is the run's proxy socket. |
+| T1 | An agent is manipulated (prompt injection in a message or file) into harming the host | Container per run: `--network none`, `--read-only`, `--cap-drop ALL`, `--security-opt no-new-privileges`, non-root UID, pids/memory/CPU limits, `--pull never`, no host home, no container-engine socket. The only writable mount is the task workspace; the proxy socket and agent profile are read-only. The relay refuses a root-owned engine unless the owner opts in (`runtime.allow_rootful_engine`), because access to such an engine is root on the host. |
 | T2 | An agent exfiltrates data or calls arbitrary hosts | No network interface. The proxy forwards only `POST /v1/messages` to the configured model endpoint; every other path is refused. |
 | T3 | An agent steals the model API key | The key never enters the container. The proxy adds it upstream and strips any client-supplied credential headers. |
-| T4 | An agent overspends | `reserved_cost` is reserved in NEXUS at `start`; the proxy refuses requests once metered cost reaches the reservation, and the run is stopped. |
+| T4 | An agent overspends | `reserved_cost` is reserved in NEXUS at `start`. The proxy holds each request's worst case (request bytes + margin + `max_tokens`) under a lock before forwarding, lowers `max_tokens` to what remains, caps requests in flight, settles at metered usage (an incomplete response is charged its full hold) and stops the run when nothing more fits. Spent never exceeds the reservation while the upstream reports usage honestly. |
 | T5 | Unauthenticated access to the room | Loopback bind; every route except login requires a session; invite tokens are 256-bit, single-use, expiring and stored only as SHA-256 hashes. |
-| T6 | Session theft or CSRF | Session cookie `HttpOnly; SameSite=Strict; Path=/` (`Secure` when served behind TLS); tokens stored hashed; state-changing requests also require a matching `Origin` and an `X-Relay-CSRF` header bound to the session. |
-| T7 | Stored XSS in the room | Server-side length limits; the UI renders all user and agent text with `textContent` only; CSP `default-src 'self'`, no inline script or style, `frame-ancestors 'none'`; `nosniff` on every response. |
+| T6 | Session theft or CSRF | Session cookie `HttpOnly; SameSite=Strict; Path=/`, named `__Host-relay_session` with `Secure` behind TLS; tokens stored hashed; 14-day absolute and 12-hour idle lifetime; the owner can list and revoke sessions. State-changing requests also require a matching `Origin` and an `X-Relay-CSRF` header bound to the session. |
+| T7 | Stored XSS in the room | Server-side length limits; the UI renders all user and agent text with `textContent` only; CSP `default-src 'none'`, `script-src 'self'`, Trusted Types enforced with no policy, `frame-ancestors 'none'`; `nosniff` on every response. |
 | T8 | Privilege escalation between members | Roles are fixed per member (`owner`, `operator`, `viewer`). Only the owner approves, rejects, accepts and invites. Operators request. Viewers read. Checked server-side on every route. |
-| T9 | Forged or altered history | Append-only log with `prev_hash` chaining; `nexus-relay verify` recomputes the chain and replays the NEXUS events file through the unmodified engine. |
+| T9 | Forged or altered history | Append-only log with `prev_hash` chaining. With `NEXUS_RELAY_CHAIN_KEY` (supplied at start, never written to disk) each entry is an HMAC, the key is pinned by fingerprint, and a log rewritten without the key, including a downgrade to plain hashes, fails `verify`. `anchor` prints the head to record off the machine; `verify --expect-head` checks it, and `verify` confirms every log hash cited in NEXUS events exists. Without a key the chain only detects careless edits. |
 | T10 | Run escapes its contract | Runs are tied to one NEXUS task: its catalog agent, `resource_scope`, `cost_limit` and `attempt_limit` come from the instance file, never from the request. |
 | T11 | Brute force on login | Per-IP and global attempt limits with lockout; constant-time hash comparison. |
 | T12 | Secrets at rest | Config and database are created `0600` in a `0700` directory; the model key is read from an environment variable or a `0600` file and never written to the log. |
+| T13 | Resource exhaustion of the relay by a container | The proxy caps connections (8), requests in flight (4), body size (8 MB) and idle time (30 s); the HTTP server caps connections (64) and header time (15 s). |
+| T14 | A run outlives its limit | Three layers: the engine kill, then the client process, plus a deadline enforced inside the container by the forwarder. Stopping never blocks the caller. |
+| T15 | One run plants instructions or hooks for the next | The default agent command runs Claude Code with `--bare --strict-mcp-config`, which ignores workspace settings, hooks and `CLAUDE.md`. Changes to such control files since the task's last accepted run are flagged, and acceptance requires acknowledging each by name. |
+| T16 | Acceptance based on what the agent claims rather than what it delivered | Each run records a workspace manifest (files hashed, symlinks never followed); its digest is part of the NEXUS `finish` evidence. A workspace above `runtime.workspace_max` fails the run. |
+| T17 | Supply chain of the agent image | The reference image pins its base by digest and Claude Code by version; runs never pull; `serve` warns when the image is a mutable tag. |
 
 Residual risk, stated plainly: a container shares the host kernel, so a kernel or runtime
-escape defeats T1. Run the relay on a machine or VM without personal credentials, and
+escape defeats T1. A security audit of v1 and its fixes is summarised in the pull request
+that introduced T13 to T17. Run the relay on a machine or VM without personal credentials, and
 prefer rootless Podman or Docker with user namespaces.
 
 ## Run lifecycle and NEXUS mapping
@@ -99,7 +105,8 @@ accept `offline-analysis`; the relay refuses to execute any other scope.
 | `auth.py` | Token generation and hashing, sessions, CSRF, rate limiting |
 | `nexus.py` | Loads the instance and events; admits `start`/`finish` through the engine; atomic append |
 | `runner.py` | Builds the hardened container command; runs and stops containers |
-| `proxy.py` | Per-run unix-socket model proxy: path allowlist, key injection, metering, budget stop |
+| `proxy.py` | Per-run unix-socket model proxy: path allowlist, key injection, worst-case holds, metering, budget stop, resource caps |
+| `evidence.py` | Workspace manifest and control-file change detection |
 | `server.py` | HTTP routes, security headers, log polling endpoint |
 | `static/` | Room UI (no inline code) |
-| `cli.py` | `init`, `invite`, `serve`, `verify` |
+| `cli.py` | `init`, `invite`, `serve`, `verify`, `anchor` |
