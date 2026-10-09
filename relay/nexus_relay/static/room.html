@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>NEXUS Relay</title>
+  <link rel="stylesheet" href="/static/room.css">
+  <script src="/static/room.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>NEXUS Relay</h1>
+    <span id="who" class="muted"></span>
+    <button id="logout" type="button" hidden>Sign out</button>
+  </header>
+
+  <section id="signed-out" hidden>
+    <p>Open the invite link you received. Invite links work once and expire after 24 hours.</p>
+    <p id="join-status" class="error" role="alert"></p>
+  </section>
+
+  <main id="room" hidden>
+    <section class="panel" aria-labelledby="feed-title">
+      <h2 id="feed-title">Room</h2>
+      <ol id="feed" aria-live="polite"></ol>
+      <form id="message-form">
+        <label for="message-text" class="sr">Message</label>
+        <textarea id="message-text" maxlength="8000" rows="2" placeholder="Write to the room"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="plan-title">
+      <h2 id="plan-title">NEXUS plan</h2>
+      <p id="plan-summary" class="muted"></p>
+      <table>
+        <thead><tr><th>Task</th><th>Agent</th><th>Status</th><th>Blockers</th></tr></thead>
+        <tbody id="plan-rows"></tbody>
+      </table>
+      <form id="request-form" hidden>
+        <h3>Request a run</h3>
+        <label for="request-task">Task</label>
+        <select id="request-task"></select>
+        <label for="request-instruction">Instruction for the agent</label>
+        <textarea id="request-instruction" maxlength="20000" rows="4"></textarea>
+        <button type="submit">Request</button>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="runs-title">
+      <h2 id="runs-title">Runs</h2>
+      <ol id="runs"></ol>
+      <pre id="output" hidden></pre>
+    </section>
+
+    <section class="panel" id="members-panel" aria-labelledby="members-title" hidden>
+      <h2 id="members-title">Members</h2>
+      <ul id="members"></ul>
+      <form id="invite-form">
+        <label for="invite-name">Name</label>
+        <input id="invite-name" maxlength="48" pattern="[A-Za-z0-9][A-Za-z0-9._\-]{0,47}" required>
+        <label for="invite-role">Role</label>
+        <select id="invite-role"><option value="operator">operator</option><option value="viewer">viewer</option></select>
+        <button type="submit">Create invite</button>
+      </form>
+      <p id="invite-link" class="mono"></p>
+    </section>
+  </main>
+  <p id="status" class="error" role="alert"></p>
+</body>
+</html>

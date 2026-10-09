@@ -37,7 +37,7 @@ format, not a concurrent event database. Use separate output paths for writers.
 | Field | Required meaning |
 |---|---|
 | `id`, `runbook_ref`, `doctrine_sha256` | Instance identity, canonical candidate roster and pinned doctrine |
-| `mandate` | Named owner/reviewers, authority reference, expiry and `offline-analysis` scope |
+| `mandate` | Named owner/reviewers, authority reference, expiry and scope: `offline-analysis`, or `local-relay` for execution through [NEXUS Relay](../relay/DESIGN.md) |
 | `objective` | Purpose ID, valuable result, non-object, success condition and hard constraints |
 | `decision_state` | Canonical NEXUS decision; distinct from task completion |
 | `budget` | Total cost, uncommitted reserve and deadline, in one consistent declared cost unit |

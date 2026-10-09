@@ -21,10 +21,13 @@ See [source provenance and sync policy](strategy/UPSTREAM-SYNC.md).
 | Runbooks | Candidate teams, purpose, evidence requirements, handoffs and termination contracts | [Eight runbooks](strategy/runbooks.json) |
 | NEXUS instance engine | Offline task planning and replay with budgets, HOLD, claim revisions and dependency checks | [Pilot and contracts](strategy/NEXUS-INSTANCE.md) |
 | HTP Gate 0 | Separate Solana and Arbitrum One documentary scopes, manifests and unresolved conditions | [Gate 0 runbook](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) |
+| NEXUS Relay | Shared room where invited people request agent runs; NEXUS admits each run, which executes in a network-isolated container on the owner's machine | [Relay](relay/README.md), [threat model](relay/DESIGN.md) |
 
 Installing a roster makes profiles available to your chosen host. The host controls
-model calls, tool access and execution. NEXUS currently validates supplied records;
-it does not launch agents, authenticate authority or enforce live permissions.
+model calls, tool access and execution. The NEXUS engine validates supplied records;
+it does not launch agents, authenticate authority or enforce live permissions. The
+optional [NEXUS Relay](relay/README.md) is the one component that does: it authenticates
+room members, executes admitted runs in isolated containers and meters their cost.
 
 Profile success metrics are proposed evaluation criteria. Repository tests validate
 software contracts; they do not demonstrate production readiness or improved model

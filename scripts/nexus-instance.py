@@ -23,6 +23,7 @@ VOCAB = json.loads((ROOT / 'strategy/contracts.json').read_text())
 # was accepted as free text, so the multi-vector dimension was a convention nothing
 # checked. strategy/vectors.json closes it.
 VECTORS = json.loads((ROOT / 'strategy/vectors.json').read_text())['vectors']
+SCOPES = ('offline-analysis', 'local-relay')
 
 
 def digest(value):
@@ -128,7 +129,9 @@ def validate(instance):
     mandate = instance['mandate']
     for field in ('owner', 'authority_ref', 'scope'):
         text(mandate.get(field), f'mandate.{field}')
-    require(mandate['scope'] == 'offline-analysis', 'this runner supports offline-analysis only')
+    # offline-analysis: planning and replay only. local-relay: the same contract, executed
+    # by relay/ under owner approval. Any other authority must not be inferred.
+    require(mandate['scope'] in SCOPES, 'scope must be offline-analysis or local-relay')
     when(mandate['expires'])
     strings(mandate['reviewers'], 'reviewers', True)
     objective = instance['objective']

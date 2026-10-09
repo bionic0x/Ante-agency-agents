@@ -129,7 +129,11 @@ class InstanceTests(unittest.TestCase):
 
     def test_host_authority_not_inferred(self):
         self.i['mandate']['scope']='production'
-        with self.assertRaisesRegex(ValueError,'offline-analysis only'):n.initial(self.i)
+        with self.assertRaisesRegex(ValueError,'offline-analysis or local-relay'):n.initial(self.i)
+
+    def test_local_relay_scope_uses_the_same_contract(self):
+        self.i['mandate']['scope']='local-relay'
+        self.assertEqual('PENDING',n.initial(self.i)['tasks']['A']['status'])
 
     def test_sufficient_result_can_cancel_unneeded_work(self):
         closure={k:'fixture record' for k in ('achieved','outstanding','accountable','on_breach','conservation_resources')}

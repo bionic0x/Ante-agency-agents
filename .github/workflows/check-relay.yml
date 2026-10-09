@@ -1,0 +1,48 @@
+name: Check NEXUS Relay
+
+on:
+  pull_request:
+    paths:
+      - 'relay/**'
+      - 'scripts/nexus-relay.py'
+      - 'scripts/nexus-instance.py'
+      - 'strategy/GENERAL-STRATEGY-DOCTRINE.md'
+      - '.github/workflows/check-relay.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  relay:
+    name: relay unit, HTTP and container isolation tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: NEXUS engine contract (scope change)
+        run: python3 scripts/test-nexus-instance.py
+
+      - name: Example relay instance is valid
+        run: python3 scripts/nexus-instance.py validate relay/examples/relay-pilot.instance.json
+
+      - name: Relay unit and HTTP tests
+        run: python3 -m unittest discover -s relay/tests -v
+
+      - name: Container escape probe (rootless Podman)
+        env:
+          RELAY_E2E: '1'
+          RELAY_E2E_ENGINE: podman
+          RELAY_E2E_IMAGE: docker.io/library/python:3.13-slim
+        run: |
+          podman pull "$RELAY_E2E_IMAGE"
+          python3 relay/tests/e2e_container.py -v
