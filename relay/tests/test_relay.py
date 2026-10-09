@@ -263,18 +263,31 @@ class RunnerTests(Env):
 
 # --- proxy ------------------------------------------------------------------------------------
 class FakeUpstream:
-    def __init__(self, status=200, body=b"", headers=None):
-        self.status, self.body, self.headers = status, body, headers or {"content-type": "application/json"}
+    """Stand-in for the model API. Thread-safe; records forwarded bodies and peak concurrency."""
+
+    def __init__(self, status=200, body=b"", headers=None, delay=0.0, usage=None):
+        self.status, self.headers, self.delay = status, headers or {"content-type": "application/json"}, delay
+        self.body = body if usage is None else json.dumps({"usage": usage}).encode()
         self.requests = []
+        self.inflight = self.peak = 0
+        self.lock = threading.Lock()
 
     def __call__(self):
         outer = self
 
         class Conn:
             def request(self, method, path, body=None, headers=None):
-                outer.requests.append((method, path, body, dict(headers)))
+                with outer.lock:
+                    outer.requests.append((method, path, body, dict(headers)))
 
             def getresponse(self):
+                with outer.lock:
+                    outer.inflight += 1
+                    outer.peak = max(outer.peak, outer.inflight)
+                time.sleep(outer.delay)
+                with outer.lock:
+                    outer.inflight -= 1
+
                 class Resp:
                     status = outer.status
                     _buf = io.BytesIO(outer.body)
@@ -289,6 +302,9 @@ class FakeUpstream:
             def close(self):
                 pass
         return Conn()
+
+    def forwarded(self, i=0) -> dict:
+        return json.loads(self.requests[i][2])
 
 
 def unix_post(sock_path: Path, path: str, body: dict, headers: dict) -> tuple[int, bytes]:
@@ -306,6 +322,13 @@ def unix_post(sock_path: Path, path: str, body: dict, headers: dict) -> tuple[in
     return int(head.split()[1]), rest
 
 
+TOKEN = {"x-api-key": "run-token"}
+
+
+def msg(max_tokens=100, **extra) -> dict:
+    return {"model": "m", "max_tokens": max_tokens, "messages": [], **extra}
+
+
 class ProxyTests(unittest.TestCase):
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp(prefix="rp-", dir="/tmp"))
@@ -314,67 +337,175 @@ class ProxyTests(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.dir, ignore_errors=True)
 
-    def make(self, upstream, reserved=1000.0, unit="tokens", prices=None):
-        meter = proxy.Meter(unit, prices or {}, reserved)
+    def make(self, upstream, reserved=1_000_000.0, unit="tokens", prices=None, margin=0, **kw):
+        meter = proxy.Meter(unit, prices or {}, reserved, input_margin=margin)
         p = proxy.ModelProxy(self.sock, "run-token", "sk-real", "https://api.example.test",
-                             ("/v1/messages",), meter, connection_factory=upstream)
+                             ("/v1/messages", "/v1/messages/count_tokens"),
+                             meter, connection_factory=upstream, **kw)
         p.start()
         self.addCleanup(p.stop)
         return p, meter
 
+    # identity and routing
     def test_swaps_token_for_key_and_meters_json_usage(self):
-        up = FakeUpstream(body=json.dumps({"model": "m", "usage": {"input_tokens": 10, "output_tokens": 5}}).encode())
+        up = FakeUpstream(usage={"input_tokens": 10, "output_tokens": 5})
         p, meter = self.make(up)
-        status, _ = unix_post(self.sock, "/v1/messages", {"model": "m"},
-                              {"x-api-key": "run-token", "anthropic-version": "2023-06-01", "Cookie": "x=1"})
+        status, _ = unix_post(self.sock, "/v1/messages", msg(), {**TOKEN, "anthropic-version": "2023-06-01", "Cookie": "x=1"})
         self.assertEqual(200, status)
-        _, _, _, headers = up.requests[0]
+        headers = up.requests[0][3]
         self.assertEqual("sk-real", headers["x-api-key"])
         self.assertNotIn("Cookie", headers)
         self.assertEqual(15, meter.spent)
+        self.assertEqual(0, meter.remaining() - (meter.reserved - 15))
         self.assertEqual(0o600, os.stat(self.sock).st_mode & 0o777)
-
-    def test_query_string_is_forwarded_to_the_fixed_upstream_path(self):
-        up = FakeUpstream(body=json.dumps({"usage": {"input_tokens": 1, "output_tokens": 1}}).encode())
-        self.make(up)
-        self.assertEqual(200, unix_post(self.sock, "/v1/messages?beta=true", {"model": "m"}, {"x-api-key": "run-token"})[0])
-        self.assertEqual("/v1/messages?beta=true", up.requests[0][1])
-
-    def test_meters_streaming_usage(self):
-        sse = (b'event: message_start\ndata: {"type":"message_start","message":{"model":"m","usage":{"input_tokens":20,"output_tokens":1}}}\n\n'
-               b'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":7}}\n\n')
-        p, meter = self.make(FakeUpstream(body=sse, headers={"content-type": "text/event-stream"}))
-        status, body = unix_post(self.sock, "/v1/messages", {"model": "m", "stream": True}, {"x-api-key": "run-token"})
-        self.assertEqual(200, status)
-        self.assertEqual(sse, body)
-        self.assertEqual(27, meter.spent)
 
     def test_refuses_wrong_token_and_paths(self):
         up = FakeUpstream(body=b"{}")
         self.make(up)
-        self.assertEqual(401, unix_post(self.sock, "/v1/messages", {"model": "m"}, {"x-api-key": "sk-guess"})[0])
-        self.assertEqual(403, unix_post(self.sock, "/v1/files", {"model": "m"}, {"x-api-key": "run-token"})[0])
-        self.assertEqual(403, unix_post(self.sock, "/v1/messages/../files", {}, {"x-api-key": "run-token"})[0])
-        self.assertEqual(403, unix_post(self.sock, "//evil.test/v1/messages", {"model": "m"}, {"x-api-key": "run-token"})[0])
-        self.assertEqual(403, unix_post(self.sock, "https://evil.test/v1/messages", {"model": "m"}, {"x-api-key": "run-token"})[0])
+        self.assertEqual(401, unix_post(self.sock, "/v1/messages", msg(), {"x-api-key": "sk-guess"})[0])
+        self.assertEqual(403, unix_post(self.sock, "/v1/files", msg(), TOKEN)[0])
+        self.assertEqual(403, unix_post(self.sock, "/v1/messages/../files", msg(), TOKEN)[0])
+        self.assertEqual(403, unix_post(self.sock, "//evil.test/v1/messages", msg(), TOKEN)[0])
+        self.assertEqual(403, unix_post(self.sock, "https://evil.test/v1/messages", msg(), TOKEN)[0])
         self.assertEqual([], up.requests)
 
-    def test_budget_exhaustion_stops_the_run(self):
-        up = FakeUpstream(body=json.dumps({"usage": {"input_tokens": 60, "output_tokens": 60}}).encode())
-        p, meter = self.make(up, reserved=100)
-        stopped = threading.Event()
-        p.on_exhausted = stopped.set
-        self.assertEqual(200, unix_post(self.sock, "/v1/messages", {"model": "m"}, {"x-api-key": "run-token"})[0])
-        self.assertTrue(stopped.is_set())
-        self.assertEqual(402, unix_post(self.sock, "/v1/messages", {"model": "m"}, {"x-api-key": "run-token"})[0])
-        self.assertEqual(1, len(up.requests))
+    def test_query_string_is_forwarded_to_the_fixed_upstream_path(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages?beta=true", msg(), TOKEN)[0])
+        self.assertEqual("/v1/messages?beta=true", up.requests[0][1])
+
+    def test_generation_requires_max_tokens(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        for bad in ({"model": "m"}, msg(max_tokens=0), msg(max_tokens=True), msg(max_tokens="5")):
+            self.assertEqual(400, unix_post(self.sock, "/v1/messages", bad, TOKEN)[0])
+        self.assertEqual([], up.requests)
+
+    # metering
+    def test_meters_streaming_usage(self):
+        sse = (b'event: message_start\ndata: {"type":"message_start","message":{"model":"m","usage":{"input_tokens":20,"output_tokens":1}}}\n\n'
+               b'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":7}}\n\n'
+               b'event: message_stop\ndata: {"type":"message_stop"}\n\n')
+        p, meter = self.make(FakeUpstream(body=sse, headers={"content-type": "text/event-stream"}))
+        status, body = unix_post(self.sock, "/v1/messages", msg(stream=True), TOKEN)
+        self.assertEqual(200, status)
+        self.assertEqual(sse, body)
+        self.assertEqual(27, meter.spent)
+
+    def test_incomplete_stream_is_charged_its_full_hold(self):
+        sse = b'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":20,"output_tokens":1}}}\n\n'
+        p, meter = self.make(FakeUpstream(body=sse, headers={"content-type": "text/event-stream"}))
+        payload = msg(max_tokens=500, stream=True)
+        unix_post(self.sock, "/v1/messages", payload, TOKEN)
+        self.assertEqual(len(json.dumps(payload)) + 500, meter.spent)
+
+    def test_upstream_errors_are_not_charged(self):
+        p, meter = self.make(FakeUpstream(status=529, body=b'{"type":"error"}'))
+        self.assertEqual(529, unix_post(self.sock, "/v1/messages", msg(), TOKEN)[0])
+        self.assertEqual(0, meter.spent)
+        self.assertEqual(meter.reserved, meter.remaining())
+
+    def test_count_tokens_is_not_held(self):
+        up = FakeUpstream(body=b'{"input_tokens": 12}')
+        p, meter = self.make(up, reserved=1)
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages/count_tokens", {"model": "m", "messages": []}, TOKEN)[0])
+        self.assertEqual(0, meter.spent)
 
     def test_usd_refuses_unpriced_models(self):
-        up = FakeUpstream(body=json.dumps({"usage": {"input_tokens": 1_000_000, "output_tokens": 0}}).encode())
-        p, meter = self.make(up, unit="usd", prices={"priced": {"input": 3, "output": 15}})
-        self.assertEqual(403, unix_post(self.sock, "/v1/messages", {"model": "other"}, {"x-api-key": "run-token"})[0])
-        self.assertEqual(200, unix_post(self.sock, "/v1/messages", {"model": "priced"}, {"x-api-key": "run-token"})[0])
+        up = FakeUpstream(usage={"input_tokens": 1_000_000, "output_tokens": 0})
+        p, meter = self.make(up, reserved=1000, unit="usd", prices={"priced": {"input": 3, "output": 15}})
+        self.assertEqual(403, unix_post(self.sock, "/v1/messages", {**msg(), "model": "other"}, TOKEN)[0])
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", {**msg(), "model": "priced"}, TOKEN)[0])
         self.assertAlmostEqual(3.0, meter.spent)
+
+    # R-1: the reservation is a hard ceiling under concurrency
+    def test_concurrent_requests_never_exceed_the_reservation(self):
+        # Each response really spends what it may: the old proxy let 20 of these through
+        # against a 1000-token reservation (spent 5000).
+        up = FakeUpstream(delay=0.3, usage={"input_tokens": 40, "output_tokens": 200})
+        stops = []
+        p, meter = self.make(up, reserved=1000)
+        p.on_exhausted = lambda: stops.append(1)
+        results = []
+
+        def call():
+            try:
+                results.append(unix_post(self.sock, "/v1/messages", msg(max_tokens=200), TOKEN)[0])
+            except (OSError, IndexError):
+                results.append("dropped")
+        threads = [threading.Thread(target=call) for _ in range(20)]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        self.assertLessEqual(meter.spent, meter.reserved)
+        self.assertLessEqual(up.peak, proxy.MAX_IN_FLIGHT)
+        self.assertIn(402, results)
+        self.assertTrue(stops, "the run must be stopped once the budget cannot cover a request")
+        self.assertEqual(0, meter.overruns)
+
+    # R-3: max_tokens is lowered to what the budget can pay for
+    def test_max_tokens_is_clamped_to_the_remaining_budget(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        p, meter = self.make(up, reserved=1000)
+        payload = msg(max_tokens=64000)
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", payload, TOKEN)[0])
+        forwarded = up.forwarded()["max_tokens"]
+        self.assertLessEqual(len(json.dumps(payload)) + forwarded, 1000)
+        self.assertGreater(forwarded, 0)
+
+    def test_thinking_budget_follows_the_clamp_or_is_refused(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        p, meter = self.make(up, reserved=5000)
+        thinking = {"type": "enabled", "budget_tokens": 30000}
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", msg(max_tokens=64000, thinking=thinking), TOKEN)[0])
+        sent = up.forwarded()
+        self.assertLess(sent["thinking"]["budget_tokens"], sent["max_tokens"])
+        p2_dir = Path(tempfile.mkdtemp(prefix="rp-", dir="/tmp"))
+        self.addCleanup(shutil.rmtree, p2_dir, True)
+        meter2 = proxy.Meter("tokens", {}, 900, input_margin=0)
+        p2 = proxy.ModelProxy(p2_dir / "m.sock", "run-token", "sk", "https://a.test", ("/v1/messages",), meter2,
+                              connection_factory=up)
+        p2.start()
+        self.addCleanup(p2.stop)
+        self.assertEqual(402, unix_post(p2_dir / "m.sock", "/v1/messages", msg(max_tokens=64000, thinking=thinking), TOKEN)[0])
+        self.assertEqual(0, meter2.spent)
+
+    def test_budget_exhaustion_stops_the_run(self):
+        up = FakeUpstream(usage={"input_tokens": 60, "output_tokens": 60})
+        p, meter = self.make(up, reserved=400)
+        stopped = threading.Event()
+        p.on_exhausted = stopped.set
+        statuses = [unix_post(self.sock, "/v1/messages", msg(max_tokens=100), TOKEN)[0] for _ in range(5)]
+        self.assertIn(402, statuses)
+        self.assertTrue(stopped.is_set())
+        self.assertLessEqual(meter.spent, 400)
+
+    # R-4: the container cannot exhaust relay threads or memory
+    def test_idle_and_excess_connections_are_bounded(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        p, meter = self.make(up, idle_timeout=0.5)
+        before = threading.active_count()
+        socks = []
+        for _ in range(100):
+            s = socket.socket(socket.AF_UNIX)
+            s.connect(str(self.sock))
+            socks.append(s)
+        time.sleep(0.3)
+        self.assertLessEqual(threading.active_count() - before, proxy.MAX_CONNECTIONS + 1)
+        time.sleep(1.0)
+        for s in socks:
+            s.close()
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", msg(), TOKEN)[0])
+
+    def test_oversized_body_is_refused(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        s = socket.socket(socket.AF_UNIX)
+        s.connect(str(self.sock))
+        s.sendall(f"POST /v1/messages HTTP/1.0\r\nContent-Length: {proxy.MAX_BODY + 1}\r\nx-api-key: run-token\r\n\r\n".encode())
+        self.assertIn(b" 413 ", s.recv(4096))
+        s.close()
+        self.assertEqual([], up.requests)
 
 
 # --- service -------------------------------------------------------------------------------------
