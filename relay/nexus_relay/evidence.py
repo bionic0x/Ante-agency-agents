@@ -55,7 +55,11 @@ def manifest(workspace: Path) -> dict:
     entries: dict[str, dict] = {}
     truncated = False
     budget = [MAX_HASHED_BYTES]
-    for root, dirs, files in os.walk(workspace, followlinks=False):
+    def unreadable(exc: OSError) -> None:
+        nonlocal truncated
+        truncated = True
+
+    for root, dirs, files in os.walk(workspace, followlinks=False, onerror=unreadable):
         dirs.sort()
         for name in sorted(files) + [d for d in dirs if os.path.islink(os.path.join(root, d))]:
             full = Path(root) / name
@@ -65,10 +69,13 @@ def manifest(workspace: Path) -> dict:
                 break
             try:
                 st = os.lstat(full)
+                if stat.S_ISLNK(st.st_mode):
+                    target = os.readlink(full)
             except OSError:
+                truncated = True
                 continue
             if stat.S_ISLNK(st.st_mode):
-                entries[rel] = {"type": "symlink", "target": os.readlink(full)}
+                entries[rel] = {"type": "symlink", "target": target}
             elif stat.S_ISREG(st.st_mode):
                 sha = _hash_file(full, budget)
                 if sha is None:
@@ -116,3 +123,27 @@ def load(path: Path) -> dict | None:
         return json.loads(path.read_text())
     except (OSError, json.JSONDecodeError):
         return None
+
+
+def artifact_problems(run_dir: Path, output_digest: str | None, workspace_digest: str | None) -> list[str]:
+    """Verify archived run evidence, not the mutable workspace shared by retries."""
+    problems = []
+    if output_digest:
+        try:
+            actual = hashlib.sha256((run_dir / "output.txt").read_bytes()).hexdigest()
+            if actual != output_digest:
+                problems.append("output.txt digest mismatch")
+        except OSError:
+            problems.append("output.txt missing or unreadable")
+    if workspace_digest:
+        try:
+            man = load(run_dir / "manifest.json")
+            if not isinstance(man, dict) or not isinstance(man.get("entries"), dict):
+                problems.append("manifest.json missing or invalid")
+            elif man.get("truncated") is not False:
+                problems.append("manifest.json is incomplete")
+            elif digest(man) != workspace_digest:
+                problems.append("manifest.json digest mismatch")
+        except (ValueError, RecursionError):
+            problems.append("manifest.json invalid")
+    return problems

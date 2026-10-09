@@ -852,6 +852,66 @@ class ServiceTests(Env):
             self.relay.post_message(self.viewer, "   ")
         self.relay.post_message(self.viewer, "<script>alert(1)</script>")
 
+    def test_truncated_workspace_cannot_be_accepted(self):
+        FakeRun.plant = {"a.txt": "first", "z/CLAUDE.md": "hidden instructions"}
+        self.addCleanup(setattr, FakeRun, "plant", {})
+        with mock.patch.object(evidence, "MAX_FILES", 1):
+            run_id = self.relay.request_run(self.op, "A", "x")
+            self.relay.approve(self.owner, run_id)
+            self.wait_state(run_id, "completed")
+        self.assertTrue(evidence.load(self.cfg.runs_dir / run_id / "manifest.json")["truncated"])
+        with self.assertRaises(service.Conflict):
+            self.relay.review(self.owner, run_id, True, ["contract_met"], "not fully inspected")
+        self.relay.review(self.owner, run_id, False, [], "incomplete evidence")
+        self.assertEqual("rejected", self.store.run(run_id)["state"])
+
+    def test_hash_budget_exhaustion_fails_the_run(self):
+        FakeRun.plant = {"a.txt": "larger than the hash budget", "z/CLAUDE.md": "unscanned"}
+        self.addCleanup(setattr, FakeRun, "plant", {})
+        with mock.patch.object(evidence, "MAX_HASHED_BYTES", 4):
+            run_id = self.relay.request_run(self.op, "A", "x")
+            self.relay.approve(self.owner, run_id)
+            self.wait_state(run_id, "completed")
+        self.assertIn("manifest incomplete", str(self.store.run(run_id)["error"]))
+        with self.assertRaises(service.Conflict):
+            self.relay.review(self.owner, run_id, True, ["contract_met"], "incomplete")
+
+    def test_changed_output_is_refused_at_review(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        self.relay.approve(self.owner, run_id)
+        self.wait_state(run_id, "completed")
+        (self.cfg.runs_dir / run_id / "output.txt").write_text("changed after completion")
+        with self.assertRaisesRegex(service.Conflict, "evidence"):
+            self.relay.review(self.owner, run_id, True, ["contract_met"], "incorrect artifact")
+        self.relay.review(self.owner, run_id, False, [], "corrupted evidence")
+
+    def test_verify_detects_missing_or_changed_archived_artifacts(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        self.relay.approve(self.owner, run_id)
+        self.wait_state(run_id, "completed")
+        self.relay.review(self.owner, run_id, True, ["contract_met"], "ok")
+        run_dir = self.cfg.runs_dir / run_id
+        for filename in ("output.txt", "manifest.json"):
+            path = run_dir / filename
+            original = path.read_bytes()
+            with self.subTest(filename=filename, damage="missing"):
+                path.unlink()
+                self.assertTrue(verify(self.cfg))
+            path.write_bytes(original)
+            with self.subTest(filename=filename, damage="changed"):
+                path.write_text("{}")
+                self.assertTrue(verify(self.cfg))
+            path.write_bytes(original)
+        self.assertEqual([], verify(self.cfg))
+
+    def test_verify_detects_finish_not_projected_to_database(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        self.relay.approve(self.owner, run_id)
+        self.wait_state(run_id, "completed")
+        # Simulate a crash after durable NEXUS finish and before the SQLite update.
+        self.contract.finish(run_id, "A", OWNER, 150, False, [], [])
+        self.assertTrue(verify(self.cfg))
+
 
 class EvidenceTests(unittest.TestCase):
     def setUp(self):
@@ -877,6 +937,70 @@ class EvidenceTests(unittest.TestCase):
             self.assertTrue(evidence.is_control(path), path)
         for path in ("src/main.py", "docs/claude.txt", "README.md"):
             self.assertFalse(evidence.is_control(path), path)
+
+    def test_unreadable_subtree_marks_manifest_incomplete(self):
+        def inaccessible_walk(path, **kwargs):
+            kwargs.get("onerror", lambda exc: None)(PermissionError("unreadable subtree"))
+            return iter(())
+
+        with mock.patch.object(evidence.os, "walk", side_effect=inaccessible_walk):
+            self.assertTrue(evidence.manifest(self.ws)["truncated"])
+
+    def test_file_disappearing_during_scan_marks_manifest_incomplete(self):
+        (self.ws / "report.txt").write_text("exists at directory scan time")
+        with mock.patch.object(evidence.os, "lstat", side_effect=FileNotFoundError("changed during scan")):
+            self.assertTrue(evidence.manifest(self.ws)["truncated"])
+
+
+class MeterSettlementTests(unittest.TestCase):
+    def test_proxy_stop_accounts_for_pending_requests_before_persisting_cost(self):
+        meter = proxy.Meter("tokens", {}, 100, input_margin=0)
+        hold, _ = meter.hold("m", 10, 90)
+        with tempfile.TemporaryDirectory() as tmp:
+            p = proxy.ModelProxy(Path(tmp) / "model.sock", "run-token", "test-key", "https://example.test",
+                                 ("/v1/messages",), meter)
+            p.stop()  # A detached handler can still be awaiting the upstream response.
+            self.assertEqual(100, meter.spent)
+            self.assertTrue(meter.exhausted())
+            with self.assertRaises(proxy.BudgetExceeded):
+                meter.hold("m", 1, 1)
+            meter.settle(hold, "m", {"input_tokens": 10, "output_tokens": 20})
+            self.assertEqual(100, meter.spent, "late usage must not change the persisted conservative charge")
+            p.stop()
+            self.assertEqual(1, meter.requests)
+
+    def test_settlement_never_makes_pending_cost_available_again(self):
+        calculating = threading.Event()
+        release = threading.Event()
+
+        class PausedMeter(proxy.Meter):
+            def cost(self, model, usage):
+                calculating.set()
+                if not release.wait(5):
+                    raise AssertionError("test did not release settlement")
+                return super().cost(model, usage)
+
+        meter = PausedMeter("tokens", {}, 100, input_margin=0)
+        hold, _ = meter.hold("m", 10, 90)
+        thread = threading.Thread(target=meter.settle, args=(hold, "m", {"input_tokens": 10, "output_tokens": 90}))
+        thread.start()
+        try:
+            self.assertTrue(calculating.wait(5))
+            with self.assertRaises(proxy.BudgetExceeded):
+                meter.hold("m", 10, 90)
+        finally:
+            release.set()
+            thread.join(5)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(100, meter.spent)
+        self.assertEqual(0, meter.remaining())
+
+    def test_hold_covers_configured_cache_read_rate(self):
+        meter = proxy.Meter("usd", {"m": {"input": 1, "output": 1, "cache_write": 2, "cache_read": 5}},
+                            1, input_margin=0)
+        hold, _ = meter.hold("m", 100, 1)
+        meter.settle(hold, "m", {"cache_read_input_tokens": 100, "output_tokens": 1})
+        self.assertEqual(0, meter.overruns)
 
 
 KEY = b"k" * 32

@@ -215,6 +215,9 @@ class Relay:
     def _record_workspace(self, run_id: str, task_id: str, workspace) -> tuple[str, list[str], int]:
         man = evidence.manifest(workspace)
         evidence.save(man, self.cfg.runs_dir / run_id / "manifest.json")
+        if man["truncated"]:
+            raise OSError("workspace manifest incomplete (scan limit or unreadable files); "
+                          "its size and control-file inventory cannot establish acceptance")
         last = self.store.one("SELECT id FROM runs WHERE task_id = ? AND state = 'accepted' "
                               "ORDER BY updated_at DESC LIMIT 1", (task_id,))
         previous = evidence.load(self.cfg.runs_dir / last["id"] / "manifest.json") if last else None
@@ -266,6 +269,11 @@ class Relay:
             raise Conflict("only a completed run can be reviewed")
         if accepted and (row["error"] or not row["artifact_digest"] or not row["workspace_digest"]):
             raise Conflict("a run that failed or produced no output cannot be accepted; reject it instead")
+        if accepted:
+            problems = evidence.artifact_problems(self.cfg.runs_dir / run_id,
+                                                  row["artifact_digest"], row["workspace_digest"])
+            if problems:
+                raise Conflict("run evidence failed verification: " + "; ".join(problems))
         if acknowledged_control_changes is not None and (not isinstance(acknowledged_control_changes, list) or
                                                          not all(isinstance(p, str) for p in acknowledged_control_changes)):
             raise ValueError("acknowledged_control_changes must be a list of strings")
@@ -274,17 +282,17 @@ class Relay:
             raise Conflict("this run changed files that steer future agent sessions; acknowledge each by name "
                            f"before accepting: {', '.join(changes)}")
         head = self.store.one("SELECT hash FROM log ORDER BY seq DESC LIMIT 1")["hash"]
-        evidence = [f"relay-output:sha256:{row['artifact_digest']}"] if row["artifact_digest"] else []
+        evidence_refs = [f"relay-output:sha256:{row['artifact_digest']}"] if row["artifact_digest"] else []
         if row["workspace_digest"]:
-            evidence.append(f"relay-workspace:sha256:{row['workspace_digest']}")
-        evidence.append(f"relay-log:sha256:{head}")
+            evidence_refs.append(f"relay-workspace:sha256:{row['workspace_digest']}")
+        evidence_refs.append(f"relay-log:sha256:{head}")
         try:
             self.contract.finish(run_id, row["task_id"], owner, float(row["actual_cost"] or 0), accepted,
-                                 evidence, confirmed_predicates if accepted else [])
+                                 evidence_refs, confirmed_predicates if accepted else [])
         except AdmissionError as exc:
             raise Conflict(f"NEXUS refused the review: {exc}") from exc
         with self.store.tx() as db:
             self._set_state(db, run_id, "accepted" if accepted else "rejected", member["id"],
                             "run.accepted" if accepted else "run.rejected",
-                            {"note": note, "predicates": confirmed_predicates if accepted else [], "evidence_refs": evidence,
+                            {"note": note, "predicates": confirmed_predicates if accepted else [], "evidence_refs": evidence_refs,
                              "acknowledged_control_changes": changes if accepted else []})
