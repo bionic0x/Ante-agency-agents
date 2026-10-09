@@ -108,8 +108,12 @@ index: if it disagrees with that entry, acceptance is refused, a rejection repor
 logged cost to NEXUS and restores the row, and `verify` reports the difference. Editing an
 artifact and its table row together therefore no longer passes. `verify` also checks that a
 NEXUS finish cites the logged digests. `verify` also detects a NEXUS finish absent from the
-SQLite terminal state. Automatic crash reconciliation and immutable artifact storage
-remain separate work; neither is provided by these checks.
+SQLite terminal state, and `reconcile` repairs that crash window (`reconcile.py`): it
+projects the finish into SQLite only when its owner, cost and digests match the chained
+`run.completed` entry, under the same process lock `serve` holds, and only on a log that
+verifies. The lost review note is recorded as absent. An identical retry of a NEXUS event is
+a no-op in the engine and is not appended twice. Immutable artifact storage remains
+separate work.
 
 The instance must declare `mandate.scope` = `local-relay`. Offline tooling continues to
 accept `offline-analysis`; the relay refuses to execute any other scope.
@@ -128,4 +132,5 @@ accept `offline-analysis`; the relay refuses to execute any other scope.
 | `evidence.py` | Workspace manifest and control-file change detection |
 | `server.py` | HTTP routes, security headers, log polling endpoint |
 | `static/` | Room UI (no inline code) |
-| `cli.py` | `init`, `invite`, `serve`, `verify`, `anchor` |
+| `reconcile.py` | Plans and applies repairs for the NEXUS/SQLite crash windows; leaves anything else to a person |
+| `cli.py` | `init`, `invite`, `serve`, `verify`, `anchor`, `reconcile`; the process lock shared by `serve` and `reconcile --apply` |

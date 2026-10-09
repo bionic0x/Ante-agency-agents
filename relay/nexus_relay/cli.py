@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager, nullcontext
+import fcntl
 import json
 import os
 from pathlib import Path
 import sys
 
-from . import auth, evidence
+from . import auth, evidence, reconcile
 from .config import CONFIG_NAME, ConfigError, load, model_api_key, parse
 from .nexus import AdmissionError, Contract, engine
 from .runner import RunError, check_engine, image_is_pinned
@@ -90,11 +92,39 @@ def cmd_invite(args) -> int:
     return 0
 
 
+class Busy(Exception):
+    pass
+
+
+@contextmanager
+def relay_lock(cfg):
+    """One writer at a time: `serve` holds this for its lifetime, `reconcile --apply` for its
+    run, so a repair can never interleave with a live review."""
+    fd = os.open(cfg.data_dir / "relay.lock", os.O_CREAT | os.O_RDWR, 0o600)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise Busy("another relay process (serve or reconcile) is running; stop it first") from None
+        yield
+    finally:
+        os.close(fd)
+
+
 def cmd_serve(args) -> int:
     if os.getuid() == 0:
         print("refusing to serve as root", file=sys.stderr)
         return 2
     cfg = load(args.data_dir)
+    try:
+        with relay_lock(cfg):
+            return _serve(args, cfg)
+    except Busy as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+def _serve(args, cfg) -> int:
     try:
         engine_mode = check_engine(cfg)
     except RunError as exc:
@@ -229,6 +259,54 @@ def cmd_anchor(args) -> int:
     return 0
 
 
+def cmd_reconcile(args) -> int:
+    cfg = load(args.data_dir)
+    try:
+        # Plan and apply under the same lock, so `serve` cannot change a run in between.
+        with (relay_lock(cfg) if args.apply else nullcontext()):
+            return _reconcile(cfg, args.apply)
+    except Busy as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+def _reconcile(cfg, apply_changes: bool) -> int:
+    store = Store(cfg.db_path, chain_key=chain_key_from_env())
+    try:
+        try:
+            store.verify_chain()  # never build a repair on a log that does not verify
+        except ChainError as exc:
+            print(f"FAIL: {exc}", file=sys.stderr)
+            return 1
+        contract = Contract(cfg.instance_path, cfg.events_path)
+        try:
+            contract.state()
+        except AdmissionError as exc:
+            print(f"FAIL: NEXUS replay failed: {exc}", file=sys.stderr)
+            return 1
+        result = reconcile.plan(store, contract)
+        verb = "" if apply_changes else "would "
+        for run_id in result.recover:
+            print(f"{verb}recover: run {run_id} was interrupted; it is marked completed with an error "
+                  "(charged its full reservation if NEXUS started it) and then needs a review")
+        for run_id, finish in result.project:
+            print(f"{verb}record: run {run_id} NEXUS finish ({'accepted' if finish['accepted'] else 'rejected'}); "
+                  "the review note was lost and stays empty")
+        for item in result.manual:
+            print(f"needs a person: {item}", file=sys.stderr)
+        if result.empty:
+            print("nothing to reconcile")
+        elif not apply_changes:
+            print("dry run; nothing changed. Re-run with --apply while `serve` is stopped.")
+        else:
+            relay = Relay(cfg, store, contract, api_key="unused-by-reconcile")
+            for line in reconcile.apply(relay, result):
+                print(line)
+        return 1 if result.manual else 0
+    finally:
+        store.close()
+
+
 def cmd_verify(args) -> int:
     problems = verify(load(args.data_dir), args.expect_head)
     for p in problems:
@@ -259,6 +337,9 @@ def main(argv=None) -> int:
     p.add_argument("--expect-head", help="SEQ:HASH recorded earlier with `anchor`")
     p.set_defaults(func=cmd_verify)
     sub.add_parser("anchor", help="print the current log head to record outside this machine").set_defaults(func=cmd_anchor)
+    p = sub.add_parser("reconcile", help="repair runs interrupted between NEXUS and the room database (dry run by default)")
+    p.add_argument("--apply", action="store_true", help="make the changes; requires `serve` to be stopped")
+    p.set_defaults(func=cmd_reconcile)
     args = parser.parse_args(argv)
     try:
         return args.func(args)
