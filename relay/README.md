@@ -81,6 +81,13 @@ python3 scripts/nexus-relay.py verify --expect-head SEQ:HASH   # chain, anchors,
 python3 scripts/nexus-instance.py replay <instance> --events <events> --output /tmp/state.json
 ```
 
+`verify` also re-hashes archived `output.txt` and `manifest.json` files and reports a
+NEXUS finish whose acceptance/rejection was not persisted in SQLite. Acceptance checks
+the archived evidence again; a missing, changed or incomplete artifact must be rejected.
+This verifies the recorded manifest, not an immutable copy of every delivered file:
+task workspaces remain shared by retries. An interrupted review requires reconciliation;
+the verifier detects it but does not invent a review note or retry the finish event.
+
 ## Tests
 
 ```bash
@@ -98,5 +105,11 @@ before accepting it.
 - Spend is held at the worst case before each request: request bytes count as input tokens
   (an upper bound for text) plus a 4,096-token margin, plus `max_tokens`. Near the end of a
   reservation this refuses requests that might still have fit; that is deliberate.
+- At proxy shutdown, unfinished requests are charged their full holds before the run's
+  cost is recorded. Late responses cannot reduce or double-charge that final amount.
+- Workspace evidence is capped at 50,000 entries and 2 GiB of hashed data. Reaching a
+  limit with unscanned data, or failing to read a file/subtree, makes the run ineligible
+  for acceptance, even if `workspace_max` is higher. The size check is post-run;
+  a filesystem quota is still needed for a hard disk-use limit during execution.
 - Behind a tunnel every client appears as `127.0.0.1`, so the join rate limit is shared.
 - Holds, claim revisions and decisions are made with the existing NEXUS tooling, not the UI.

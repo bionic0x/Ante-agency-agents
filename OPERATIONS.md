@@ -157,6 +157,7 @@ requires these current job contexts before merge:
 - `install.sh hermes config rewrite`
 - `install.sh behavior (ubuntu-latest)`
 - `install.sh behavior (macos-latest)`
+- `relay unit, HTTP and container isolation tests`
 
 Broad always-bypass roles/integrations should be removed unless they have a
 named emergency or release purpose. Acceptance is operational, not textual:

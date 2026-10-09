@@ -54,6 +54,9 @@
           },
           {
             "context": "install.sh behavior (macos-latest)"
+          },
+          {
+            "context": "relay unit, HTTP and container isolation tests"
           }
         ]
       }

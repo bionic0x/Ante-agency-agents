@@ -2,12 +2,8 @@ name: Check NEXUS Relay
 
 on:
   pull_request:
-    paths:
-      - 'relay/**'
-      - 'scripts/nexus-relay.py'
-      - 'scripts/nexus-instance.py'
-      - 'strategy/GENERAL-STRATEGY-DOCTRINE.md'
-      - '.github/workflows/check-relay.yml'
+    # Always run: shared catalog/contract dependencies can change outside relay/,
+    # and a required check must not remain pending on an unrelated PR.
   push:
     branches: [main]
 

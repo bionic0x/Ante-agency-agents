@@ -59,24 +59,26 @@ class Meter:
         self._holds: dict[int, float] = {}
         self._ids = itertools.count(1)
         self._lock = threading.Lock()
+        self._closed = False
 
     def priced(self, model: str | None) -> bool:
         return self.unit == "tokens" or (model is not None and model in self.prices)
 
     def exhausted(self) -> bool:
         with self._lock:
-            return self.spent >= self.reserved
+            return self._closed or self.spent >= self.reserved
 
     def remaining(self) -> float:
         with self._lock:
-            return self.reserved - self.spent - sum(self._holds.values())
+            return 0.0 if self._closed else self.reserved - self.spent - sum(self._holds.values())
 
     def _rates(self, model: str | None) -> tuple[float, float]:
         """(worst-case cost of one input token, cost of one output token)."""
         if self.unit == "tokens":
             return 1.0, 1.0
         price = self.prices[model]
-        worst_input = max(price["input"], price.get("cache_write", price["input"]))
+        worst_input = max(price["input"], price.get("cache_write", price["input"]),
+                          price.get("cache_read", price["input"]))
         return worst_input / 1_000_000, price["output"] / 1_000_000
 
     def cost(self, model: str | None, usage: dict) -> float:
@@ -95,6 +97,8 @@ class Meter:
         in_rate, out_rate = self._rates(model)
         input_cost = (body_bytes + self.input_margin) * in_rate
         with self._lock:
+            if self._closed:
+                raise BudgetExceeded("run meter is closed")
             free = self.reserved - self.spent - sum(self._holds.values())
             affordable = math.floor((free - input_cost) / out_rate) if out_rate > 0 else (requested_max or 0)
             if affordable < 1:
@@ -106,15 +110,34 @@ class Meter:
 
     def settle(self, hold_id: int, model: str | None, usage: dict | None) -> float:
         """Release a hold, charging metered usage, or the full hold if usage is unknown."""
+        # Keep the reservation visible while calculating its final cost. Releasing
+        # it first lets a concurrent request spend money that is about to be charged.
+        charged = self.cost(model, usage) if usage is not None else None
         with self._lock:
+            if self._closed:
+                return 0.0  # close() already charged the full hold before cost was persisted.
             held = self._holds.pop(hold_id)
-        charged = held if usage is None else self.cost(model, usage)
-        with self._lock:
+            if charged is None:
+                charged = held
             if charged > held:
                 self.overruns += 1
             self.spent += charged
             self.requests += 1
         return charged
+
+    def close(self) -> None:
+        """Freeze final cost, charging outstanding responses conservatively at their holds.
+
+        Proxy handlers are daemon threads and may outlive socket shutdown. They must
+        neither release budget nor alter a run's cost after it has been persisted.
+        """
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            self.spent += sum(self._holds.values())
+            self.requests += len(self._holds)
+            self._holds.clear()
 
     def add(self, model: str | None, usage: dict) -> None:
         """Record usage that was not held in advance (test doubles and recovery)."""
@@ -276,6 +299,7 @@ class ModelProxy:
         self._thread.start()
 
     def stop(self) -> None:
+        self.meter.close()
         if self._server:
             self._server.shutdown()
             self._server.server_close()

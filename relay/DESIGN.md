@@ -93,6 +93,19 @@ example `task blocked: HOLD:C-2` or `reserve boundary exceeded`) and nothing exe
 run that crashes or times out is recorded as completed with an error and still needs a
 `finish` so its actual cost is reconciled, as the engine requires.
 
+Settlement replaces a pending hold with its final charge under one lock. Proxy shutdown
+freezes the meter and charges any unfinished requests at their full holds before a
+`run.completed` cost is saved. This prevents detached upstream handlers from changing
+already-recorded cost. Configured cache-read rates also participate in the worst-case
+input rate, even when they exceed the normal input rate.
+
+Workspace scanning fails closed: an unreadable subtree/file or an exhausted scan budget
+cannot produce acceptable evidence. The partial manifest remains available for diagnosis,
+but no valid workspace digest is attached to that run. Acceptance and `verify` check
+archived output/manifest hashes. `verify` also detects a NEXUS finish absent from the
+SQLite terminal state. Automatic crash reconciliation and immutable artifact storage
+remain separate work; neither is provided by these checks.
+
 The instance must declare `mandate.scope` = `local-relay`. Offline tooling continues to
 accept `offline-analysis`; the relay refuses to execute any other scope.
 

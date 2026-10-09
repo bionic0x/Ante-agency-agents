@@ -26,6 +26,7 @@ python3 scripts/test-nexus-routing.py
 python3 scripts/test-nexus-anthropic.py
 python3 scripts/test-nexus-pilot.py
 python3 scripts/test-nexus-evaluation.py
+python3 -m unittest discover -s relay/tests
 python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json >/dev/null
 python3 scripts/check-htp-gate0.py
 python3 scripts/test-htp-gate0.py

@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from . import auth
+from . import auth, evidence
 from .config import CONFIG_NAME, ConfigError, load, model_api_key, parse
 from .nexus import AdmissionError, Contract, engine
 from .runner import RunError, check_engine, image_is_pinned
@@ -173,15 +173,21 @@ def _verify(cfg, store, expect_head: str | None) -> list[str]:
             if isinstance(ref, str) and ref.startswith("relay-log:sha256:") and not store.has_hash(ref.split(":", 2)[2]):
                 problems.append(f"NEXUS event {e.get('id')} cites a log entry that is not in the chain")
     ids = {e.get("id") for e in events}
-    for row in store.query("SELECT id, state FROM runs"):
+    for row in store.query("SELECT id, state, artifact_digest, workspace_digest FROM runs"):
         started = f"relay-{row['id']}-start" in ids
         finished = f"relay-{row['id']}-finish" in ids
         if row["state"] in ("running", "completed", "accepted", "rejected") and not started:
             problems.append(f"run {row['id']} is {row['state']} but has no NEXUS start event")
         if row["state"] in ("accepted", "rejected") and not finished:
             problems.append(f"run {row['id']} is {row['state']} but has no NEXUS finish event")
+        if finished and row["state"] not in ("accepted", "rejected"):
+            problems.append(f"run {row['id']} has a NEXUS finish but its relay state is {row['state']}; "
+                            "reconcile the interrupted review before retrying")
         if row["state"] in ("requested", "declined", "failed_to_start") and started:
             problems.append(f"run {row['id']} is {row['state']} but NEXUS recorded a start")
+        for problem in evidence.artifact_problems(cfg.runs_dir / row["id"], row["artifact_digest"],
+                                                  row["workspace_digest"]):
+            problems.append(f"run {row['id']}: {problem}")
     if not problems:
         print(f"log chain intact ({count} entries); NEXUS replay accepted {len(events)} events")
     return problems
