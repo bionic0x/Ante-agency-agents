@@ -255,6 +255,82 @@ class RunnerTests(Env):
         with self.assertRaisesRegex(runner.RunError, "catalog"):
             runner.agent_profile("../../../etc/passwd")
 
+    def test_socket_is_mounted_read_only_and_deadline_is_passed(self):
+        paths = runner.prepare(self.cfg, "r_1", {"id": "A", "resource_scope": []})
+        with mock.patch.object(runner.os, "getuid", return_value=1000):
+            cmd = runner.build_command(self.cfg, "r_1", paths, runner.agent_profile("general-strategy-director"), "t")
+        self.assertIn(f"type=bind,source={paths.socket_dir},target=/run/relay,readonly", cmd)
+        self.assertIn(f"RELAY_DEADLINE_SECONDS={self.cfg.runtime.timeout_seconds}", cmd)
+        mounts = [cmd[i + 1] for i, v in enumerate(cmd) if v == "--mount"]
+        writable = [m for m in mounts if not m.endswith(",readonly")]
+        self.assertEqual([f"type=bind,source={paths.workspace},target=/workspace"], writable)
+
+    # R-5: the wall-clock limit holds even when the engine cannot kill the container
+    def test_timeout_holds_when_engine_kill_fails(self):
+        import dataclasses
+        fake = self.tmp / "broken-engine"
+        fake.write_text("#!/bin/sh\nexit 1\n")
+        fake.chmod(0o755)
+        cfg = dataclasses.replace(self.cfg, runtime=dataclasses.replace(self.cfg.runtime, engine=str(fake), timeout_seconds=1))
+        run = runner.ContainerRun(cfg, "r1", ["sleep", "30"], self.tmp / "out.txt")
+        started = time.time()
+        with mock.patch.object(runner, "KILL_GRACE_SECONDS", 0.5):
+            run.run("")
+        self.assertLess(time.time() - started, 6)
+        self.assertEqual("timeout", run.stop_reason)
+
+    def test_stop_does_not_block_the_caller(self):
+        import dataclasses
+        slow = self.tmp / "slow-engine"
+        slow.write_text("#!/bin/sh\nsleep 5\n")
+        slow.chmod(0o755)
+        cfg = dataclasses.replace(self.cfg, runtime=dataclasses.replace(self.cfg.runtime, engine=str(slow)))
+        run = runner.ContainerRun(cfg, "r1", ["true"], self.tmp / "out.txt")
+        started = time.time()
+        run.stop("budget")
+        self.assertLess(time.time() - started, 0.5)
+
+    def test_forwarder_enforces_the_deadline_inside_the_container(self):
+        import subprocess
+        port = socket.socket()
+        port.bind(("127.0.0.1", 0))
+        free = port.getsockname()[1]
+        port.close()
+        started = time.time()
+        proc = subprocess.run([sys.executable, str(runner.FORWARDER), "--", "sleep", "30"],
+                              env={**os.environ, "RELAY_DEADLINE_SECONDS": "1", "RELAY_LISTEN_PORT": str(free)},
+                              capture_output=True, timeout=20)
+        self.assertEqual(124, proc.returncode)
+        self.assertLess(time.time() - started, 10)
+
+    # R-2: a root-owned engine is refused unless the owner accepts the risk explicitly
+    def test_rootful_engine_is_refused_by_default(self):
+        with mock.patch.object(runner, "engine_is_rootless", return_value=False):
+            with self.assertRaisesRegex(runner.RunError, "root on this host"):
+                runner.check_engine(self.cfg)
+        import dataclasses
+        allowed = dataclasses.replace(self.cfg, runtime=dataclasses.replace(self.cfg.runtime, allow_rootful_engine=True))
+        with mock.patch.object(runner, "engine_is_rootless", return_value=False):
+            self.assertIn("root-equivalent", runner.check_engine(allowed))
+        with mock.patch.object(runner, "engine_is_rootless", return_value=None):
+            with self.assertRaisesRegex(runner.RunError, "cannot reach"):
+                runner.check_engine(self.cfg)
+
+    def test_engine_detection_reads_engine_info(self):
+        import subprocess
+        def fake(stdout):
+            return mock.patch.object(runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout, ""))
+        with fake("true\n"):
+            self.assertTrue(runner.engine_is_rootless("podman"))
+        with fake("false\n"):
+            self.assertFalse(runner.engine_is_rootless("podman"))
+        with fake('["name=seccomp,profile=builtin","name=rootless"]'):
+            self.assertTrue(runner.engine_is_rootless("docker"))
+        with fake('["name=seccomp,profile=builtin"]'):
+            self.assertFalse(runner.engine_is_rootless("docker"))
+        with mock.patch.object(runner.subprocess, "run", side_effect=OSError):
+            self.assertIsNone(runner.engine_is_rootless("docker"))
+
     def test_engine_gets_no_model_key(self):
         with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk", "RELAY_TEST_KEY": "sk", "PATH": "/bin"}):
             env = runner.engine_environment()

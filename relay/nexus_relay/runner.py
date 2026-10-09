@@ -20,6 +20,8 @@ from .config import REPO_ROOT, RelayConfig
 FORWARDER = REPO_ROOT / "relay" / "container" / "forwarder.py"
 SAFE_SEGMENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 MAX_OUTPUT = 2 * 1024 * 1024
+ENGINE_KILL_TIMEOUT = 20
+KILL_GRACE_SECONDS = 10
 
 
 class RunError(RuntimeError):
@@ -97,12 +99,15 @@ def build_command(cfg: RelayConfig, run_id: str, paths: RunPaths, profile: Path,
         "--mount", f"type=bind,source={paths.workspace},target=/workspace",
         "--mount", f"type=bind,source={profile},target=/agent/profile.md,readonly",
         "--mount", f"type=bind,source={FORWARDER},target=/relay/forwarder.py,readonly",
-        "--mount", f"type=bind,source={paths.socket_dir},target=/run/relay",
+        # Connecting to a unix socket needs no write access to its directory.
+        "--mount", f"type=bind,source={paths.socket_dir},target=/run/relay,readonly",
         "--workdir", "/workspace",
         "--env", "HOME=/tmp",
         "--env", "ANTHROPIC_BASE_URL=http://127.0.0.1:8787",
         "--env", f"ANTHROPIC_API_KEY={run_token}",
         "--env", "AGENT_PROFILE=/agent/profile.md",
+        # In-container deadline: the forwarder kills the agent even if the engine cannot.
+        "--env", f"RELAY_DEADLINE_SECONDS={rt.timeout_seconds}",
         "--entrypoint", "python3",
     ]
     if rt.engine == "podman":
@@ -126,6 +131,37 @@ def engine_environment() -> dict:
     return {k: os.environ[k] for k in ENGINE_ENV if k in os.environ}
 
 
+def engine_is_rootless(engine: str) -> bool | None:
+    """True for a rootless engine, False for one running as root, None if unknown."""
+    query = {"podman": ["info", "--format", "{{.Host.Security.Rootless}}"],
+             "docker": ["info", "--format", "{{json .SecurityOptions}}"]}[engine]
+    try:
+        out = subprocess.run([engine, *query], capture_output=True, text=True, timeout=30,
+                             check=True, env=engine_environment()).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if engine == "podman":
+        return {"true": True, "false": False}.get(out.lower())
+    return "name=rootless" in out
+
+
+def check_engine(cfg: RelayConfig) -> str:
+    """Refuse a root-owned engine: access to it is root on the host (audit R-2)."""
+    rootless = engine_is_rootless(cfg.runtime.engine)
+    if rootless is None:
+        raise RunError(f"cannot reach the {cfg.runtime.engine} engine to check how it runs")
+    if rootless and cfg.runtime.engine == "docker":
+        raise RunError("rootless Docker is not supported (the proxy socket is not reachable "
+                       "across its uid mapping); use rootless Podman")
+    if not rootless:
+        if not cfg.runtime.allow_rootful_engine:
+            raise RunError(f"{cfg.runtime.engine} runs as root, and any account that can use it is root on "
+                           "this host. Use rootless Podman, or set runtime.allow_rootful_engine to true "
+                           "to accept that risk explicitly.")
+        return "rootful (explicitly allowed: the relay account is root-equivalent)"
+    return "rootless"
+
+
 class ContainerRun:
     """Runs the container with the instruction on stdin, keeps a bounded output file and
     enforces the wall-clock limit. `stop()` is safe to call from any thread."""
@@ -140,12 +176,31 @@ class ContainerRun:
         self.stop_reason: str | None = None
 
     def stop(self, reason: str) -> None:
+        """Request termination without blocking the caller (a proxy thread or a timer)."""
         if self._stopped.is_set():
             return
         self.stop_reason = reason
         self._stopped.set()
-        subprocess.run([self.cfg.runtime.engine, "kill", container_name(self.run_id)],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, check=False)
+        threading.Thread(target=self._terminate, name=f"relay-stop-{self.run_id}", daemon=True).start()
+
+    def _terminate(self) -> None:
+        # Layer 1: ask the engine to kill the container.
+        try:
+            subprocess.run([self.cfg.runtime.engine, "kill", container_name(self.run_id)],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=ENGINE_KILL_TIMEOUT,
+                           check=False, env=engine_environment())
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+        # Layer 2: if the engine could not, end the client so the run is reconciled; the
+        # proxy socket is removed with it, so a surviving container has no model access.
+        # Layer 3 (inside the container): the forwarder enforces RELAY_DEADLINE_SECONDS.
+        proc = self._proc
+        if proc is None:
+            return
+        try:
+            proc.wait(timeout=KILL_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:
+            proc.kill()
 
     def run(self, instruction: str) -> tuple[int, str]:
         fd = os.open(self.output, os.O_CREAT | os.O_TRUNC | os.O_WRONLY, 0o600)

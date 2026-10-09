@@ -10,6 +10,7 @@ import sys
 from . import auth
 from .config import CONFIG_NAME, ConfigError, load, model_api_key, parse
 from .nexus import AdmissionError, Contract, engine
+from .runner import RunError, check_engine
 from .service import Relay
 from .store import ChainError, Store
 
@@ -82,6 +83,11 @@ def cmd_serve(args) -> int:
         print("refusing to serve as root", file=sys.stderr)
         return 2
     cfg = load(args.data_dir)
+    try:
+        engine_mode = check_engine(cfg)
+    except RunError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     api_key = model_api_key(cfg)
     store = Store(cfg.db_path)
     store.verify_chain()
@@ -92,7 +98,8 @@ def cmd_serve(args) -> int:
         print(f"recovered interrupted run {run_id}; review it to reconcile its cost", file=sys.stderr)
     from .server import serve
     server = serve(relay)
-    print(f"NEXUS Relay listening on http://{cfg.host}:{cfg.port} (public origin {cfg.public_origin})")
+    print(f"NEXUS Relay listening on http://{cfg.host}:{cfg.port} (public origin {cfg.public_origin}); "
+          f"engine: {cfg.runtime.engine}, {engine_mode}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

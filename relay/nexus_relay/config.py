@@ -48,6 +48,7 @@ class RuntimeConfig:
     cpus: str
     pids: int
     timeout_seconds: int
+    allow_rootful_engine: bool = False
 
 
 @dataclass(frozen=True)
@@ -131,7 +132,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(type(bind["port"]) is int and 1024 <= bind["port"] <= 65535, "bind.port: 1024-65535")
 
     rt = raw["runtime"]
-    _keys(rt, {"engine", "image", "agent_command", "memory", "cpus", "pids", "timeout_seconds"},
+    _keys(rt, {"engine", "image", "agent_command", "memory", "cpus", "pids", "timeout_seconds", "allow_rootful_engine"},
           {"engine", "image", "agent_command"}, "runtime")
     _require(rt["engine"] in ("docker", "podman"), "runtime.engine: docker or podman")
     image = _text(rt["image"], "runtime.image")
@@ -147,6 +148,8 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(type(pids) is int and 32 <= pids <= 4096, "runtime.pids: 32-4096")
     timeout = rt.get("timeout_seconds", 1800)
     _require(type(timeout) is int and 30 <= timeout <= 6 * 3600, "runtime.timeout_seconds: 30-21600")
+    rootful = rt.get("allow_rootful_engine", False)
+    _require(type(rootful) is bool, "runtime.allow_rootful_engine: boolean")
 
     model = raw["model"]
     _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths"},
@@ -177,7 +180,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
         host=bind["host"],
         port=bind["port"],
         public_origin=_origin(raw["public_origin"]),
-        runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout),
+        runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout, rootful),
         model=ModelConfig(_upstream(model["upstream"]), _text(model["api_key_env"], "model.api_key_env"),
                           model["cost_unit"], prices, paths),
     )
