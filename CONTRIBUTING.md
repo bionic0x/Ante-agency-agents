@@ -44,9 +44,10 @@ Have an idea for a specialized agent? Great! Here's how to add one:
    > `scripts/convert.sh` and `scripts/lint-agents.sh`. The check fails the build
    > unless all of these agree and the directory contains at least one agent file.
    >
-   > Note: `strategy/` (NEXUS playbooks/runbooks — no agent frontmatter) and
-   > `integrations/` (generated per-tool output from `convert.sh`) are **not**
-   > divisions and must never be added to the division lists.
+   > Note: `strategy/` (NEXUS playbooks/runbooks — no agent frontmatter),
+   > `integrations/` (generated per-tool output from `convert.sh`) and `relay/`
+   > (NEXUS Relay runtime code) are **not** divisions and must never be added to
+   > the division lists.
 
 3. **Create your agent file** following the template below
 4. **Test your agent** in real scenarios
