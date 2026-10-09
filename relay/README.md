@@ -72,6 +72,7 @@ permissions). Unknown keys are errors.
 | `runtime.allow_rootful_engine` | `false` by default; see Requirements |
 | `model.upstream`, `api_key_env` | Model API origin (https) and the variable holding the key |
 | `model.cost_unit`, `prices` | `tokens`, or `usd` with per-model prices per million tokens; must equal the instance `budget.unit` |
+| `model.extra_request_fields` | Request fields to forward beyond the built-in allowlist (for a newer API option). `mcp_servers`, `container`, `service_tier`, `speed` and `inference_geo` cannot be enabled |
 
 ## Verify
 
@@ -81,7 +82,9 @@ python3 scripts/nexus-relay.py verify --expect-head SEQ:HASH   # chain, anchors,
 python3 scripts/nexus-instance.py replay <instance> --events <events> --output /tmp/state.json
 ```
 
-`verify` also re-hashes archived `output.txt` and `manifest.json` files and reports a
+`verify` also re-hashes archived `output.txt` and `manifest.json` files against the digests
+in each run's chained `run.completed` entry, reports a `runs` row that disagrees with that
+entry or a NEXUS finish that cites other digests, and reports a
 NEXUS finish whose acceptance/rejection was not persisted in SQLite. Acceptance checks
 the archived evidence again; a missing, changed or incomplete artifact must be rejected.
 This verifies the recorded manifest, not an immutable copy of every delivered file:
@@ -111,5 +114,10 @@ before accepting it.
   limit with unscanned data, or failing to read a file/subtree, makes the run ineligible
   for acceptance, even if `workspace_max` is higher. The size check is post-run;
   a filesystem quota is still needed for a hard disk-use limit during execution.
+- The model API is used as a text model only. Requests that make the provider act on the
+  network or read account data (remote MCP servers, web search/fetch, code execution, URL or
+  Files-API sources, containers) or change the price (`service_tier`, `speed`,
+  `inference_geo`) are refused with 403. Agents that need such tools must run them in the
+  container, where `--network none` applies.
 - Behind a tunnel every client appears as `127.0.0.1`, so the join rate limit is shared.
 - Holds, claim revisions and decisions are made with the existing NEXUS tooling, not the UI.

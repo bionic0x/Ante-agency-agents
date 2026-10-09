@@ -11,7 +11,7 @@ from .config import RelayConfig, model_api_key
 from .nexus import AdmissionError, Contract
 from .proxy import Meter, ModelProxy
 from .runner import ContainerRun, RunError, agent_profile, build_command, new_run_token, prepare
-from .store import Store, now
+from .store import ChainError, Store, now
 
 MAX_MESSAGE = 8000
 MAX_INSTRUCTION = 20000
@@ -176,7 +176,8 @@ class Relay:
             paths = prepare(self.cfg, run_id, task)
             token = new_run_token()
             proxy = self._proxy_factory(paths.socket, token, self._api_key or model_api_key(self.cfg),
-                                        self.cfg.model.upstream, self.cfg.model.allowed_paths, meter)
+                                        self.cfg.model.upstream, self.cfg.model.allowed_paths, meter,
+                                        extra_request_fields=self.cfg.model.extra_request_fields)
             command = build_command(self.cfg, run_id, paths, profile, token)
             run = self._runner_factory(self.cfg, run_id, command, paths.output)
             proxy.on_exhausted = lambda: run.stop("budget")
@@ -267,27 +268,39 @@ class Relay:
         row = self.store.run(run_id)
         if row is None or row["state"] != "completed":
             raise Conflict("only a completed run can be reviewed")
-        if accepted and (row["error"] or not row["artifact_digest"] or not row["workspace_digest"]):
+        # Decide from the chained completion entry, not from the mutable runs row: both an
+        # acceptance and the cost reported to NEXUS must rest on what was recorded at the time.
+        try:
+            logged = self.store.run_completion(run_id)
+        except ChainError as exc:
+            raise Conflict(f"run record failed verification: {exc}") from exc
+        if logged is None:
+            raise Conflict("run record failed verification: no run.completed entry in the log")
+        mismatches = evidence.record_problems(row, logged)
+        if accepted and mismatches:
+            # A rejection still goes through, with the logged cost, so the run can be closed.
+            raise Conflict("run record failed verification: " + "; ".join(mismatches))
+        if accepted and (logged.get("error") or not logged.get("artifact_digest") or not logged.get("workspace_digest")):
             raise Conflict("a run that failed or produced no output cannot be accepted; reject it instead")
         if accepted:
             problems = evidence.artifact_problems(self.cfg.runs_dir / run_id,
-                                                  row["artifact_digest"], row["workspace_digest"])
+                                                  logged["artifact_digest"], logged["workspace_digest"])
             if problems:
                 raise Conflict("run evidence failed verification: " + "; ".join(problems))
         if acknowledged_control_changes is not None and (not isinstance(acknowledged_control_changes, list) or
                                                          not all(isinstance(p, str) for p in acknowledged_control_changes)):
             raise ValueError("acknowledged_control_changes must be a list of strings")
-        changes = json.loads(row["control_changes"] or "[]")
+        changes = list(logged.get("control_changes") or [])
         if accepted and changes and sorted(acknowledged_control_changes or []) != sorted(changes):
             raise Conflict("this run changed files that steer future agent sessions; acknowledge each by name "
                            f"before accepting: {', '.join(changes)}")
         head = self.store.one("SELECT hash FROM log ORDER BY seq DESC LIMIT 1")["hash"]
-        evidence_refs = [f"relay-output:sha256:{row['artifact_digest']}"] if row["artifact_digest"] else []
-        if row["workspace_digest"]:
-            evidence_refs.append(f"relay-workspace:sha256:{row['workspace_digest']}")
+        evidence_refs = [f"relay-output:sha256:{logged['artifact_digest']}"] if logged.get("artifact_digest") else []
+        if logged.get("workspace_digest"):
+            evidence_refs.append(f"relay-workspace:sha256:{logged['workspace_digest']}")
         evidence_refs.append(f"relay-log:sha256:{head}")
         try:
-            self.contract.finish(run_id, row["task_id"], owner, float(row["actual_cost"] or 0), accepted,
+            self.contract.finish(run_id, row["task_id"], owner, float(logged.get("actual_cost") or 0), accepted,
                                  evidence_refs, confirmed_predicates if accepted else [])
         except AdmissionError as exc:
             raise Conflict(f"NEXUS refused the review: {exc}") from exc
@@ -295,4 +308,13 @@ class Relay:
             self._set_state(db, run_id, "accepted" if accepted else "rejected", member["id"],
                             "run.accepted" if accepted else "run.rejected",
                             {"note": note, "predicates": confirmed_predicates if accepted else [], "evidence_refs": evidence_refs,
-                             "acknowledged_control_changes": changes if accepted else []})
+                             "acknowledged_control_changes": changes if accepted else [],
+                             **({"record_mismatches": mismatches} if mismatches else {})},
+                            **(self._logged_columns(logged) if mismatches else {}))
+
+    @staticmethod
+    def _logged_columns(logged: dict) -> dict:
+        """Restore an edited runs row from its chained completion entry (the source of truth)."""
+        cols = {f: logged.get(f) for f in evidence.COMPLETION_FIELDS}
+        cols["control_changes"] = json.dumps(list(logged.get("control_changes") or []))
+        return cols

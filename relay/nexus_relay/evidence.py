@@ -147,3 +147,29 @@ def artifact_problems(run_dir: Path, output_digest: str | None, workspace_digest
         except (ValueError, RecursionError):
             problems.append("manifest.json invalid")
     return problems
+
+
+# Columns of `runs` that a `run.completed` log entry also records. A decision or check reads
+# the logged values; the table must agree with them, or it has been edited since.
+COMPLETION_FIELDS = ("artifact_digest", "workspace_digest", "actual_cost", "error", "exit_code", "control_changes")
+
+
+def record_problems(row, logged: dict | None) -> list[str]:
+    """Differences between a run's table row and its chained completion entry."""
+    if logged is None:
+        return ["no run.completed entry in the log"]
+    problems = []
+    for field in COMPLETION_FIELDS:
+        stored, recorded = row[field], logged.get(field)
+        if field == "actual_cost":
+            same = float(stored or 0) == float(recorded or 0)
+        elif field == "control_changes":
+            try:
+                same = json.loads(stored or "[]") == (recorded or [])
+            except (ValueError, RecursionError):
+                same = False
+        else:
+            same = stored == recorded
+        if not same:
+            problems.append(f"runs.{field} does not match the chained run.completed entry")
+    return problems

@@ -13,6 +13,9 @@ from urllib.parse import urlsplit
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_NAME = "relay.json"
 DEFAULT_MODEL_PATHS = ("/v1/messages", "/v1/messages/count_tokens")
+# Request fields an owner cannot opt into (see policy.py): provider-side egress or pricing.
+NEVER_FORWARDED_FIELDS = frozenset({"mcp_servers", "container", "service_tier", "speed", "inference_geo"})
+_FIELD_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _SIZE_RE = re.compile(r"^[1-9][0-9]*[kmg]$")
 _CPUS_RE = re.compile(r"^(?:[1-9][0-9]*)(?:\.[0-9]+)?$|^0\.[0-9]*[1-9][0-9]*$")
 
@@ -59,6 +62,7 @@ class ModelConfig:
     cost_unit: str
     prices: dict
     allowed_paths: tuple[str, ...]
+    extra_request_fields: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -159,7 +163,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(isinstance(workspace_max, str) and bool(_SIZE_RE.match(workspace_max)), "runtime.workspace_max: e.g. 10g")
 
     model = raw["model"]
-    _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths"},
+    _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths", "extra_request_fields"},
           {"upstream", "api_key_env", "cost_unit"}, "model")
     _require(model["cost_unit"] in ("tokens", "usd"), "model.cost_unit: tokens or usd")
     prices = model.get("prices", {})
@@ -172,6 +176,12 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     paths = tuple(model.get("allowed_paths", DEFAULT_MODEL_PATHS))
     _require(all(isinstance(p, str) and p.startswith("/v1/") and ".." not in p for p in paths) and paths,
              "model.allowed_paths: /v1/ paths only")
+    extra_fields = model.get("extra_request_fields", [])
+    _require(isinstance(extra_fields, list) and all(isinstance(f, str) and _FIELD_RE.match(f) for f in extra_fields),
+             "model.extra_request_fields: list of field names")
+    _require(not set(extra_fields) & NEVER_FORWARDED_FIELDS,
+             "model.extra_request_fields: " + ", ".join(sorted(NEVER_FORWARDED_FIELDS)) +
+             " make the provider act on the network or change the price and cannot be enabled")
 
     instance = Path(_text(raw["instance"], "instance")).expanduser()
     events = Path(_text(raw["events"], "events")).expanduser()
@@ -190,7 +200,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
         runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout, rootful,
                               size_bytes(workspace_max)),
         model=ModelConfig(_upstream(model["upstream"]), _text(model["api_key_env"], "model.api_key_env"),
-                          model["cost_unit"], prices, paths),
+                          model["cost_unit"], prices, paths, tuple(extra_fields)),
     )
 
 

