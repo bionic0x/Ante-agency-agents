@@ -172,6 +172,38 @@ class AuthTests(Env):
         with self.assertRaisesRegex(ValueError, "owner cannot be disabled"):
             auth.disable_member(self.store, owner["id"], "x")
 
+    # R-12: idle sessions expire and the owner can see and revoke sessions
+    def test_idle_session_expires(self):
+        m = self.member("ana", "operator")
+        _, session, _ = auth.redeem_invite(self.store, auth.create_invite(self.store, m["id"], "t"))
+        self.assertIsNotNone(auth.session_member(self.store, session)[0])
+        stale = (auth.dt.datetime.now(auth.dt.timezone.utc) - auth.SESSION_IDLE - auth.dt.timedelta(minutes=1))
+        with self.store.tx() as db:
+            db.execute("UPDATE sessions SET last_seen_at = ?", (stale.isoformat().replace("+00:00", "Z"),))
+        self.assertEqual((None, None), auth.session_member(self.store, session))
+        self.assertEqual([], auth.list_sessions(self.store))
+
+    def test_activity_keeps_a_session_alive(self):
+        m = self.member("ana", "operator")
+        _, session, _ = auth.redeem_invite(self.store, auth.create_invite(self.store, m["id"], "t"))
+        recent = (auth.dt.datetime.now(auth.dt.timezone.utc) - auth.dt.timedelta(hours=1))
+        with self.store.tx() as db:
+            db.execute("UPDATE sessions SET last_seen_at = ?", (recent.isoformat().replace("+00:00", "Z"),))
+        self.assertIsNotNone(auth.session_member(self.store, session)[0])
+        seen = auth.list_sessions(self.store)[0]["last_seen_at"]
+        self.assertGreater(store.parse_time(seen), recent)
+
+    def test_sessions_can_be_listed_and_revoked_by_id(self):
+        m = self.member("ana", "operator")
+        _, session, _ = auth.redeem_invite(self.store, auth.create_invite(self.store, m["id"], "t"))
+        listed = auth.list_sessions(self.store)
+        self.assertEqual("ana", listed[0]["member"])
+        self.assertNotIn(auth.hash_secret(session), json.dumps(listed))
+        auth.revoke_session_by_id(self.store, listed[0]["id"], "owner")
+        self.assertEqual((None, None), auth.session_member(self.store, session))
+        with self.assertRaises(ValueError):
+            auth.revoke_session_by_id(self.store, listed[0]["id"], "owner")
+
     def test_rate_limiter(self):
         limiter = auth.RateLimiter(per_client=2, global_limit=3, window_seconds=60)
         self.assertTrue(limiter.allow("a"))
@@ -330,6 +362,22 @@ class RunnerTests(Env):
             self.assertFalse(runner.engine_is_rootless("docker"))
         with mock.patch.object(runner.subprocess, "run", side_effect=OSError):
             self.assertIsNone(runner.engine_is_rootless("docker"))
+
+    # R-10: nothing is fetched at run time; mutable tags are flagged
+    def test_run_never_pulls_and_tags_are_detected(self):
+        paths = runner.prepare(self.cfg, "r_1", {"id": "A", "resource_scope": []})
+        with mock.patch.object(runner.os, "getuid", return_value=1000):
+            cmd = runner.build_command(self.cfg, "r_1", paths, runner.agent_profile("general-strategy-director"), "t")
+        self.assertEqual("never", cmd[cmd.index("--pull") + 1])
+        self.assertTrue(runner.image_is_pinned("ghcr.io/x/agent@sha256:" + "a" * 64))
+        self.assertTrue(runner.image_is_pinned("sha256:" + "b" * 64))
+        self.assertFalse(runner.image_is_pinned("agent:latest"))
+
+    def test_reference_dockerfile_is_pinned(self):
+        dockerfile = (RELAY / "container" / "Dockerfile").read_text()
+        self.assertRegex(dockerfile, r"FROM [^\s]+@sha256:[0-9a-f]{64}")
+        self.assertRegex(dockerfile, r"claude-code@\$\{CLAUDE_CODE_VERSION\}")
+        self.assertRegex(dockerfile, r"ARG CLAUDE_CODE_VERSION=\d+\.\d+\.\d+")
 
     def test_engine_gets_no_model_key(self):
         with mock.patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk", "RELAY_TEST_KEY": "sk", "PATH": "/bin"}):
@@ -923,6 +971,46 @@ class ChainTests(unittest.TestCase):
             self.assertEqual(b"s" * 40, store.chain_key_from_env())
 
 
+class SecureCookieTests(Env):
+    """With a TLS public origin the session cookie uses the __Host- prefix and Secure."""
+
+    def test_host_prefixed_secure_cookie(self):
+        sock = socket.socket()
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        cfg = config.parse(raw_config(self.tmp, bind={"host": "127.0.0.1", "port": port},
+                                      public_origin="https://box.tail.ts.net"), self.tmp)
+        relay = service.Relay(cfg, self.store, self.contract, api_key="k")
+        httpd = server.serve(relay)
+        threading.Thread(target=httpd.serve_forever, daemon=True).start()
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        owner_id = auth.create_member(self.store, OWNER, "owner", "t")
+        token = auth.create_invite(self.store, owner_id, "t")
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+        conn.request("POST", "/api/join", body=json.dumps({"token": token}),
+                     headers={"Host": "box.tail.ts.net", "Origin": "https://box.tail.ts.net", "Content-Type": "application/json"})
+        resp = conn.getresponse()
+        resp.read()
+        cookie = resp.getheader("Set-Cookie")
+        conn.close()
+        self.assertTrue(cookie.startswith("__Host-relay_session="))
+        self.assertIn("; Secure", cookie)
+        self.assertIn("Path=/", cookie)
+        self.assertNotIn("Domain", cookie)
+        self.assertIsNotNone(resp.getheader("Strict-Transport-Security"))
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+        conn.request("GET", "/api/me", headers={"Host": "box.tail.ts.net", "Cookie": cookie.split(";")[0]})
+        self.assertEqual(200, conn.getresponse().status)
+        conn.close()
+        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
+        unprefixed = "relay_session=" + cookie.split(";")[0].split("=", 1)[1]
+        conn.request("GET", "/api/me", headers={"Host": "box.tail.ts.net", "Cookie": unprefixed})
+        self.assertEqual(401, conn.getresponse().status)
+        conn.close()
+
+
 class AnchorTests(Env):
     def test_external_anchor_and_nexus_citations_catch_rewrites(self):
         relay = service.Relay(self.cfg, self.store, self.contract, runner_factory=FakeRun,
@@ -1053,6 +1141,41 @@ class ServerTests(Env):
     def test_join_is_rate_limited(self):
         statuses = [self.req("POST", "/api/join", {"token": "x" * 43}, {"Origin": self.origin})[0].status for _ in range(12)]
         self.assertIn(429, statuses)
+
+    # R-14
+    def test_csp_enforces_trusted_types(self):
+        resp, _ = self.req("GET", "/")
+        csp = resp.getheader("Content-Security-Policy")
+        self.assertIn("require-trusted-types-for 'script'", csp)
+        self.assertIn("trusted-types 'none'", csp)
+
+    # R-11
+    def test_http_connections_are_bounded(self):
+        before = threading.active_count()
+        conns = []
+        for _ in range(200):
+            try:
+                c = socket.create_connection(("127.0.0.1", self.port), timeout=2)
+                c.send(b"GET / HTTP/1.1\r\n")
+                conns.append(c)
+            except OSError:
+                pass
+        time.sleep(0.5)
+        held = threading.active_count() - before
+        for c in conns:
+            c.close()
+        self.assertLessEqual(held, server.MAX_HTTP_CONNECTIONS + 2)
+
+    def test_owner_session_admin_is_owner_only(self):
+        cookie, csrf, _ = self.login()
+        resp, payload = self.req("GET", "/api/sessions", headers={"Cookie": cookie})
+        self.assertEqual(200, resp.status)
+        sid = json.loads(payload)["sessions"][0]["id"]
+        resp, _ = self.req("POST", "/api/sessions/revoke", {"session_id": sid},
+                           {"Cookie": cookie, "Origin": self.origin, "X-Relay-CSRF": csrf})
+        self.assertEqual(200, resp.status)
+        resp, _ = self.req("GET", "/api/me", headers={"Cookie": cookie})
+        self.assertEqual(401, resp.status)
 
     def test_internal_errors_do_not_leak(self):
         cookie, csrf, _ = self.login()

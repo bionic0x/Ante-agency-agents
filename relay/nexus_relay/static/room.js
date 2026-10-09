@@ -197,8 +197,20 @@ async function renderMembers() {
   }
 }
 
+async function renderSessions() {
+  if (state.me.role !== "owner") return;
+  const { sessions } = await api("GET", "/api/sessions");
+  const list = $("sessions");
+  list.replaceChildren();
+  for (const sess of sessions) {
+    const li = el("li", `${sess.member} · last active ${new Date(sess.last_seen_at).toLocaleString()} `);
+    li.append(actionButton("Revoke", () => api("POST", "/api/sessions/revoke", { session_id: sess.id })));
+    list.append(li);
+  }
+}
+
 async function refresh() {
-  await Promise.all([renderPlan(), renderRuns(), renderMembers()]);
+  await Promise.all([renderPlan(), renderRuns(), renderMembers(), renderSessions()]);
 }
 
 async function boot() {

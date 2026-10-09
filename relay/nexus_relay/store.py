@@ -141,6 +141,9 @@ class Store:
         for col, decl in (("workspace_digest", "TEXT"), ("control_changes", "TEXT")):
             if col not in run_cols:
                 self._db.execute(f"ALTER TABLE runs ADD COLUMN {col} {decl}")
+        session_cols = {r["name"] for r in self._db.execute("PRAGMA table_info(sessions)")}
+        if "last_seen_at" not in session_cols:
+            self._db.execute("ALTER TABLE sessions ADD COLUMN last_seen_at TEXT")
         log_cols = {r["name"] for r in self._db.execute("PRAGMA table_info(log)")}
         if "alg" not in log_cols:
             self._db.execute(f"ALTER TABLE log ADD COLUMN alg TEXT NOT NULL DEFAULT '{ALG_PLAIN}'")

@@ -42,7 +42,7 @@ jobs:
         env:
           RELAY_E2E: '1'
           RELAY_E2E_ENGINE: podman
-          RELAY_E2E_IMAGE: docker.io/library/python:3.13-slim
+          RELAY_E2E_IMAGE: docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f
         run: |
           podman pull "$RELAY_E2E_IMAGE"
           python3 relay/tests/e2e_container.py -v

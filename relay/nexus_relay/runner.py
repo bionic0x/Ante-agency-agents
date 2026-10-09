@@ -85,6 +85,8 @@ def build_command(cfg: RelayConfig, run_id: str, paths: RunPaths, profile: Path,
         raise RunError("refusing to run agents as root; start the relay as an unprivileged user")
     cmd = [
         rt.engine, "run", "--rm", "-i",
+        # Never fetch at run time: the image must already be present, ideally by digest.
+        "--pull", "never",
         "--name", container_name(run_id),
         "--network", "none",
         "--read-only",
@@ -143,6 +145,10 @@ def engine_is_rootless(engine: str) -> bool | None:
     if engine == "podman":
         return {"true": True, "false": False}.get(out.lower())
     return "name=rootless" in out
+
+
+def image_is_pinned(image: str) -> bool:
+    return "@sha256:" in image or image.startswith("sha256:")
 
 
 def check_engine(cfg: RelayConfig) -> str:

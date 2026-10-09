@@ -10,7 +10,7 @@ import sys
 from . import auth
 from .config import CONFIG_NAME, ConfigError, load, model_api_key, parse
 from .nexus import AdmissionError, Contract, engine
-from .runner import RunError, check_engine
+from .runner import RunError, check_engine, image_is_pinned
 from .service import Relay
 from .store import CHAIN_KEY_ENV, ChainError, Store, chain_key_from_env
 
@@ -112,6 +112,9 @@ def cmd_serve(args) -> int:
             store.append(db, "chain.keyed", "cli", {"note": "log is keyed from this entry on"})
         print("The log is keyed from now on. Entries before this point are only as trustworthy as "
               "the anchors you recorded for them.", file=sys.stderr)
+    if not image_is_pinned(cfg.runtime.image):
+        print(f"Warning: runtime.image {cfg.runtime.image!r} is a mutable tag; pin it as name@sha256:<digest> "
+              "so a re-tag cannot change what agents run.", file=sys.stderr)
     if not store.keyed:
         print(f"Warning: {CHAIN_KEY_ENV} is not set; the room log is not keyed.", file=sys.stderr)
     contract = Contract(cfg.instance_path, cfg.events_path)

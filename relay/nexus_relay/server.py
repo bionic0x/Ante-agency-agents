@@ -17,9 +17,12 @@ from .service import Conflict, Forbidden, Relay
 STATIC = Path(__file__).resolve().parent / "static"
 MAX_REQUEST = 64 * 1024
 COOKIE = "relay_session"
+SECURE_COOKIE = "__Host-relay_session"  # Secure, Path=/, no Domain: bound to this exact origin
+MAX_HTTP_CONNECTIONS = 64
 SECURITY_HEADERS = {
     "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; "
-                               "connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+                               "connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; "
+                               "require-trusted-types-for 'script'; trusted-types 'none'",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "Cross-Origin-Opener-Policy": "same-origin",
@@ -49,7 +52,7 @@ def make_handler(relay: Relay, limiter: RateLimiter):
         server_version = "nexus-relay"
         sys_version = ""
         protocol_version = "HTTP/1.1"
-        timeout = 30
+        timeout = 15
 
         def log_message(self, fmt, *args):
             return
@@ -81,7 +84,8 @@ def make_handler(relay: Relay, limiter: RateLimiter):
                 cookie.load(raw)
             except Exception:
                 return None
-            return cookie[COOKIE].value if COOKIE in cookie else None
+            name = SECURE_COOKIE if cfg.secure_cookies else COOKIE
+            return cookie[name].value if name in cookie else None
 
         def _member(self) -> tuple[dict, str | None]:
             member, csrf_hash = auth.session_member(relay.store, self._session_token())
@@ -174,9 +178,11 @@ def make_handler(relay: Relay, limiter: RateLimiter):
             body = self._body()
             member_id, session, csrf = auth.redeem_invite(relay.store, body.get("token"))
             attrs = "; HttpOnly; SameSite=Strict; Path=/; Max-Age=" + str(int(auth.SESSION_TTL.total_seconds()))
+            name = COOKIE
             if cfg.secure_cookies:
                 attrs += "; Secure"
-            self._json(200, {"csrf": csrf}, {"Set-Cookie": f"{COOKIE}={session}{attrs}"})
+                name = SECURE_COOKIE
+            self._json(200, {"csrf": csrf}, {"Set-Cookie": f"{name}={session}{attrs}"})
 
     def me(h, member, body):
         return {"member": member}
@@ -216,12 +222,37 @@ def make_handler(relay: Relay, limiter: RateLimiter):
                                                                   relay.invite(m, str(b.get("name", "")), str(b.get("role", ""))))),
         ("POST", "/api/members/reinvite"): lambda h, m, b: {"token": relay.reinvite(m, str(b.get("member_id", "")))},
         ("POST", "/api/members/disable"): lambda h, m, b: relay.disable(m, str(b.get("member_id", ""))),
+        ("GET", "/api/sessions"): lambda h, m, b: {"sessions": relay.sessions(m)},
+        ("POST", "/api/sessions/revoke"): lambda h, m, b: relay.revoke_session(m, str(b.get("session_id", ""))),
     }
     return Handler
 
 
 class _Server(ThreadingHTTPServer):
+    """Bounded: excess connections are closed instead of each getting a thread (audit R-11)."""
     daemon_threads = True
+    request_queue_size = 64
+
+    def __init__(self, address, handler, max_connections: int = MAX_HTTP_CONNECTIONS):
+        import threading
+        self._slots = threading.BoundedSemaphore(max_connections)
+        super().__init__(address, handler)
+
+    def process_request(self, request, client_address):
+        if not self._slots.acquire(blocking=False):
+            self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except BaseException:
+            self._slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._slots.release()
 
     def handle_error(self, request, client_address):
         """Client disconnects and malformed requests are routine; do not dump tracebacks."""

@@ -77,6 +77,14 @@ class Relay:
         _role(member, "owner")
         auth.disable_member(self.store, member_id, member["id"])
 
+    def sessions(self, member: dict) -> list[dict]:
+        _role(member, "owner")
+        return auth.list_sessions(self.store)
+
+    def revoke_session(self, member: dict, sid: str) -> None:
+        _role(member, "owner")
+        auth.revoke_session_by_id(self.store, sid, member["id"])
+
     def plan(self, member: dict) -> dict:
         plan = self.contract.plan()
         predicates = {t["id"]: list(t["acceptance_predicates"]) for t in self.contract.instance()["tasks"]}

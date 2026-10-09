@@ -18,6 +18,8 @@ from .store import ROLES, Store, now, parse_time
 
 INVITE_TTL = dt.timedelta(hours=24)
 SESSION_TTL = dt.timedelta(days=14)
+SESSION_IDLE = dt.timedelta(hours=12)
+TOUCH_INTERVAL = dt.timedelta(minutes=5)
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,47}$")
 
 
@@ -91,14 +93,49 @@ def redeem_invite(store: Store, token: str) -> tuple[str, str, str]:
     return row["member_id"], session, csrf
 
 
+def session_id(token_hash: str) -> str:
+    """A public handle for a session: lets the owner revoke it without exposing its hash."""
+    return hashlib.sha256(("session-id/v1:" + token_hash).encode()).hexdigest()[:24]
+
+
 def session_member(store: Store, session_token: str | None):
+    """Absolute lifetime 14 days, idle limit 12 hours (audit R-12)."""
     if not session_token or len(session_token) > 128:
         return None, None
-    row = store.one("SELECT s.member_id, s.csrf_hash, s.expires_at, m.name, m.role, m.disabled_at FROM sessions s "
-                    "JOIN members m ON m.id = s.member_id WHERE s.token_hash = ?", (hash_secret(session_token),))
+    token_hash = hash_secret(session_token)
+    row = store.one("SELECT s.member_id, s.csrf_hash, s.expires_at, s.created_at, s.last_seen_at, m.name, m.role, "
+                    "m.disabled_at FROM sessions s JOIN members m ON m.id = s.member_id WHERE s.token_hash = ?",
+                    (token_hash,))
     if row is None or row["disabled_at"] or _expired(row["expires_at"]):
         return None, None
+    last_seen = parse_time(row["last_seen_at"] or row["created_at"])
+    current = dt.datetime.now(dt.timezone.utc)
+    if current - last_seen > SESSION_IDLE:
+        with store.tx() as db:
+            db.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+            store.append(db, "session.expired", row["member_id"], {"reason": "idle"})
+        return None, None
+    if current - last_seen > TOUCH_INTERVAL:
+        with store.tx() as db:
+            db.execute("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?", (now(), token_hash))
     return {"id": row["member_id"], "name": row["name"], "role": row["role"]}, row["csrf_hash"]
+
+
+def list_sessions(store: Store) -> list[dict]:
+    rows = store.query("SELECT s.token_hash, s.created_at, s.last_seen_at, s.expires_at, m.name, m.role "
+                       "FROM sessions s JOIN members m ON m.id = s.member_id ORDER BY s.created_at")
+    return [{"id": session_id(r["token_hash"]), "member": r["name"], "role": r["role"], "created_at": r["created_at"],
+             "last_seen_at": r["last_seen_at"] or r["created_at"], "expires_at": r["expires_at"]} for r in rows]
+
+
+def revoke_session_by_id(store: Store, sid: str, actor: str) -> None:
+    with store.tx() as db:
+        for r in db.execute("SELECT token_hash FROM sessions").fetchall():
+            if hmac.compare_digest(session_id(r["token_hash"]), sid):
+                db.execute("DELETE FROM sessions WHERE token_hash = ?", (r["token_hash"],))
+                store.append(db, "session.revoked", actor, {"session_id": sid})
+                return
+    raise ValueError("unknown session")
 
 
 def rotate_csrf(store: Store, session_token: str) -> str:
