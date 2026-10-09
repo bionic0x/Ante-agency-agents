@@ -2,11 +2,12 @@
 headers; every state-changing request needs a session, a CSRF token and a matching Origin."""
 from __future__ import annotations
 
-from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
+import sys
+import threading
 from urllib.parse import parse_qs, urlsplit
 
 from . import auth
@@ -234,7 +235,6 @@ class _Server(ThreadingHTTPServer):
     request_queue_size = 64
 
     def __init__(self, address, handler, max_connections: int = MAX_HTTP_CONNECTIONS):
-        import threading
         self._slots = threading.BoundedSemaphore(max_connections)
         super().__init__(address, handler)
 
@@ -256,7 +256,6 @@ class _Server(ThreadingHTTPServer):
 
     def handle_error(self, request, client_address):
         """Client disconnects and malformed requests are routine; do not dump tracebacks."""
-        import sys
         exc = sys.exc_info()[1]
         if isinstance(exc, (ConnectionError, TimeoutError)):
             return
