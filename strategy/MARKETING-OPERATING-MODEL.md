@@ -226,6 +226,20 @@ Before scale define:
 
 A campaign ending is not the same as a strategy ending or a capability being retired.
 
+## Autonomous workflow stop authority
+
+The Explore / Scale / Maintain / Sunset lifecycle is a planning classification, not an autonomous execution authorization. Before any material recurring or agent-initiated marketing intervention, the accountable decision owner must approve a handoff that identifies:
+
+- the specific actions, tools, data boundaries, budget, and duration that are authorized;
+- the named decision owner and a reachable delegate empowered to pause or stop execution;
+- observable stop-win, stop-loss, escalation, and constraint-migration signals, including review cadence and evidence provenance;
+- a tested technical pause or rollback mechanism, the recovery procedure, and the conditions for restart;
+- the assets, customer commitments, data, and capabilities that must be protected during termination.
+
+If stop signals cannot be measured or no authorized operator can actually pause the workflow, execution remains on **HOLD**; agents may still supply advisory analysis. A nominal human approval without timely access, expertise, evidence, and stop authority is not an adequate control.
+
+The Marketing Evidence Lead preserves observation, inference, and uncertainty in the review packet; the Orchestrator can escalate but cannot silently expand the approved mandate. Changes to purpose, material resource allocation, or permitted actions require renewed authorization.
+
 ## Marketing pathology scan
 
 Treat the following as warning patterns:
