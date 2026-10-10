@@ -17,6 +17,8 @@ PROFILES = (
 
 def main():
     contract = (ROOT / "strategy/alpha-research-suite/README.md").read_text(encoding="utf-8")
+    # The installer also scans strategy/: YAML frontmatter would turn this README into a phantom agent.
+    assert not contract.startswith("---\n"), "suite contract must not be installable as an agent"
     assert "No profile may place orders" in contract
     assert "P8" in contract and "review_status" in contract
     fence = chr(96) * 3

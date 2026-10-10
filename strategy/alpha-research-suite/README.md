@@ -1,12 +1,6 @@
----
-name: alpha-research-suite-integration
-version: 1.0.0
-mode: decision-support-only
-status: proposed-integration-contract
-review_date: 2026-10-10
----
-
 # Alpha Research Suite — Integration & Operating Contract
+
+**Integration contract v1.0.0 · Decision support only · Proposed · Reviewed 2026-10-10**
 
 Six complementary research-agent profiles, each with a distinct mandate, tangible outputs, and a runnable standard-library Python example. This guide defines their handoffs and limits; it is not a seventh agent or a deployed orchestration service.
 
