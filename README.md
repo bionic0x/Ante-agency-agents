@@ -1,8 +1,6 @@
 # Ante: Agent Catalog and NEXUS Strategic Coordination
 
-A collection of **492 agent profiles across 19 divisions**, with **8 runbooks**,
-**16 tool installation targets** and an **offline NEXUS contract engine** for
-planning, evidence tracking and event replay.
+**500 agent profiles across 19 divisions**, **9 NEXUS runbooks**, and **17 registered tool targets** (see [generated catalog](CATALOG.md), [runbooks](strategy/runbooks.json), and [tool registry](tools.json)). NEXUS combines a governed offline contract engine, a local-only Relay execution pilot and an evidence-first Overdrive measurement programme.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Runbook checks](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml/badge.svg)](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml)
@@ -18,7 +16,7 @@ See [source provenance and sync policy](strategy/UPSTREAM-SYNC.md).
 |---|---|---|
 | Agent catalog | Role prompts, workflows, deliverable formats and proposed acceptance criteria | [Complete catalog](CATALOG.md) |
 | Tool adapters | Conversion and installation of selected profiles for a supported host | [Installation](#-quick-start), [tool contracts](tools.json) |
-| Runbooks | Candidate teams, purpose, evidence requirements, handoffs and termination contracts | [Eight runbooks](strategy/runbooks.json) |
+| Runbooks | Candidate teams, purpose, evidence requirements, handoffs and termination contracts | [Nine runbooks](strategy/runbooks.json) |
 | NEXUS instance engine | Offline task planning and replay with budgets, HOLD, claim revisions and dependency checks | [Pilot and contracts](strategy/NEXUS-INSTANCE.md) |
 | HTP Gate 0 | Separate Solana and Arbitrum One documentary scopes, manifests and unresolved conditions | [Gate 0 runbook](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) |
 | NEXUS Relay | Shared room where invited people request agent runs; NEXUS admits each run, which executes in a network-isolated container on the owner's machine | [Relay](relay/README.md), [threat model](relay/DESIGN.md) |
@@ -33,9 +31,70 @@ Profile success metrics are proposed evaluation criteria. Repository tests valid
 software contracts; they do not demonstrate production readiness or improved model
 performance. Recorded live model trials are currently absent.
 
-**Navigate:** [Install](#-quick-start) · [NEXUS pilot](#nexus-offline-pilot) ·
+**Navigate:** [Current status](#current-project-status--10-october-2026) · [Install](#-quick-start) · [NEXUS pilot](#nexus-offline-pilot) ·
 [Verification](#verification-and-evidence) · [Documentation](#documentation-map) ·
 [Catalog](CATALOG.md) · [Integrations](#-multi-tool-integrations)
+
+---
+
+## Current project status — 10 October 2026
+
+This section describes **what is implemented versus what has been measured**. The generated
+[catalog](CATALOG.md), [runbook registry](strategy/runbooks.json), and
+[tool registry](tools.json) remain the sources of truth as the repository evolves.
+
+| Subsystem | Implemented | Evidence or open condition |
+|---|---|---|
+| Catalog / adapters | 500 agents, 19 divisions, 9 runbooks, 17 registered tool targets; selective conversion and installation | Installed profiles are **not** proof a host executes each agent correctly |
+| NEXUS contract engine | Offline validate/plan/replay; budgets, dependencies, claim ancestry, HOLD, P1–P8 independent judgment/dissent/assertion conflict and Macro → Quant challenger veto | A valid event trace does not authenticate real-world authority or prove better decisions |
+| NEXUS Relay | v1 local shared room, owner-gated approvals, container execution, policy-limited model proxy, accounting, evidence digest and reconciliation | Local-only pilot, not a multi-tenant production deployment or a comprehensive kernel isolation guarantee |
+| NEXUS Overdrive | Phase 1 casepack freezing, trial runner, campaign status, blind judging interface and improvement guard | **NOT_MEASURED**: checked-in `host-trials.json` and `host-judgments.json` contain no live trial results |
+| Model routing | Closed registry for Anthropic, OpenAI, Google, Moonshot and xAI; bounded Claude Code adapter | `strategy/providers.json` contains **zero observed models**; other provider execution adapters remain unimplemented |
+| Assurance / HTP | Strategic runbooks, epistêmic claim states, DeFi Gate 0 manifests and security CI | Both HTP Solana and Arbitrum instances remain **HOLD** pending network-specific runtime evidence; no live transaction authority |
+| Repository governance | GitHub Actions, property tests, Gitleaks, zizmor, Semgrep and OSV scans | Active `mAIN` ruleset is not yet shown to enforce the desired required-check/review policy; changes need authorized administration |
+
+### Phase 1 evaluation: private evidence boundary
+
+The public samples under `examples/nexus/casepacks/` are **exposed fixtures**. Their
+`held_out` metadata does **not** make them unseen. The Phase 1 campaign cannot count
+packs from inside this public checkout (including symlink aliases), but filesystem
+location alone does not certify evaluator independence or prior non-exposure.
+
+To make an admissible evaluation, provision **at least six new previously undisclosed
+packs** in an evaluator-controlled private directory outside this public repository.
+An independent evaluator must verify authorship and access, freeze inputs and rubrics
+before the first trial, and keep answer keys unavailable to the optimiser. Do **not**
+commit private packs, solution keys, raw judgments or model credentials here.
+
+The preregistered minimum is **6 packs × 3 variants × 2 trials = 36 live runs**:
+`single_agent`, `fixed_team`, `nexus_instance` under one observed model/host and
+budget policy. The evaluator records **all** attempts, costs, failures and blind
+judgments. `scripts/nexus-campaign.py status` returns `INCOMPLETE` until every gate
+is satisfied, then `PROCEED_TO_PHASE_2` only if NEXUS avoids more fatal defects
+than the fixed team; otherwise `REDIRECT`. This is a precommitted operational
+decision rule, **not** a proof of statistical superiority. Live runs require an
+operator, approved spend and a bounded host.
+
+```bash
+# Public example fixtures can be inspected but cannot count as unseen evaluation:
+python3 scripts/nexus-casepack.py list examples/nexus/casepacks
+
+# Evaluator-only environment: the private root must be outside this checkout.
+# Substitute a real private corpus, a witnessed improver identity and observed
+# model ID; plan prints commands and spends nothing.
+python3 scripts/nexus-campaign.py plan \
+  --held-out /secure/evaluator/private-packs \
+  --improver IDENTIFIED_IMPROVER --model VERIFIED_MODEL_ID \
+  --policy trial-standard-v1 --operator AUTHORIZED_OPERATOR \
+  --out /secure/evaluator/campaign
+```
+
+See [Overdrive charter](strategy/NEXUS-OVERDRIVE.md),
+[casepack authoring](strategy/NEXUS-CASEPACK-AUTHORING.md),
+[measurement protocol](strategy/NEXUS-MEASUREMENT-PROTOCOL.md),
+[Relay operations](relay/README.md) and [institutional self-test](strategy/INSTITUTIONAL-SELF-TEST.md).
+Neither a generated pack nor a green CI result should be reported as an independently
+judged live trial.
 
 ---
 
@@ -51,7 +110,7 @@ converted formats). On Windows use WSL or Git Bash with Python available as
 git clone https://github.com/bionic0x/Ante-agency-agents.git
 cd Ante-agency-agents
 
-# Discover the eight available workflows
+# Discover the nine available runbooks
 bash scripts/install.sh --list runbooks
 
 # Preview and install the Solana + Arbitrum Gate 0 team (nine agents)
@@ -175,7 +234,7 @@ Requires Python 3.11+, Bash, Git and the conversion dependencies described in
 [OPERATIONS.md](OPERATIONS.md). The gate checks agent metadata, catalog and runbook
 consistency, privileges, import provenance, NEXUS regressions, conversion and
 installation. GitHub Actions also exercise installation on Ubuntu and macOS.
-The tool registry contains 16 installation targets; 14 targets use conversion.
+The canonical tool registry contains **17 targets**. Different targets use different conversion and installation contracts; consult [tools.json](tools.json), not a fixed adapter count.
 
 | Evidence boundary | Current state |
 |---|---|
@@ -185,10 +244,7 @@ The tool registry contains 16 installation targets; 14 targets use conversion.
 | Institutional self-test | Eight predicates remain `NOT_DEMONSTRATED`; see the [exercise record](strategy/INSTITUTIONAL-SELF-TEST-EXERCISE-2026-09.md). |
 | Branch protection | The proposed [ruleset payload](.github/rulesets/main.json) requires administrative application. A green workflow alone does not make its checks mandatory. |
 
-The [follow-up audit patch, PR #25](https://github.com/bionic0x/Ante-agency-agents/pull/25)
-is pending integration as of 2026-09-16. It adds sufficient-result termination guards,
-immediate rebind scope rejection, option evidence annotations and a Gate 0 YAML
-validator. Its checks are not part of `main` until that PR is merged.
+The closure integrity, evidence scope, and Gate 0 checks are integrated; see [the current NEXUS contracts](strategy/NEXUS-INSTANCE.md) and [release verification](scripts/verify-release.sh). Historic PR statuses are not evidence of present deployment or production readiness.
 
 ## Documentation map
 
@@ -898,11 +954,11 @@ Illustrative role language, not empirical results or universal acceptance rules.
 
 ## 📊 Repository inventory
 
-- **492 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
-- **8 runbooks** — declared in [strategy/runbooks.json](strategy/runbooks.json).
-- **16 installation targets** — declared in [tools.json](tools.json).
+- **500 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
+- **9 runbooks** — declared in [strategy/runbooks.json](strategy/runbooks.json).
+- **17 registered tool targets** — declared in [tools.json](tools.json).
 - **14 converted targets**, plus native profile installation for Claude Code and Copilot.
-- **Offline NEXUS planning, replay and option comparison** — synthetic examples in [examples/nexus](examples/nexus/).
+- **Offline NEXUS planning, replay and option comparison, with P1–P8 safeguards and optional local Relay execution** — synthetic examples in [examples/nexus](examples/nexus/).
 
 Counts describe repository contents, not measured agent effectiveness.
 
@@ -1285,9 +1341,9 @@ When you add new agents or edit existing ones, regenerate all integration files:
 - [x] Canonical catalog, selective installation and multi-tool conversion
 - [x] Strategic runbooks and cross-division handoff examples
 - [x] Offline NEXUS replay, task-result invalidation and evidence ancestry checks
-- [ ] Integrate the follow-up closure and Gate 0 audit patch ([#25](https://github.com/bionic0x/Ante-agency-agents/pull/25))
-- [ ] Validate a live host adapter with authenticated authority and enforced capabilities
-- [ ] Record matched single-agent, fixed-team and NEXUS trials
+- [x] Integrate closure guards, network-scope checks, Relay reconciliation, P1–P8 controls and CI security scans
+- [ ] Observe a named live model/host under an authenticated and bounded mandate; validate the declared permissions against actual host capabilities
+- [ ] Run the independently held-out Phase 1 campaign (>=6 **unpublished** evaluator-controlled packs, 3 variants x 2 trials, >=36 real trials), blind judging and the preregistered PROCEED_TO_PHASE_2 / REDIRECT decision
 - [ ] Exercise the eight institutional self-test predicates with dated evidence
 - [ ] Apply and verify the proposed branch ruleset through repository administration
 
@@ -1321,7 +1377,7 @@ MIT License - Use freely, commercially or personally. Attribution appreciated bu
 
 ## 🙏 Acknowledgments
 
-What started as a Reddit thread about AI agent specialization has grown into something remarkable — **492 agents across 19 divisions**, supported by a community of contributors from around the world. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
+What started as a Reddit thread about AI agent specialization has grown into a broad, generated catalog — **500 agents across 19 divisions** at this snapshot, supported by upstream and fork contributors. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
 
 To everyone who has opened a PR, filed an issue, started a Discussion, or simply tried an agent and told us what worked — thank you. You're the reason The Agency keeps getting better.
 
