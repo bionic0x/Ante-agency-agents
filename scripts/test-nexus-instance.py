@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import runpy
 from pathlib import Path
 import unittest
 
@@ -563,5 +564,176 @@ class AssertionConflictTests(unittest.TestCase):
         self.s = n.initial(self.i)
         with self.assertRaisesRegex(ValueError, 'model_id'):
             self.run_event('start', task_id='A', reserved_cost=1, model_id=' ')
+
+
+LATER = '2026-10-12T12:00:00Z'
+
+
+class ChallengerGateTests(unittest.TestCase):
+    """P8: a proposer's work reaches nothing else until its challenger rules on it."""
+
+    def setUp(self):
+        self.i = json.loads((ROOT / 'examples/nexus/investment-hypothesis.instance.json').read_text())
+        self.s = n.initial(self.i)
+        self.count = 0
+
+    def run_event(self, kind, at=AT, **fields):
+        self.count += 1
+        event = {'id': f'g{self.count}', 'at': at, 'issuer': 'fixture-owner', 'type': kind, **fields}
+        self.s = n.apply(self.i, self.s, event); return self.s
+
+    def run_task(self, tid, verdict=None, at=AT):
+        self.run_event('start', at=at, task_id=tid, reserved_cost=1)
+        fields = dict(task_id=tid, actual_cost=1, accepted=True, evidence_refs=['r-' + tid],
+                      predicate_results={'contract_met': True})
+        if verdict is not None:
+            fields['asserts'] = {'verdict:H1': verdict}
+        return self.run_event('finish', at=at, **fields)
+
+    def blockers(self, tid, at=AT):
+        return n.blockers(self.i, self.s, tid, at)
+
+    def close(self):
+        return self.run_event('close', evidence_refs=['d'], closure={
+            'achieved': 'a', 'outstanding': 'o', 'accountable': 'fixture-owner', 'on_breach': 'b',
+            'conservation_resources': 'c'})
+
+    def test_example_trace_closes(self):
+        events = [json.loads(l) for l in (ROOT / 'examples/nexus/investment-hypothesis.events.jsonl').read_text().splitlines()]
+        state = n.replay(self.i, events)
+        self.assertTrue(state['closed'])
+        gate = n.plan(self.i, state, AT)['challenger_gates']['H1']
+        self.assertEqual(('FAVOURABLE', 'PROCEED_WITH_CONDITIONS'), (gate['status'], gate['verdict']))
+
+    def test_consumer_waits_for_verdict_but_challenger_does_not(self):
+        self.run_task('H1')
+        self.assertIn('CHALLENGER_PENDING:H1', self.blockers('A1'))
+        self.assertNotIn('CHALLENGER_PENDING:H1', self.blockers('V1'))
+        self.assertEqual([], self.blockers('V1'))
+
+    def test_veto_blocks_consumers_favourable_decision_and_success(self):
+        self.run_task('H1'); self.run_task('V1', 'REJECT')
+        self.assertIn('CHALLENGER_VETO:H1', self.blockers('A1'))
+        with self.assertRaisesRegex(ValueError, 'blocked'):
+            self.run_event('start', task_id='A1', reserved_cost=1)
+        with self.assertRaisesRegex(ValueError, 'challenger veto prevents a favourable decision'):
+            self.run_event('decision', state='PROCEED_WITH_CONDITIONS', reason='I like it')
+        with self.assertRaisesRegex(ValueError, 'challenger gate prevents sufficient-result termination'):
+            self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='enough', evidence_refs=['v'], closure={
+                'achieved': 'a', 'outstanding': 'o', 'accountable': 'fixture-owner', 'on_breach': 'b',
+                'conservation_resources': 'c'})
+        self.run_event('decision', state='REJECT', reason='validator rejected')
+        self.run_event('terminate', outcome='REJECT', reason='validator rejected', evidence_refs=['v'], closure={
+            'achieved': 'a', 'outstanding': 'o', 'accountable': 'fixture-owner', 'on_breach': 'b',
+            'conservation_resources': 'c'})
+        self.assertTrue(self.s['closed'])
+
+    def test_veto_blocks_success_closure_even_without_consumers(self):
+        self.i['tasks'] = self.i['tasks'][:2]
+        self.s = n.initial(self.i)
+        self.run_task('H1'); self.run_task('V1', 'REDESIGN')
+        with self.assertRaisesRegex(ValueError, 'challenger gate prevents success closure: VETO:H1'):
+            self.close()
+
+    def test_only_owner_overrides_a_recorded_veto_and_it_expires(self):
+        self.run_task('H1')
+        with self.assertRaisesRegex(ValueError, 'only a recorded negative'):
+            self.run_event('override_verdict', proposer_task_id='H1', reason='r', evidence_refs=['x'], expires=LATER)
+        self.run_task('V1', 'REJECT')
+        with self.assertRaisesRegex(ValueError, 'only named owner'):
+            self.run_event('override_verdict', issuer='fixture-reviewer', proposer_task_id='H1', reason='r',
+                           evidence_refs=['x'], expires=LATER)
+        with self.assertRaisesRegex(ValueError, 'expire after'):
+            self.run_event('override_verdict', proposer_task_id='H1', reason='r', evidence_refs=['x'], expires=AT)
+        with self.assertRaisesRegex(ValueError, 'evidence_refs'):
+            self.run_event('override_verdict', proposer_task_id='H1', reason='r', evidence_refs=[], expires=LATER)
+        self.run_event('override_verdict', proposer_task_id='H1', reason='owner accepts model risk',
+                       evidence_refs=['risk-memo'], expires=LATER)
+        gate = n.plan(self.i, self.s, AT)['challenger_gates']['H1']
+        self.assertEqual(('OVERRIDDEN', 'REJECT'), (gate['status'], gate['verdict']))
+        self.assertEqual('REJECT', self.s['assertions']['V1']['verdict:H1'])  # verdict never rewritten
+        self.assertEqual([], self.blockers('A1'))
+        self.assertIn('CHALLENGER_VETO:H1', self.blockers('A1', at='2026-10-13T00:00:00Z'))
+        self.assertEqual(1, len(self.s['verdict_override_history']))
+
+    def test_new_verdict_reopens_an_override(self):
+        self.i['tasks'].append(dict(copy.deepcopy(self.i['tasks'][1]), id='V2', resource_scope=['fixture-artifact-V2']))
+        self.s = n.initial(self.i)
+        self.run_task('H1'); self.run_task('V1', 'REJECT')
+        self.run_event('override_verdict', proposer_task_id='H1', reason='r', evidence_refs=['x'], expires=LATER)
+        self.run_task('V2', 'REJECT')
+        self.assertIn('CHALLENGER_VETO:H1', self.blockers('A1'))
+
+    def test_split_verdicts_resolve_only_to_a_challenger_value(self):
+        self.i['tasks'].append(dict(copy.deepcopy(self.i['tasks'][1]), id='V2', resource_scope=['fixture-artifact-V2']))
+        self.s = n.initial(self.i)
+        self.run_task('H1'); self.run_task('V1', 'REJECT'); self.run_task('V2', 'PROCEED_WITH_CONDITIONS')
+        self.assertIn('CHALLENGER_CONFLICT:H1', self.blockers('A1'))
+        with self.assertRaisesRegex(ValueError, 'use override_verdict'):
+            self.run_event('resolve_conflict', key='verdict:H1', value='PROCEED', reason='r', evidence_refs=['x'])
+        self.run_event('resolve_conflict', key='verdict:H1', value='PROCEED_WITH_CONDITIONS',
+                       reason='V2 used the corrected cost model', evidence_refs=['x'])
+        self.assertNotIn('CHALLENGER_CONFLICT:H1', self.blockers('A1'))
+
+    def test_verdict_must_be_a_canonical_decision_state(self):
+        self.run_task('H1')
+        with self.assertRaisesRegex(ValueError, 'canonical decision state'):
+            self.run_task('V1', 'LOOKS_GREAT')
+
+    def test_rebinding_the_proposer_retires_its_verdict(self):
+        self.run_task('H1'); self.run_task('V1', 'PROCEED')
+        self.assertEqual([], self.blockers('A1'))
+        self.run_event('rebind_claims', task_id='H1', claim_revisions={'CLM-1': 1}, reason='new data snapshot')
+        self.assertEqual('PENDING', n.plan(self.i, self.s, AT)['challenger_gates']['H1']['status'])
+
+    def test_proposer_may_redesign_under_a_veto(self):
+        redesign = dict(copy.deepcopy(self.i['tasks'][0]), id='H2', depends_on=['V1'], claim_revisions={},
+                        resource_scope=['fixture-artifact-H2'])
+        check = dict(copy.deepcopy(self.i['tasks'][1]), id='V2', depends_on=['H2'], asserts=['verdict:H2'],
+                     resource_scope=['fixture-artifact-V2'])
+        self.i['tasks'] += [redesign, check]
+        self.s = n.initial(self.i)
+        self.run_task('H1'); self.run_task('V1', 'REDESIGN')
+        self.assertEqual([], self.blockers('H2'))
+        self.assertIn('CHALLENGER_VETO:H1', self.blockers('A1'))
+
+    def test_instance_contract(self):
+        broken = copy.deepcopy(self.i); broken['tasks'] = [broken['tasks'][0]]
+        with self.assertRaisesRegex(ValueError, 'needs a finance-quant-alpha-validator task'):
+            n.initial(broken)
+        broken = copy.deepcopy(self.i); broken['tasks'][1]['asserts'] = []
+        with self.assertRaisesRegex(ValueError, 'must assert verdict:H1'):
+            n.initial(broken)
+        broken = copy.deepcopy(self.i); broken['mandate']['reviewers'] = ['finance-quant-alpha-validator']
+        with self.assertRaisesRegex(ValueError, 'cannot be a proposer or challenger'):
+            n.initial(broken)
+
+
+class ChallengerPairCatalogTests(unittest.TestCase):
+    def setUp(self):
+        self.check = runpy.run_path(str(ROOT / 'scripts/check-challenger-pairs.py'))['check']
+        _, self.agents, self.books = runpy.run_path(str(ROOT / 'scripts/build-catalog.py'))['collect']()
+        self.reg = json.loads((ROOT / 'strategy/challenger-pairs.json').read_text())
+
+    def test_repository_is_clean(self):
+        self.assertEqual([], self.check(self.reg, self.agents, self.books))
+
+    def test_proposer_without_challenger_in_a_runbook_fails(self):
+        books = copy.deepcopy(self.books)
+        books[0]['roster'][0]['agents'].append('finance-macro-regime-alpha')
+        self.assertTrue(any('without its challenger' in e for e in self.check(self.reg, self.agents, books)))
+
+    def test_excluded_runbook_fails(self):
+        books = copy.deepcopy(self.books)
+        htp = next(b for b in books if b['slug'] == 'htp-gate0-solana-arbitrum')
+        htp['roster'][0]['agents'] += ['finance-macro-regime-alpha', 'finance-quant-alpha-validator']
+        self.assertTrue(any('is excluded' in e for e in self.check(self.reg, self.agents, books)))
+
+    def test_malformed_registry_fails(self):
+        reg = copy.deepcopy(self.reg)
+        reg['pairs'][0]['challenger'] = reg['pairs'][0]['proposer']
+        self.assertTrue(any('must differ' in e for e in self.check(reg, self.agents, self.books)))
+        reg = copy.deepcopy(self.reg); reg['favourable_verdicts'] = ['MAYBE']
+        self.assertTrue(any('favourable_verdicts' in e for e in self.check(reg, self.agents, self.books)))
 
 if __name__ == '__main__':unittest.main()

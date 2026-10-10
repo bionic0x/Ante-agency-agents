@@ -1,0 +1,15 @@
+{
+  "_note": "Closed registry of proposer/challenger pairs (P8 in strategy/NEXUS-INSTANCE.md). A proposer's work cannot reach any other consumer, a favourable decision or a success closure until a task run by its challenger has recorded a favourable verdict on it. Only the named owner can override a negative verdict, with a reason, evidence and an expiry; an absent verdict cannot be overridden. scripts/check-challenger-pairs.py keeps every runbook that rosters a proposer rostering its challenger too, and keeps each pair out of its excluded runbooks.",
+  "schema_version": 1,
+  "favourable_verdicts": ["PROCEED", "PROCEED_WITH_CONDITIONS"],
+  "pairs": [
+    {
+      "id": "macro-quant",
+      "proposer": "finance-macro-regime-alpha",
+      "challenger": "finance-quant-alpha-validator",
+      "rationale": "Investment hypotheses must survive independent validation (point-in-time data, walk-forward, costs, alpha versus beta, stress, paper tracking) before they influence capital.",
+      "excluded_runbooks": ["htp-gate0-solana-arbitrum"],
+      "excluded_rationale": "HTP Annex G: investment-thesis agents stay out of HTP detection, policy and pause paths."
+    }
+  ]
+}

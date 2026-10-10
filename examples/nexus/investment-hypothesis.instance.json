@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "id": "SYNTHETIC-INVESTMENT-HYPOTHESIS-001",
+  "runbook_ref": "investment-hypothesis-validation",
+  "doctrine_sha256": "f81abe2e06ee8311a98dfa61f980b0f9e3ebb2d8b7a90eaa142e413771963570",
+  "mandate": {
+    "owner": "fixture-owner",
+    "reviewers": [
+      "fixture-reviewer"
+    ],
+    "authority_ref": "synthetic fixture; no live authority",
+    "scope": "offline-analysis",
+    "expires": "2030-01-01T00:00:00Z"
+  },
+  "objective": {
+    "id": "PURPOSE-1",
+    "purpose": "Decide whether a written liquidity-timing hypothesis may enter paper tracking",
+    "non_object": "Find the backtest parameters that look best",
+    "success_condition": "An independent verdict, the owner's decision, falsifiers and a review date are recorded",
+    "constraints": [
+      "No orders, sizing or capital movement; synthetic data only"
+    ]
+  },
+  "decision_state": "PROCEED",
+  "budget": {
+    "cost_limit": 10,
+    "reserve": 2,
+    "deadline": "2030-01-01T00:00:00Z",
+    "unit": "synthetic-cost-units"
+  },
+  "claims": [
+    {
+      "id": "CLM-1",
+      "revision": 1,
+      "statement": "Synthetic hypothesis premise; not market evidence",
+      "status": "HYPOTHESIS",
+      "scope": "shared",
+      "source_refs": [
+        "fixture-hypothesis-card"
+      ],
+      "source_roots": [
+        "fixture-proposer"
+      ],
+      "depends_on": [],
+      "expires": "2030-01-01T00:00:00Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "H1",
+      "agent": "finance-macro-regime-alpha",
+      "level": "operational",
+      "vector": "causal",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Write and freeze the hypothesis card, dataset snapshot and trial ledger",
+      "evidence_scope": "hypothesis",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-H1"
+      ]
+    },
+    {
+      "id": "V1",
+      "agent": "finance-quant-alpha-validator",
+      "level": "operational",
+      "vector": "adversarial",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Independently validate H1: leakage, walk-forward net of costs, beta-matched attribution, stress",
+      "evidence_scope": "hypothesis",
+      "depends_on": [
+        "H1"
+      ],
+      "claim_revisions": {},
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-V1"
+      ],
+      "asserts": [
+        "verdict:H1"
+      ]
+    },
+    {
+      "id": "A1",
+      "agent": "specialized-strategic-assurance-lead",
+      "level": "strategic",
+      "vector": "assurance",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Prepare the owner's decision record from the verdict",
+      "evidence_scope": "hypothesis",
+      "depends_on": [
+        "V1"
+      ],
+      "claim_revisions": {},
+      "cost_limit": 3,
+      "attempt_limit": 2,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-A1"
+      ]
+    }
+  ],
+  "open_conditions": []
+}

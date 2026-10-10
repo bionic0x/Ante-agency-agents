@@ -56,7 +56,7 @@ class TerminationContractTests(unittest.TestCase):
 
     def test_registry_has_eight_substantive_contracts(self):
         print(f'runbooks.json sha256={self.registry_sha256}')
-        self.assertEqual(8, len(self.data['runbooks']))
+        self.assertEqual(9, len(self.data['runbooks']))
         required = {'achieved', 'outstanding', 'accountable', 'on_breach'}
         for rb in self.data['runbooks']:
             with self.subTest(runbook=rb['slug']):
@@ -75,7 +75,7 @@ class TerminationContractTests(unittest.TestCase):
 
     def test_valid_contract_and_absent_contract_is_failure(self):
         self.check(self.data['runbooks'][self.index]['termination_contract'], 0,
-                   '8/8 termination contracts')
+                   '9/9 termination contracts')
         self.check(None, 1, "missing required field 'termination_contract'", omit=True)
 
     def test_explicit_invalid_contract_is_not_advisory(self):
@@ -97,7 +97,7 @@ class TerminationContractTests(unittest.TestCase):
     def test_optional_fields_are_validated_when_present(self):
         valid = self.data['runbooks'][self.index]['termination_contract']
         required = {k: v for k, v in valid.items() if k not in ('conservation_resources', 'revision_conditions')}
-        self.check(required, 0, '8/8 termination contracts')
+        self.check(required, 0, '9/9 termination contracts')
         for key in ('conservation_resources', 'revision_conditions'):
             for value in (None, [], '  ', 'pending'):
                 with self.subTest(key=key, value=value):

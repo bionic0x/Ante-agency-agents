@@ -119,6 +119,7 @@ authentication and independently verify the mandate. JSON labels are not signatu
 | `dissent` | Objection, evidence references and residual-risk owner; preserved in history and kept open until answered |
 | `dissent_response` | Owner only: `dissent_id` (the dissent event ID), `disposition` (`UPHELD`, `RISK_ACCEPTED` or `REFUTED`), `response`, `risk_owner`, `evidence_refs`. Each dissent is answered once |
 | `resolve_conflict` | Owner only: `key` with a current conflict, chosen `value`, `reason`, `evidence_refs`. Holds while the competing results are unchanged; any new result on the key reopens it |
+| `override_verdict` | Owner only: `proposer_task_id` whose challenger verdict is negative, `reason`, `evidence_refs`, and a future `expires`. Opens the P8 gate until expiry or until any challenger verdict on that task changes; never rewrites the verdict, and cannot open a gate that has no verdict |
 | `release_reserve` | Owner only: positive `amount` not exceeding the remaining reserve, named `contingency`, `reason`, `evidence_refs`. Released reserve becomes committable budget |
 | `close` | Evidence and closure record; mandate and deadline must be current, with at least one task and all planned work complete and current, and no unanswered dissent |
 | `terminate` | Outcome, reason, evidence and closure record; cancels unnecessary/pending work without claiming it succeeded |
@@ -143,7 +144,7 @@ analysis; its presence is not authorization for the action being analyzed.
 ## Independent judgment
 
 The 2026-10-10 stress test showed that ordering guarantees did not protect the
-independence of the judgment. Seven rules now hold in the engine:
+independence of the judgment. Eight rules now hold in the engine:
 
 1. **No self-acceptance.** A task agent cannot accept its own work, even if it is
    also listed as a reviewer.
@@ -167,6 +168,26 @@ independence of the judgment. Seven rules now hold in the engine:
    Negative outcomes stay available. Numbers compare by value (`39` equals
    `39.0`). `plan` also lists `shared_model_tasks`: agreement among runs of one
    model is not independent corroboration.
+
+8. **Proposals face their challenger first.** `strategy/challenger-pairs.json`
+   names proposer/challenger pairs (today: Macro Regime Alpha and Quant Research
+   and Alpha Validation). Every task run by a proposer needs a task run by its
+   challenger that depends on it and asserts `verdict:<proposer task id>` with a
+   canonical decision state. A verdict counts only from an accepted, current run
+   that consumed the proposer's current result. Until it is `PROCEED` or
+   `PROCEED_WITH_CONDITIONS`, every other task downstream of the proposer is
+   blocked (`CHALLENGER_PENDING`, `CHALLENGER_VETO` or `CHALLENGER_CONFLICT`
+   with the proposer task id), the owner cannot record a favourable `decision`
+   over a veto or split, and neither success closure nor `SUFFICIENT_RESULT` is
+   possible. Only the pair may consume the proposer's output before the verdict:
+   the challenger to judge it, the proposer to redesign it as a new task with
+   its own challenger task. Disagreeing challenger runs resolve through
+   `resolve_conflict` to one of their own verdicts; any other outcome is an
+   `override_verdict`, which only the owner can issue, with evidence and an
+   expiry. Neither the owner nor any reviewer may be an agent of the pair.
+   `plan` reports every gate under `challenger_gates`.
+   `scripts/check-challenger-pairs.py` keeps each pair rostered together and
+   out of its excluded runbooks (the HTP Gate 0 runbook for this pair).
 
 These rules check who issued what and which declared values disagree. They do
 not detect contradictions on keys no task declared, authenticate issuers,

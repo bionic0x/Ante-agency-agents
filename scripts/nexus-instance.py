@@ -24,6 +24,9 @@ VOCAB = json.loads((ROOT / 'strategy/contracts.json').read_text())
 # checked. strategy/vectors.json closes it.
 VECTORS = json.loads((ROOT / 'strategy/vectors.json').read_text())['vectors']
 SCOPES = ('offline-analysis', 'local-relay')
+# P8: proposer/challenger pairs. A proposer's work reaches nothing else until its challenger rules on it.
+PAIRS = json.loads((ROOT / 'strategy/challenger-pairs.json').read_text())
+FAVOURABLE = tuple(PAIRS['favourable_verdicts'])
 
 
 def digest(value):
@@ -138,6 +141,67 @@ def unresolved_conflicts(state, task_ids=None):
                   if not c['resolved'] and (task_ids is None or set(c['values']).intersection(task_ids)))
 
 
+def verdict_key(pid):
+    return 'verdict:' + pid
+
+
+def task_ancestors(tasks, tid):
+    found, stack = set(), list(tasks[tid].get('depends_on', []))
+    while stack:
+        key = stack.pop()
+        if key not in found:
+            found.add(key)
+            stack.extend(tasks[key].get('depends_on', []))
+    return found
+
+
+def challenger_gates(instance, state, at):
+    """P8: for every proposer task, the challenger verdict on its current result and whether it is open.
+
+    A verdict counts only from an accepted, current challenger run that consumed the proposer's
+    current result. Disagreeing challenger runs are a P7 conflict until the owner resolves it.
+    A negative verdict opens only through an owner override that is unexpired and still matches
+    the verdicts it overrode; a new verdict closes it again. An absent verdict never opens."""
+    tasks = indexed(instance['tasks'], 'tasks')
+    conflicts = assertion_conflicts(state)
+    gates = {}
+    for pair in PAIRS['pairs']:
+        for pid, ptask in tasks.items():
+            if ptask['agent'] != pair['proposer']:
+                continue
+            key = verdict_key(pid)
+            verdicts = {}
+            for cid, ctask in tasks.items():
+                progress = state['tasks'][cid]
+                if (ctask['agent'] == pair['challenger'] and pid in ctask.get('depends_on', [])
+                        and progress['status'] == 'SUCCEEDED' and not progress['inputs_stale']
+                        and progress['dependency_revisions'].get(pid) == state['tasks'][pid]['result_revision']
+                        and key in state['assertions'].get(cid, {})):
+                    verdicts[cid] = state['assertions'][cid][key]
+            conflict = conflicts.get(key)
+            if not verdicts:
+                verdict, status = None, 'PENDING'
+            elif len({digest(v) for v in verdicts.values()}) == 1:
+                verdict = next(iter(verdicts.values()))
+            elif conflict is not None and conflict['resolved'] and set(conflict['values']) == set(verdicts):
+                verdict = conflict['resolution']
+            else:
+                verdict, status = None, 'CONFLICT'
+            if verdict is not None:
+                status = 'FAVOURABLE' if verdict in FAVOURABLE else 'VETO'
+            override = state['verdict_overrides'].get(pid)
+            overridden = (status == 'VETO' and override is not None and override['basis'] == digest(verdicts)
+                          and when(override['expires']) > when(at))
+            gates[pid] = {'pair': pair['id'], 'challenger': pair['challenger'], 'verdict': verdict,
+                          'status': 'OVERRIDDEN' if overridden else status,
+                          'open': status == 'FAVOURABLE' or overridden, 'verdicts': verdicts}
+    return gates
+
+
+def closed_gates(instance, state, at):
+    return sorted(f'{g["status"]}:{pid}' for pid, g in challenger_gates(instance, state, at).items() if not g['open'])
+
+
 def claim_ancestry(claims, cid):
     """Include every premise: a shared conclusion cannot erase a scoped source."""
     found, pending = set(), [cid]
@@ -213,6 +277,23 @@ def validate(instance):
             require(all(claims[parent]['scope'] in ('shared', task['evidence_scope'])
                         for parent in claim_ancestry(claims, cid)), 'cross-scope evidence reuse in claim ancestry')
     acyclic(tasks, 'depends_on')
+    # P8: a proposer never validates itself, and nobody who decides may be either side of the pair.
+    people = {mandate['owner'], *mandate['reviewers']}
+    for pair in PAIRS['pairs']:
+        require(pair['proposer'] != pair['challenger'], 'challenger pair must name two different agents')
+        require(not people.intersection((pair['proposer'], pair['challenger'])),
+                'owner/reviewers cannot be a proposer or challenger agent')
+        used = any(t['agent'] in (pair['proposer'], pair['challenger']) for t in tasks.values())
+        require(not used or instance['runbook_ref'] not in pair['excluded_runbooks'],
+                f'challenger pair {pair["id"]} is excluded from runbook {instance["runbook_ref"]}')
+        for pid, ptask in tasks.items():
+            if ptask['agent'] != pair['proposer']:
+                continue
+            checkers = [c for c in tasks.values() if c['agent'] == pair['challenger'] and pid in c.get('depends_on', [])]
+            require(bool(checkers), f'proposer task {pid} needs a {pair["challenger"]} task that depends on it')
+            for checker in checkers:
+                require(verdict_key(pid) in checker.get('asserts', []),
+                        f'challenger task {checker["id"]} must assert {verdict_key(pid)}')
     require(isinstance(instance.get('open_conditions', []), list), 'open_conditions must be an array')
     for condition in instance.get('open_conditions', []):
         text(condition['id'], 'condition id')
@@ -238,7 +319,9 @@ def initial(instance):
             'reserve_released': 0, 'reserve_releases': [],
             # P7: values accepted results state on shared keys, the model each run used,
             # and owner resolutions of disagreements between results.
-            'assertions': {}, 'models': {}, 'conflict_resolutions': {}}
+            'assertions': {}, 'models': {}, 'conflict_resolutions': {},
+            # P8: owner overrides of challenger vetoes, current and historical.
+            'verdict_overrides': {}, 'verdict_override_history': []}
 
 
 def blockers(instance, state, tid, at):
@@ -270,6 +353,17 @@ def blockers(instance, state, tid, at):
     # until the owner elevates the incompatibility to a decision.
     if task.get('depends_on'):
         reasons.extend('ASSERTION_CONFLICT:' + key for key in unresolved_conflicts(state, task['depends_on']))
+    # P8: work downstream of a proposer waits for its challenger. Only the pair itself may consume
+    # the proposer's output first: the challenger to rule on it, the proposer to redesign it.
+    gates = challenger_gates(instance, state, at)
+    tasks_by_id = indexed(instance['tasks'], 'tasks')
+    for pid in sorted(task_ancestors(tasks_by_id, tid)):
+        gate = gates.get(pid)
+        if gate is None or gate['open']:
+            continue
+        pair = next(p for p in PAIRS['pairs'] if p['id'] == gate['pair'])
+        if task['agent'] not in (pair['proposer'], pair['challenger']):
+            reasons.append(f'CHALLENGER_{gate["status"]}:{pid}')
     if state['tasks'][tid]['spent'] > task['cost_limit']: reasons.append('TASK_COST_OVERRUN')
     if state['spent'] > instance['budget']['cost_limit'] - effective_reserve(instance, state): reasons.append('BUDGET_OVERRUN')
     return sorted(set(reasons))
@@ -346,6 +440,10 @@ def apply(instance, prior, event):
                 require(isinstance(asserted, dict) and set(asserted) == set(task.get('asserts', [])),
                         'accepted finish must assert exactly the task asserts keys')
                 state['assertions'][tid] = {k: assertion_value(v, 'asserts.' + k) for k, v in asserted.items()}
+                if any(task['agent'] == pair['challenger'] for pair in PAIRS['pairs']):
+                    for k, v in state['assertions'][tid].items():
+                        if k.startswith('verdict:'):
+                            require(v in VOCAB['decision_states'], f'{k} must be a canonical decision state')
             else:
                 require('asserts' not in event, 'only accepted finishes carry assertions')
     elif kind == 'hold':
@@ -368,6 +466,10 @@ def apply(instance, prior, event):
         require(event['state'] in VOCAB['decision_states'], 'unknown decision state')
         require(not any(c['classification'] == 'FATAL_DEFECT' for c in state['conditions'].values()) or event['state'] in ('HOLD', 'REDESIGN', 'REJECT'), 'fatal defect prevents proceed')
         text(event['reason'], 'decision reason')
+        if event['state'] in FAVOURABLE:
+            # P8: a favourable decision cannot step over a challenger's veto or an unresolved split.
+            vetoed = [g for g in closed_gates(instance, state, at) if not g.startswith('PENDING:')]
+            require(not vetoed, 'challenger veto prevents a favourable decision: ' + ','.join(vetoed))
         state['decision_state'] = event['state']
     elif kind == 'claim_revision':
         require(issuer in [owner, *reviewers], 'claim revision requires owner/reviewer')
@@ -433,10 +535,28 @@ def apply(instance, prior, event):
         conflict = assertion_conflicts(state).get(key)
         require(conflict is not None, 'no current assertion conflict on this key')
         value = assertion_value(event.get('value'), 'value')
+        if key.startswith('verdict:'):
+            # P8: choosing between challenger runs is allowed; inventing a verdict is an override.
+            require(any(digest(value) == digest(v) for v in conflict['values'].values()),
+                    'a verdict conflict resolves to one of the challengers\' verdicts; use override_verdict')
         text(event.get('reason'), 'reason')
         strings(event.get('evidence_refs'), 'evidence_refs', True)
         state['conflict_resolutions'][key] = {'value': value, 'basis': digest(conflict['values']),
                                               'event_id': eid}
+    elif kind == 'override_verdict':
+        # P8: only the named owner overrides a challenger's negative verdict, for a reason, with
+        # evidence and an expiry. The verdict itself is never rewritten.
+        require(issuer == owner, 'only named owner can override a challenger verdict')
+        pid = event.get('proposer_task_id')
+        gate = challenger_gates(instance, state, at).get(pid)
+        require(gate is not None, 'unknown proposer task')
+        require(gate['status'] == 'VETO', 'only a recorded negative challenger verdict can be overridden')
+        require(when(event.get('expires')) > when(at), 'override must expire after it is issued')
+        text(event.get('reason'), 'reason')
+        strings(event.get('evidence_refs'), 'evidence_refs', True)
+        state['verdict_overrides'][pid] = {'basis': digest(gate['verdicts']), 'expires': event['expires'],
+                                           'verdict': gate['verdict'], 'event_id': eid}
+        state['verdict_override_history'].append(copy.deepcopy(event))
     elif kind == 'release_reserve':
         # P6: the reserve is usable only by a named owner, for a named contingency, within its size.
         require(issuer == owner, 'only named owner can release reserve')
@@ -460,6 +580,8 @@ def apply(instance, prior, event):
             require(not any(c['classification'] == 'PENDING_EVIDENCE' for c in state['conditions'].values()), 'pending evidence prevents sufficient-result termination')
             require(not state['open_dissent'], 'unanswered dissent prevents sufficient-result termination')
             require(not unresolved_conflicts(state), 'unresolved assertion conflict prevents sufficient-result termination')
+            require(not closed_gates(instance, state, at), 'challenger gate prevents sufficient-result termination: '
+                    + ','.join(closed_gates(instance, state, at)))
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
             text(event['closure'][field], field)
         strings(event['evidence_refs'], 'evidence_refs', True)
@@ -475,6 +597,8 @@ def apply(instance, prior, event):
         require(not state['conditions'] and not state['review_required'], 'unresolved closure conditions')
         require(not state['open_dissent'], 'unanswered dissent prevents success closure')
         require(not unresolved_conflicts(state), 'unresolved assertion conflict prevents success closure')
+        require(not closed_gates(instance, state, at), 'challenger gate prevents success closure: '
+                + ','.join(closed_gates(instance, state, at)))
         require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'decision prevents success closure')
         require(all(p['status'] == 'SUCCEEDED' and not blockers(instance, state, t, at) for t, p in state['tasks'].items()), 'incomplete/stale work prevents success closure')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
@@ -518,6 +642,8 @@ def plan(instance, state, at):
             'uncommitted_cost': instance['budget']['cost_limit'] - effective_reserve(instance, state) - state['spent'] - sum(p['reserved'] for p in state['tasks'].values()),
             'open_dissent': list(state['open_dissent']),
             'assertion_conflicts': assertion_conflicts(state),
+            'challenger_gates': {pid: {k: v for k, v in g.items() if k != 'verdicts'}
+                                 for pid, g in challenger_gates(instance, state, at).items()},
             # Agreement among results produced by one model is not independent corroboration.
             'shared_model_tasks': {m: sorted(t for t, x in state['models'].items() if x == m)
                                    for m in sorted(set(state['models'].values()))
