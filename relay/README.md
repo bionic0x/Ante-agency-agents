@@ -72,6 +72,7 @@ permissions). Unknown keys are errors.
 | `runtime.allow_rootful_engine` | `false` by default; see Requirements |
 | `model.upstream`, `api_key_env` | Model API origin (https) and the variable holding the key |
 | `model.cost_unit`, `prices` | `tokens`, or `usd` with per-model prices per million tokens; must equal the instance `budget.unit` |
+| `model.max_input_tokens`, `max_image_tokens` | Worst-case input of one request (default 1,000,000, the largest context window) and of one image (default 4,784, the high-resolution tier). Lower them only to match every model you price; they bound what a request may bill |
 | `model.extra_request_fields` | Request fields to forward beyond the built-in allowlist (for a newer API option). `mcp_servers`, `container`, `service_tier`, `speed` and `inference_geo` cannot be enabled |
 
 ## Verify
@@ -106,8 +107,12 @@ before accepting it.
 ## Limits
 
 - Spend is held at the worst case before each request: request bytes count as input tokens
-  (an upper bound for text) plus a 4,096-token margin, plus `max_tokens`. Near the end of a
-  reservation this refuses requests that might still have fit; that is deliberate.
+  (an upper bound for text) plus a 4,096-token margin, plus `max_tokens`. Bytes do not bound
+  media: each image adds its visual tokens (ceil(w/28) x ceil(h/28) from a PNG header,
+  otherwise `max_image_tokens`), and a request with a PDF is held at `max_input_tokens`,
+  because compressed pages hide their text. Near the end of a reservation this refuses
+  requests that might still have fit; that is deliberate. A request refused only because of
+  its images or PDFs gets 402 without ending the run.
 - At proxy shutdown, unfinished requests are charged their full holds before the run's
   cost is recorded. Late responses cannot reduce or double-charge that final amount.
 - Workspace evidence is capped at 50,000 entries and 2 GiB of hashed data. Reaching a

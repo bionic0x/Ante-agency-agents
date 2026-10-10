@@ -6,7 +6,8 @@ container was given, swaps it for the real API key, and enforces the NEXUS reser
 as a hard ceiling:
 
 * Before forwarding, each generation request holds its worst-case cost (an upper bound on
-  input tokens plus `max_tokens`) against the reservation, under a lock. `max_tokens` is
+  input tokens plus `max_tokens`) against the reservation, under a lock. Text is bounded
+  by request bytes; images and PDFs by `media.input_bound`, since bytes do not bound them. `max_tokens` is
   lowered to what the remaining budget can pay for; a request that cannot fit is refused.
 * After the response, the hold is settled at the metered cost. An incomplete response is
   charged at its full hold, never at a partial count.
@@ -31,6 +32,7 @@ import socketserver
 import threading
 from urllib.parse import urlsplit
 
+from .media import DEFAULT_MAX_IMAGE_TOKENS, DEFAULT_MAX_INPUT_TOKENS, input_bound
 from .policy import PolicyViolation, check_betas, check_request
 
 MAX_BODY = 8 * 1024 * 1024
@@ -52,7 +54,8 @@ class BudgetExceeded(Exception):
 
 class Meter:
     """Thread-safe ledger: spent + held never exceeds the reservation when the upstream
-    reports usage honestly and input tokens do not exceed request bytes plus a margin."""
+    reports usage honestly and input tokens do not exceed the bound given to `hold`
+    (by default request bytes plus a margin; the proxy passes `media.input_bound`)."""
 
     def __init__(self, unit: str, prices: dict, reserved: float, input_margin: int = INPUT_MARGIN_TOKENS):
         self.unit = unit
@@ -97,11 +100,15 @@ class Meter:
                 + tokens["cache_creation_input_tokens"] * price.get("cache_write", price["input"])
                 + tokens["cache_read_input_tokens"] * price.get("cache_read", price["input"])) / 1_000_000
 
-    def hold(self, model: str | None, body_bytes: int, requested_max: int | None) -> tuple[int, int]:
+    def hold(self, model: str | None, body_bytes: int, requested_max: int | None,
+             input_tokens: int | None = None) -> tuple[int, int]:
         """Reserve the worst case for one generation request. Returns (hold id, max_tokens
-        to forward). Byte length bounds the token count of the text it encodes."""
+        to forward). Without `input_tokens`, byte length bounds the tokens of the text it
+        encodes; callers with images or documents must pass a media-aware bound."""
         in_rate, out_rate = self._rates(model)
-        input_cost = (body_bytes + self.input_margin) * in_rate
+        if input_tokens is None:
+            input_tokens = body_bytes + self.input_margin
+        input_cost = input_tokens * in_rate
         with self._lock:
             if self._closed:
                 raise BudgetExceeded("run meter is closed")
@@ -251,13 +258,16 @@ class ModelProxy:
     def __init__(self, socket_path: Path, run_token: str, api_key: str, upstream: str,
                  allowed_paths: tuple[str, ...], meter: Meter, connection_factory=None, *,
                  max_connections: int = MAX_CONNECTIONS, max_in_flight: int = MAX_IN_FLIGHT,
-                 idle_timeout: float = IDLE_TIMEOUT_SECONDS, extra_request_fields: tuple[str, ...] = ()):
+                 idle_timeout: float = IDLE_TIMEOUT_SECONDS, extra_request_fields: tuple[str, ...] = (),
+                 max_image_tokens: int = DEFAULT_MAX_IMAGE_TOKENS, max_input_tokens: int = DEFAULT_MAX_INPUT_TOKENS):
         self.socket_path = socket_path
         self.run_token = run_token
         self.api_key = api_key
         self.upstream = urlsplit(upstream)
         self.allowed_paths = allowed_paths
         self.extra_request_fields = tuple(extra_request_fields)
+        self.max_image_tokens = max_image_tokens
+        self.max_input_tokens = max_input_tokens
         self.meter = meter
         self.on_exhausted = None
         self.max_connections = max_connections
@@ -372,8 +382,11 @@ class ModelProxy:
         hold_id = None
         try:
             if generating:
+                bound, media = input_bound(request, len(body), self.meter.input_margin,
+                                           max_image_tokens=self.max_image_tokens,
+                                           max_input_tokens=self.max_input_tokens)
                 try:
-                    hold_id, max_tokens = self.meter.hold(model, len(body), requested_max)
+                    hold_id, max_tokens = self.meter.hold(model, len(body), requested_max, input_tokens=bound)
                     if max_tokens != requested_max:
                         request = _clamp(request, max_tokens)
                         body = json.dumps(request, separators=(",", ":")).encode()
@@ -381,6 +394,11 @@ class ModelProxy:
                     if hold_id is not None:
                         self.meter.settle(hold_id, model, {})
                         hold_id = None
+                    if media:
+                        # Only this request's images or PDFs do not fit; a text request
+                        # may still, so refuse it without ending the run.
+                        return handler._reply(402, f"{exc}: its images or PDFs are held at their worst case "
+                                                   f"(a PDF at the model input limit, {self.max_input_tokens} tokens)")
                     # The reservation cannot pay for another request: end the run now.
                     if self.on_exhausted:
                         self.on_exhausted()

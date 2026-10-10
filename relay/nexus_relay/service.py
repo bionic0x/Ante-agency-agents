@@ -177,7 +177,9 @@ class Relay:
             token = new_run_token()
             proxy = self._proxy_factory(paths.socket, token, self._api_key or model_api_key(self.cfg),
                                         self.cfg.model.upstream, self.cfg.model.allowed_paths, meter,
-                                        extra_request_fields=self.cfg.model.extra_request_fields)
+                                        extra_request_fields=self.cfg.model.extra_request_fields,
+                                        max_image_tokens=self.cfg.model.max_image_tokens,
+                                        max_input_tokens=self.cfg.model.max_input_tokens)
             command = build_command(self.cfg, run_id, paths, profile, token)
             run = self._runner_factory(self.cfg, run_id, command, paths.output)
             proxy.on_exhausted = lambda: run.stop("budget")

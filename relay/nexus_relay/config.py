@@ -10,6 +10,8 @@ import re
 import stat
 from urllib.parse import urlsplit
 
+from .media import DEFAULT_MAX_IMAGE_TOKENS, DEFAULT_MAX_INPUT_TOKENS
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_NAME = "relay.json"
 DEFAULT_MODEL_PATHS = ("/v1/messages", "/v1/messages/count_tokens")
@@ -63,6 +65,8 @@ class ModelConfig:
     prices: dict
     allowed_paths: tuple[str, ...]
     extra_request_fields: tuple[str, ...] = ()
+    max_input_tokens: int = DEFAULT_MAX_INPUT_TOKENS
+    max_image_tokens: int = DEFAULT_MAX_IMAGE_TOKENS
 
 
 @dataclass(frozen=True)
@@ -163,7 +167,8 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(isinstance(workspace_max, str) and bool(_SIZE_RE.match(workspace_max)), "runtime.workspace_max: e.g. 10g")
 
     model = raw["model"]
-    _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths", "extra_request_fields"},
+    _keys(model, {"upstream", "api_key_env", "cost_unit", "prices", "allowed_paths", "extra_request_fields",
+                  "max_input_tokens", "max_image_tokens"},
           {"upstream", "api_key_env", "cost_unit"}, "model")
     _require(model["cost_unit"] in ("tokens", "usd"), "model.cost_unit: tokens or usd")
     prices = model.get("prices", {})
@@ -183,6 +188,14 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
              "model.extra_request_fields: " + ", ".join(sorted(NEVER_FORWARDED_FIELDS)) +
              " make the provider act on the network or change the price and cannot be enabled")
 
+    limits = {}
+    # Lower only to match the models you price: these bound what the provider may bill per request.
+    for key, default, floor in (("max_input_tokens", DEFAULT_MAX_INPUT_TOKENS, 100_000),
+                                ("max_image_tokens", DEFAULT_MAX_IMAGE_TOKENS, 1568)):
+        value = model.get(key, default)
+        _require(type(value) is int and value >= floor, f"model.{key}: integer of at least {floor}")
+        limits[key] = value
+
     instance = Path(_text(raw["instance"], "instance")).expanduser()
     events = Path(_text(raw["events"], "events")).expanduser()
     if not instance.is_absolute():
@@ -200,7 +213,7 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
         runtime=RuntimeConfig(rt["engine"], image, tuple(command), memory, cpus, pids, timeout, rootful,
                               size_bytes(workspace_max)),
         model=ModelConfig(_upstream(model["upstream"]), _text(model["api_key_env"], "model.api_key_env"),
-                          model["cost_unit"], prices, paths, tuple(extra_fields)),
+                          model["cost_unit"], prices, paths, tuple(extra_fields), **limits),
     )
 
 
