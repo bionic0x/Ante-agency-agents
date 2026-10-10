@@ -50,7 +50,7 @@ This section describes **what is implemented versus what has been measured**. Th
 | NEXUS Relay | v1 local shared room, owner-gated approvals, container execution, policy-limited model proxy, accounting, evidence digest and reconciliation | Local-only pilot, not a multi-tenant production deployment or a comprehensive kernel isolation guarantee |
 | NEXUS Overdrive | Phase 1 casepack freezing, trial runner, campaign status, blind judging interface and improvement guard | **NOT_MEASURED**: checked-in `host-trials.json` and `host-judgments.json` contain no live trial results |
 | Model routing | Closed registry for Anthropic, OpenAI, Google, Moonshot and xAI; bounded Claude Code adapter | `strategy/providers.json` contains **zero observed models**; other provider execution adapters remain unimplemented |
-| Assurance / HTP | Strategic runbooks, epistêmic claim states, DeFi Gate 0 manifests and security CI | Both HTP Solana and Arbitrum instances remain **HOLD** pending network-specific runtime evidence; no live transaction authority |
+| Assurance / HTP | Strategic runbooks, epistemic claim states, DeFi Gate 0 manifests and security CI | Both HTP Solana and Arbitrum instances remain **HOLD** pending network-specific runtime evidence; no live transaction authority |
 | Repository governance | GitHub Actions, property tests, Gitleaks, zizmor, Semgrep and OSV scans | Active `mAIN` ruleset is not yet shown to enforce the desired required-check/review policy; changes need authorized administration |
 
 ### Phase 1 evaluation: private evidence boundary
