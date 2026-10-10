@@ -29,6 +29,7 @@ import math
 import os
 from pathlib import Path
 import socketserver
+import ssl
 import threading
 from urllib.parse import urlsplit
 
@@ -254,6 +255,15 @@ def _clamp(request: dict, max_tokens: int) -> dict:
     return request
 
 
+def _tls_context() -> ssl.SSLContext:
+    """Certificate and hostname verification against the system trust store, TLS 1.2 or
+    later. Stated here rather than left to http.client defaults, which have changed
+    between Python releases."""
+    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
+    return context
+
+
 class ModelProxy:
     def __init__(self, socket_path: Path, run_token: str, api_key: str, upstream: str,
                  allowed_paths: tuple[str, ...], meter: Meter, connection_factory=None, *,
@@ -273,8 +283,9 @@ class ModelProxy:
         self.max_connections = max_connections
         self.idle_timeout = idle_timeout
         self._in_flight = threading.BoundedSemaphore(max_in_flight)
-        self._connect = connection_factory or (lambda: http.client.HTTPSConnection(
-            self.upstream.hostname, self.upstream.port or 443, timeout=600))
+        # Verification is explicit (_tls_context) and covered by a test.
+        self._connect = connection_factory or (lambda: http.client.HTTPSConnection(  # nosemgrep: httpsconnection-detected
+            self.upstream.hostname, self.upstream.port or 443, timeout=600, context=_tls_context()))
         self._server = None
         self._thread = None
 

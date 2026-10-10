@@ -1,0 +1,18 @@
+# Secret scanning configuration (gitleaks). The default rule set applies; the allowlists
+# below cover public identifiers that the generic-api-key rule mistakes for secrets.
+# Keep each one narrow: a value only matches if it cannot be a credential.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "EVM contract addresses (0x + 40 hex) in strategy manifests are public, on-chain identifiers. A private key is 64 hex, so it never matches."
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''^\s*"?[A-Za-z_][A-Za-z0-9_]*"?\s*:\s*"?0x[0-9a-fA-F]{40}"?,?\s*$''']
+
+[[allowlists]]
+description = "Catalog source keys are division/agent-name slugs, not credentials. Two letter-led segments joined by one slash, so a bare token never matches."
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''^\s*"source_key":\s*"[a-z][a-z0-9]*(?:-[a-z0-9]+)*/[a-z][a-z0-9]*(?:-[a-z0-9]+)*",?\s*$''']

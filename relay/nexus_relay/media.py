@@ -77,7 +77,8 @@ def input_bound(request: dict, body_bytes: int, margin: int, *, max_image_tokens
     tokens on top (its base64 bytes are already counted, which only over-estimates).
     Any PDF, or any total above the model's input limit, is bounded by that limit."""
     tally = _Tally(max_image_tokens)
-    for message in request.get("messages") or []:
+    messages = request.get("messages")
+    for message in messages if isinstance(messages, list) else []:
         if isinstance(message, dict):
             tally.blocks(message.get("content"))
     tally.blocks(request.get("system"))

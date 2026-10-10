@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import argparse, collections, hashlib, json, os, re, sys, urllib.request
+import argparse, collections, hashlib, json, os, re, sys, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -44,9 +44,14 @@ CURATED_ALIASES = {
 }
 UA = "Agency-Agents-Unified-Importer/1.1"
 
+ALLOWED_HOSTS = {"api.github.com","raw.githubusercontent.com"}
+
 def http_bytes(url:str)->bytes:
+    parts=urllib.parse.urlsplit(url)
+    if parts.scheme!="https" or parts.hostname not in ALLOWED_HOSTS:
+        raise ValueError(f"refusing to fetch {url!r}: only https://{' and https://'.join(sorted(ALLOWED_HOSTS))}")
     req=urllib.request.Request(url,headers={"User-Agent":UA,"Accept":"application/vnd.github+json"})
-    with urllib.request.urlopen(req,timeout=60) as resp:
+    with urllib.request.urlopen(req,timeout=60) as resp:  # nosemgrep: dynamic-urllib-use-detected -- scheme and host checked above
         return resp.read()
 
 def http_text(url:str)->str:
@@ -58,9 +63,9 @@ def http_json(url:str)->Any:
 def git_blob_sha(data:bytes)->str:
     payload=b"blob "+str(len(data)).encode("ascii")+b"\0"+data
     try:
-        return hashlib.sha1(payload,usedforsecurity=False).hexdigest()
+        return hashlib.sha1(payload,usedforsecurity=False).hexdigest()  # nosemgrep: insecure-hash-algorithm-sha1 -- git blob id format
     except TypeError:
-        return hashlib.sha1(payload).hexdigest()
+        return hashlib.sha1(payload).hexdigest()  # nosemgrep: insecure-hash-algorithm-sha1 -- git blob id format
 
 def verified_blob_text(url:str,expected_blob:str)->str:
     if not re.fullmatch(r"[0-9a-fA-F]{40}",expected_blob):

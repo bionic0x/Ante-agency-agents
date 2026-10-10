@@ -20,11 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.11'
-      - run: python3 -m pip install -r scripts/requirements-validation.txt
+      - run: python3 -m pip install --require-hashes --no-deps -r .github/requirements/validation.txt
 
       - name: Test changed-agent discovery
         run: python3 scripts/test-changed-agent-files.py
@@ -40,15 +41,16 @@ jobs:
 
       - name: Get changed agent and lint-infrastructure files
         id: changed
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          BASE_REF="${{ github.base_ref }}"
           if [ -z "$BASE_REF" ]; then
             echo 'full=true' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          FILES=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD | \
+          FILES=$(git diff --name-only --diff-filter=ACMR origin/"$BASE_REF"...HEAD | \
             python3 scripts/list-changed-agent-files.py)
-          INFRA=$(git diff --name-only --diff-filter=ACMR origin/${{ github.base_ref }}...HEAD -- \
+          INFRA=$(git diff --name-only --diff-filter=ACMR origin/"$BASE_REF"...HEAD -- \
             divisions.json scripts/lib.sh scripts/lint-agents.sh scripts/registry.py \
             scripts/list-changed-agent-files.py scripts/agent-tools.json \
             scripts/check-agent-privileges.py)
@@ -101,20 +103,23 @@ jobs:
   lint-all:
     name: Whole roster, when the linter changes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # The job above lints the agents a PR touched, which is the right scope for
     # an agent PR and the wrong one for a rule change: a new rule has to run
     # against every agent before it lands, or it either breaks a division nobody
     # edited or quietly does nothing.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Did the linter or the color map change?
         id: rules
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           RULES="scripts/lint-agents.sh scripts/convert.sh scripts/lib.sh"
-          BASE_REF="${{ github.base_ref }}"
           if [ -n "$BASE_REF" ]; then
             DIFF_RANGE="origin/$BASE_REF...HEAD"
           else
