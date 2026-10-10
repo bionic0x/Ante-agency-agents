@@ -4,23 +4,26 @@ from __future__ import annotations
 import hashlib
 import http.client
 import io
+import base64
 import json
 import os
 from pathlib import Path
 import shutil
 import socket
 import sqlite3
+import struct
 import sys
 import tempfile
 import threading
 import time
 import unittest
+import zlib
 from unittest import mock
 
 RELAY = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RELAY))
 
-from nexus_relay import auth, config, evidence, nexus, proxy, runner, server, service, store  # noqa: E402
+from nexus_relay import auth, config, evidence, media, nexus, proxy, runner, server, service, store  # noqa: E402
 from nexus_relay import reconcile  # noqa: E402
 from nexus_relay.cli import Busy, _reconcile, relay_lock, verify  # noqa: E402
 
@@ -103,6 +106,17 @@ class ConfigTests(unittest.TestCase):
                 config.parse(raw_config(self.tmp, model={**model, "extra_request_fields": [field]}), self.tmp)
         with self.assertRaisesRegex(config.ConfigError, "field names"):
             config.parse(raw_config(self.tmp, model={**model, "extra_request_fields": ["Bad-Name"]}), self.tmp)
+
+    def test_media_limits_have_safe_floors(self):
+        model = {"upstream": "https://a.test", "api_key_env": "K", "cost_unit": "tokens"}
+        cfg = config.parse(raw_config(self.tmp, model=model), self.tmp)
+        self.assertEqual((1_000_000, 4784), (cfg.model.max_input_tokens, cfg.model.max_image_tokens))
+        cfg = config.parse(raw_config(self.tmp, model={**model, "max_input_tokens": 200_000, "max_image_tokens": 1568}), self.tmp)
+        self.assertEqual((200_000, 1568), (cfg.model.max_input_tokens, cfg.model.max_image_tokens))
+        for key, bad in (("max_input_tokens", 99_999), ("max_image_tokens", 1000), ("max_input_tokens", True),
+                         ("max_image_tokens", "4784")):
+            with self.subTest(key=key, value=bad), self.assertRaisesRegex(config.ConfigError, key):
+                config.parse(raw_config(self.tmp, model={**model, key: bad}), self.tmp)
 
     def test_usd_requires_prices_and_https_upstream(self):
         with self.assertRaisesRegex(config.ConfigError, "prices"):
@@ -459,6 +473,24 @@ def unix_post(sock_path: Path, path: str, body: dict, headers: dict) -> tuple[in
 TOKEN = {"x-api-key": "run-token"}
 
 
+def png_b64(width: int, height: int) -> str:
+    """A valid, tiny 1-bit PNG declaring any canvas: few bytes, many visual tokens."""
+    raw = b"".join(b"\x00" + b"\x00" * ((width + 7) // 8) for _ in range(height))
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+    data = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 1, 0, 0, 0, 0))
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+    return base64.b64encode(data).decode()
+
+
+def image_block(data: str) -> dict:
+    return {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": data}}
+
+
+PDF_BLOCK = {"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": "JVBERi0xLjQK"}}
+
+
 def msg(max_tokens=100, **extra) -> dict:
     return {"model": "m", "max_tokens": max_tokens, "messages": [], **extra}
 
@@ -624,6 +656,42 @@ class ProxyTests(unittest.TestCase):
         self.make(up, extra_request_fields=("future_option",))
         self.assertEqual(200, unix_post(self.sock, "/v1/messages", msg(future_option=True), TOKEN)[0])
         self.assertTrue(up.forwarded(0)["future_option"])
+
+    # media: bytes do not bound the tokens of images and PDFs
+    def test_compressible_images_are_held_at_their_visual_tokens(self):
+        """Regression: 50 valid 2576x1449 PNGs fit in ~40 KB but bill >= 239,200 input tokens."""
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        p, meter = self.make(up, reserved=200_000)
+        stopped = []
+        p.on_exhausted = lambda: stopped.append(True)
+        body = msg(100, messages=[{"role": "user", "content": [image_block(png_b64(2576, 1449))] * 50}])
+        self.assertLess(len(json.dumps(body)), 50_000)
+        status, reply = unix_post(self.sock, "/v1/messages", body, TOKEN)
+        self.assertEqual(402, status)
+        self.assertIn(b"images or PDFs", reply)
+        self.assertEqual([], up.requests)
+        self.assertEqual([], stopped)  # only this request is refused; the run goes on
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", msg(100), TOKEN)[0])
+
+    def test_image_hold_clamps_max_tokens_by_visual_tokens(self):
+        up = FakeUpstream(usage={"input_tokens": 1, "output_tokens": 1})
+        image = png_b64(200, 200)  # 64 visual tokens
+        body = msg(100_000, messages=[{"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "t", "content": [image_block(image)]}]}])
+        size = len(json.dumps(body, separators=(",", ":")).encode())
+        self.make(up, reserved=size + 64 + 500)
+        status, _ = unix_post(self.sock, "/v1/messages", body, TOKEN)
+        self.assertEqual(200, status)
+        self.assertLessEqual(up.forwarded(0)["max_tokens"], 500)
+
+    def test_pdf_is_held_at_the_model_input_limit(self):
+        up = FakeUpstream(usage={"input_tokens": 299, "output_tokens": 1})
+        p, meter = self.make(up, reserved=100_300, max_input_tokens=100_000)
+        body = msg(1000, messages=[{"role": "user", "content": [PDF_BLOCK, {"type": "text", "text": "summarise"}]}])
+        self.assertEqual(200, unix_post(self.sock, "/v1/messages", body, TOKEN)[0])
+        self.assertEqual(300, up.forwarded(0)["max_tokens"])
+        p2_status, _ = unix_post(self.sock, "/v1/messages", body, TOKEN)
+        self.assertEqual(402, p2_status)  # 300 tokens spent: the PDF's hold no longer fits
 
     # metering
     def test_meters_streaming_usage(self):
@@ -1191,6 +1259,43 @@ class ReconcileTests(ServiceEnv):
         raw.close()
         self.assertEqual(1, _reconcile(self.cfg, True))
         self.assertEqual("completed", self.store.run(run_id)["state"])
+
+
+class MediaTests(unittest.TestCase):
+    def bound(self, content, body_bytes=1000, **kw):
+        return media.input_bound({"messages": [{"role": "user", "content": content}]}, body_bytes, 0, **kw)
+
+    def test_png_visual_tokens_follow_the_patch_formula_up_to_the_cap(self):
+        for (w, h), tokens in {(200, 200): 64, (1000, 1000): 1296, (1092, 1092): 1521, (1920, 1080): 2691,
+                               (3840, 2160): 4784, (1, 1): 1, (2 ** 31 - 1, 2 ** 31 - 1): 4784}.items():
+            with self.subTest(size=(w, h)):
+                head = png_b64(w, h) if w < 10_000 else base64.b64encode(
+                    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + struct.pack(">II", w, h) + b"\x01\x00\x00\x00\x00").decode()
+                self.assertEqual((1000 + tokens, True), self.bound([image_block(head)]))
+        self.assertEqual(1000 + 1568, self.bound([image_block(png_b64(1920, 1080))], max_image_tokens=1568)[0])
+
+    def test_unreadable_or_other_images_are_charged_the_cap(self):
+        jpeg = base64.b64encode(b"\xff\xd8\xff\xe0" + b"\x00" * 40).decode()
+        for data in (jpeg, "!!!not base64!!!", "", base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()):
+            with self.subTest(data=data[:12]):
+                self.assertEqual(1000 + 4784, self.bound([image_block(data)])[0])
+        self.assertEqual(1000 + 4784, self.bound([{"type": "image", "source": {"type": "base64"}}])[0])
+
+    def test_nested_images_and_pdfs_are_found(self):
+        image = image_block(png_b64(200, 200))
+        nested = [{"type": "tool_result", "tool_use_id": "t", "content": [image, image]},
+                  {"type": "document", "source": {"type": "content", "content": [image]}}]
+        self.assertEqual((1000 + 3 * 64, True), self.bound(nested))
+        in_tool = [{"type": "tool_result", "tool_use_id": "t", "content": [PDF_BLOCK]}]
+        self.assertEqual((1_000_000, True), self.bound(in_tool))
+        system = media.input_bound({"system": [PDF_BLOCK], "messages": []}, 10, 0, max_input_tokens=200_000)
+        self.assertEqual((200_000, True), system)
+
+    def test_text_keeps_the_byte_bound_and_never_exceeds_the_input_limit(self):
+        self.assertEqual((1000, False), self.bound("plain text"))
+        text_doc = {"type": "document", "source": {"type": "text", "media_type": "text/plain", "data": "x"}}
+        self.assertEqual((1000, False), self.bound([text_doc]))
+        self.assertEqual((150_000, False), self.bound("x", body_bytes=5_000_000, max_input_tokens=150_000))
 
 
 class EvidenceTests(unittest.TestCase):
