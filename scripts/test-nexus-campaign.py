@@ -51,25 +51,33 @@ class CampaignTests(unittest.TestCase):
         cls.policies.write_text(json.dumps({'schema_version': 1, 'policies': {'p': {
             'max_cost_usd': 2.0, 'max_tokens': 400000, 'max_calls': 8, 'max_wall_seconds': 1800}}}))
         cls.trials = cls.base / 'out' / 'trials.json'
-        planned = camp.plan(cls.held, IMPROVER, 'claude-test', 'p', cls.policies, None, 'op-1', cls.base / 'out')
-        cls.planned = planned
+        cls.parallel_trials = cls.base / 'out-par' / 'trials.json'
+        cls.planned = cls.campaign('out', 'sequential')
+        cls.parallel_planned = cls.campaign('out-par', 'parallel')
+
+    @classmethod
+    def campaign(cls, out, schedule):
+        planned = camp.plan(cls.held, IMPROVER, 'claude-test', 'p', cls.policies, None, 'op-1', cls.base / out,
+                            schedule=schedule)
+        trials = cls.base / out / 'trials.json'
         for run in planned['runs']:
             pack = cls.held / run['pack']
             tr.start(pack, run['variant'], run['trial_id'], 'claude-test', 'p', cls.policies, 'op-1',
-                     cls.base / 'out' / 'runs', cls.base / 'out' / 'artifacts', cls.trials, live_looking)
+                     cls.base / out / 'runs', cls.base / out / 'artifacts', trials, live_looking, schedule=schedule)
             if run['variant'] == 'nexus_instance':
-                run_dir = cls.base / 'out' / 'runs' / run['pack'] / run['trial_id'] / 'nexus_instance'
+                run_dir = cls.base / out / 'runs' / run['pack'] / run['trial_id'] / 'nexus_instance'
                 for task in ('A', 'B', 'C'):
                     tr.accept(run_dir, task, True, 'trial-owner', {'contract_met': True},
                               use_proposed=task != 'C', executor=live_looking)
+        return planned
 
     @classmethod
     def tearDownClass(cls):
         cls.temp.cleanup()
 
-    def judge(self, fatal):
-        rows = json.loads(self.trials.read_text())
-        path = self.base / 'judgments.json'
+    def judge(self, fatal, trials=None, name='judgments.json'):
+        rows = json.loads((trials or self.trials).read_text())
+        path = self.base / name
         path.write_text(json.dumps([{'submission_id': r['submission_id'], 'reviewer': 'blind-reviewer',
                                      'judged_at': '2099-01-01T00:00:00Z', 'evidence_ref': 'review',
                                      'factual_errors': 0, 'fatal_defects': fatal.get(r['variant'], 0),
@@ -109,6 +117,40 @@ class CampaignTests(unittest.TestCase):
         result = camp.status(self.held, ['outside-author'], self.trials, self.judge({'fixed_team': 1}))
         self.assertEqual('INCOMPLETE', result['decision'])
         self.assertTrue(any('written or frozen by improver' in m for m in result['missing']))
+
+    # --- Phase 2 exit -----------------------------------------------------------------------
+
+    def throughput(self, baseline_fatal, candidate_fatal, swap=False):
+        b = (self.trials, self.judge(baseline_fatal, self.trials, 'b.json'))
+        c = (self.parallel_trials, self.judge(candidate_fatal, self.parallel_trials, 'c.json'))
+        return camp.throughput(self.held, IMPROVER, *((c, b) if swap else (b, c)))
+
+    def test_parallel_plan_carries_the_schedule(self):
+        self.assertEqual('parallel', self.parallel_planned['schedule'])
+        self.assertIn('--schedule parallel', self.parallel_planned['runs'][0]['command'])
+        with self.assertRaisesRegex(camp.CampaignError, 'needs its own trials file'):
+            camp.plan(self.held, IMPROVER, 'm', 'p', self.policies, self.trials, 'op', self.base / 'x', 'parallel')
+
+    def test_faster_with_no_more_fatal_defects_adopts_parallel(self):
+        result = self.throughput({'fixed_team': 1}, {'fixed_team': 1})
+        self.assertEqual('ADOPT_PARALLEL', result['decision'], result)
+        self.assertEqual(3.0, result['nexus_instance']['baseline']['median_wall_time_seconds'])
+        self.assertEqual(2.0, result['nexus_instance']['candidate']['median_wall_time_seconds'])
+
+    def test_a_phase1_redirect_keeps_the_sequential_control_plane(self):
+        result = self.throughput({}, {})
+        self.assertEqual('KEEP_SEQUENTIAL', result['decision'])
+        self.assertIn('Phase 1 redirected', result['reasons'][0])
+
+    def test_more_fatal_defects_keeps_sequential_however_fast(self):
+        result = self.throughput({'fixed_team': 1}, {'fixed_team': 1, 'nexus_instance': 1})
+        self.assertEqual('KEEP_SEQUENTIAL', result['decision'])
+        self.assertTrue(any('fatal defects rose' in r for r in result['reasons']))
+
+    def test_schedules_must_be_on_the_right_side(self):
+        result = self.throughput({'fixed_team': 1}, {'fixed_team': 1}, swap=True)
+        self.assertEqual('INCOMPLETE', result['decision'])
+        self.assertTrue(any('must be a sequential campaign' in m for m in result['missing']))
 
     def test_an_improver_must_be_named(self):
         with self.assertRaisesRegex(camp.CampaignError, 'at least one improver'):

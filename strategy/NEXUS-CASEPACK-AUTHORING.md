@@ -47,7 +47,10 @@ python3 scripts/nexus-casepack.py freeze examples/nexus/casepacks/<new-id> \
     --by "<your name>" --at <ISO-8601 time with zone>
 ```
 
-Validation refuses any field that still starts with `TODO`. Once frozen, a pack
+Validation refuses any field that still starts with `TODO`. Run
+`python3 scripts/nexus-lint.py examples/nexus/casepacks/<new-id>/instance.json`
+on the rewritten instance: a shared key that only one task asserts cannot
+produce the disagreement the case may be testing. Once frozen, a pack
 cannot be edited; a changed case is a new pack id. Submit held-out packs in a
 human-authored pull request, separate from any improvement proposal.
 

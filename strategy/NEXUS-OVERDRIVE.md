@@ -64,7 +64,22 @@ gate can still measure.
 
 ### Phase 2 — Throughput
 
-Parallel orchestrator and plan linter. **Exit:** median wall time per held-out
+Built ahead of the Phase 1 evidence at the owner's direction; adopting it is
+still decided by evidence.
+
+- **Parallel schedule** (`nexus-trial.py run --schedule parallel`): every ready
+  task the engine admits starts at once, up to `--max-parallel`, including while
+  other results await acceptance. Admission is unchanged: disjoint resource
+  scopes, reservations within the ordinary budget, P1 acceptance and P7 conflict
+  blocking. Concurrent calls are charged once, at the longest of them. A trials
+  file holds one schedule.
+- **Plan linter** (`scripts/nexus-lint.py`): before adoption, reports critical
+  path, depth and widest level, and warns on resources that serialize independent
+  tasks, task limits above the ordinary budget, and shared keys no independent
+  task can contradict.
+- **Exit check** (`nexus-campaign.py throughput`): compares a complete sequential
+  campaign with a complete parallel one on the same packs, model and policy. The
+  sequential schedule stays the default until it returns `ADOPT_PARALLEL`. **Exit:** median wall time per held-out
 pack falls with fatal defects and constraint violations no worse than Phase 1.
 **Kill:** any increase in fatal defects that survives a rerun.
 

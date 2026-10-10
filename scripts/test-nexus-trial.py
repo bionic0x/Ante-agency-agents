@@ -19,6 +19,7 @@ def load(name, path):
 tr = load('trial', 'scripts/nexus-trial.py')
 ev = load('evaluation', 'scripts/evaluate-nexus.py')
 blind = load('blind', 'scripts/nexus-blind.py')
+cp = load('casepack', 'scripts/nexus-casepack.py')
 PACKS = ROOT / 'examples/nexus/casepacks'
 PREDICATES = {'contract_met': True}
 
@@ -169,6 +170,66 @@ class TrialTests(unittest.TestCase):
         self.trials.write_text(json.dumps([{**json.loads('{}'), 'host_version': '2.1.300'}]))
         with self.assertRaisesRegex(tr.TrialError, 'cannot share a trials file'):
             self.run_variant('single_agent')
+
+    # --- Phase 2: parallel schedule ---------------------------------------------------------
+
+    def run_parallel(self, trial='p1', pack=None, trials=None, **kw):
+        return tr.start(pack or self.pack, 'nexus_instance', trial, 'claude-test', 'p', self.policies, 'op-1',
+                        self.base / 'runs', self.base / 'art', trials or self.base / 'parallel-trials.json',
+                        tr.fake_executor, schedule='parallel', **kw)
+
+    def accept_in(self, trial, task, pack_name='level-inversion-northwind', **kw):
+        return tr.accept(self.base / 'runs' / pack_name / trial / 'nexus_instance', task, True, 'trial-owner',
+                         dict(PREDICATES), executor=tr.fake_executor, **kw)
+
+    def test_parallel_starts_independent_tasks_together_and_charges_wall_once(self):
+        state = self.run_parallel()
+        self.assertEqual({'A', 'B'}, set(state['pending_all']))
+        self.assertEqual(2, state['spent']['calls'])
+        self.assertEqual(1.0, state['spent']['wall_time_seconds'])
+        self.accept_in('p1', 'B', use_proposed=True)  # any order
+        state = self.accept_in('p1', 'A', use_proposed=True)
+        self.assertEqual({'C'}, set(state['pending_all']))
+        state = self.accept_in('p1', 'C')
+        self.assertEqual('COMPLETE', state['status'])
+        self.assertEqual(2.0, state['row']['wall_time_seconds'])  # sequential takes 3.0
+        self.assertEqual('parallel', (self.base / 'parallel-trials.json.schedule').read_text().strip())
+
+    def test_parallel_still_blocks_synthesis_on_conflicting_results(self):
+        self.run_parallel()
+        self.accept_in('p1', 'A', use_proposed=True)
+        state = self.accept_in('p1', 'B', asserts={'diagnosis.kpi_tracks_outcome': False})
+        self.assertEqual('BLOCKED', state['status'])
+        self.assertIn('ASSERTION_CONFLICT:diagnosis.kpi_tracks_outcome', state['blockers']['C'])
+
+    def test_parallel_never_gives_one_resource_to_two_tasks(self):
+        instance = json.loads((self.pack / 'instance.json').read_text())
+        for task in instance['tasks']:
+            if task['id'] == 'B':
+                task['resource_scope'] = ['fixture-artifact-A']
+        (self.pack / 'instance.json').write_text(json.dumps(instance))
+        data = json.loads((self.pack / 'pack.json').read_text()); data.pop('frozen')
+        (self.pack / 'pack.json').write_text(json.dumps(data))
+        cp.freeze(self.pack, 'tester', '2026-10-10T12:00:00Z')
+        state = self.run_parallel()
+        self.assertEqual({'A'}, set(state['pending_all']))
+        state = self.accept_in('p1', 'A', use_proposed=True)
+        self.assertEqual({'B'}, set(state['pending_all']))
+
+    def test_parallel_respects_max_parallel_and_remaining_calls(self):
+        self.assertEqual({'A'}, set(self.run_parallel(max_parallel=1)['pending_all']))
+        self.policy(max_calls=1)
+        state = self.run_parallel(trial='p2', trials=self.base / 'other-parallel.json')
+        self.assertEqual(1, state['spent']['calls'])
+
+    def test_a_trials_file_holds_one_schedule(self):
+        self.run_variant('single_agent')  # sequential file
+        with self.assertRaisesRegex(tr.TrialError, 'needs its own trials file'):
+            self.run_parallel(trials=self.trials)
+        self.run_parallel()
+        with self.assertRaisesRegex(tr.TrialError, 'needs its own trials file'):
+            tr.start(self.pack, 'single_agent', 'x', 'claude-test', 'p', self.policies, 'op-1', self.base / 'runs',
+                     self.base / 'art', self.base / 'parallel-trials.json', tr.fake_executor)
 
     def test_cli_fake_run(self):
         code = tr.main(['run', '--pack', str(self.pack), '--variant', 'single_agent', '--trial-id', 'cli',
