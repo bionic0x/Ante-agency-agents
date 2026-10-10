@@ -113,6 +113,11 @@ def claim_ancestry(claims, cid):
     return found
 
 
+def effective_reserve(instance, state):
+    """Reserve still uncommitted after owner-authorized releases (V.7: a reserve needs conditions of use)."""
+    return instance['budget']['reserve'] - state.get('reserve_released', 0)
+
+
 def expired(instance, at):
     return when(at) >= min(when(instance['mandate']['expires']), when(instance['budget']['deadline']))
 
@@ -189,7 +194,10 @@ def initial(instance):
                               'claim_revisions': copy.deepcopy(t['claim_revisions'])} for t in instance['tasks']},
             'claims': copy.deepcopy(indexed(instance['claims'], 'claims')),
             'conditions': copy.deepcopy(indexed(instance.get('open_conditions', []), 'conditions')),
-            'review_required': [], 'spent': 0, 'closed': False, 'dissent': [], 'events': {}, 'last_at': None}
+            'review_required': [], 'spent': 0, 'closed': False, 'dissent': [], 'events': {}, 'last_at': None,
+            # Every reference a task attached to its finish: agent output, never independent evidence.
+            'output_refs': [], 'open_dissent': [], 'dissent_responses': [],
+            'reserve_released': 0, 'reserve_releases': []}
 
 
 def blockers(instance, state, tid, at):
@@ -218,7 +226,7 @@ def blockers(instance, state, tid, at):
         for parent in claim_ancestry(state['claims'], cid):
             if state['claims'][parent]['scope'] not in ('shared', task['evidence_scope']): reasons.append('CLAIM_SCOPE:' + parent)
     if state['tasks'][tid]['spent'] > task['cost_limit']: reasons.append('TASK_COST_OVERRUN')
-    if state['spent'] > instance['budget']['cost_limit'] - instance['budget']['reserve']: reasons.append('BUDGET_OVERRUN')
+    if state['spent'] > instance['budget']['cost_limit'] - effective_reserve(instance, state): reasons.append('BUDGET_OVERRUN')
     return sorted(set(reasons))
 
 
@@ -249,15 +257,20 @@ def apply(instance, prior, event):
     if tid is not None: require(tid in tasks, 'unknown task')
     if kind in ('start', 'finish'):
         require(tid is not None, 'task_id required')
-        require(issuer in (owner, tasks[tid]['agent']), 'event issuer not assigned to task')
         task, progress = tasks[tid], state['tasks'][tid]
+        if kind == 'start' or event.get('accepted') is not True:
+            require(issuer in (owner, *reviewers, task['agent']), 'event issuer not assigned to task')
+        else:
+            # P1: work never grades itself. Acceptance needs a named owner/reviewer who is not the task agent.
+            require(issuer in (owner, *reviewers) and issuer != task['agent'],
+                    'acceptance requires an independent owner/reviewer, not the task agent')
         if kind == 'start':
             require(progress['status'] in ('PENDING', 'FAILED'), 'task not startable')
             require(not blockers(instance, state, tid, at), 'task blocked: ' + ','.join(blockers(instance, state, tid, at)))
             require(progress['attempts'] < task['attempt_limit'], 'attempt budget exhausted')
             reserved = number(event['reserved_cost'], 'reserved_cost')
             committed = state['spent'] + sum(t['reserved'] for t in state['tasks'].values())
-            require(committed + reserved <= instance['budget']['cost_limit'] - instance['budget']['reserve'], 'reserve boundary exceeded')
+            require(committed + reserved <= instance['budget']['cost_limit'] - effective_reserve(instance, state), 'reserve boundary exceeded')
             require(progress['spent'] + reserved <= task['cost_limit'], 'task cost budget exceeded')
             for other, p in state['tasks'].items():
                 require(p['status'] != 'RUNNING' or not set(task['resource_scope']).intersection(tasks[other]['resource_scope']), 'shared resource already owned')
@@ -277,6 +290,7 @@ def apply(instance, prior, event):
             progress['spent'] += cost; state['spent'] += cost; progress['reserved'] = 0
             progress['status'] = 'SUCCEEDED' if event['accepted'] else 'FAILED'
             progress['evidence_refs'] = evidence
+            state['output_refs'] = sorted(set(state['output_refs']) | set(evidence))
             if event['accepted']: progress['result_revision'] += 1
     elif kind == 'hold':
         require(issuer in [owner, *reviewers], 'hold requires named owner/reviewer')
@@ -307,7 +321,16 @@ def apply(instance, prior, event):
         validate_claim(new); require(new['revision'] == old['revision'] + 1, 'nonsequential claim revision')
         text(event['reason'], 'revision reason')
         if old['status'] != 'EVIDENCE' and new['status'] == 'EVIDENCE':
-            require(bool(set(new['source_refs']) - set(old['source_refs'])), 'promotion requires new evidence')
+            added = set(new['source_refs']) - set(old['source_refs'])
+            require(bool(added), 'promotion requires new evidence')
+            # P2: a new reference on an old lineage, or a task's own output, is not corroboration.
+            require(not added.intersection(state['output_refs']), 'task outputs cannot promote a claim to EVIDENCE')
+            require(bool(set(new['source_roots']) - set(old['source_roots'])), 'promotion requires a new independent source root')
+        if new['scope'] != old['scope'] and old['scope'] != 'shared':
+            # P3: widening or transferring a scoped claim moves evidence between contexts; it costs
+            # as much as a promotion. Narrowing a shared claim only restricts reuse and stays open to reviewers.
+            require(issuer == owner, 'scope reclassification requires the named owner')
+            strings(event.get('evidence_refs'), 'evidence_refs', True)
         updated = copy.deepcopy(state['claims']); updated[new['id']] = copy.deepcopy(new); acyclic(updated, 'depends_on')
         require(not set(new.get('depends_on', [])).intersection(state['review_required']), 'claim depends on unresolved review')
         state['claims'] = updated
@@ -336,6 +359,27 @@ def apply(instance, prior, event):
         text(event['objection'], 'objection'); text(event['risk_owner'], 'risk_owner')
         strings(event['evidence_refs'], 'evidence_refs', True)
         state['dissent'].append(copy.deepcopy(event))
+        state['open_dissent'].append(eid)
+    elif kind == 'dissent_response':
+        # P5: a recorded objection needs an answer and a named risk owner before success can be declared.
+        require(issuer == owner, 'only named owner can answer dissent')
+        did = event.get('dissent_id')
+        require(did in state['open_dissent'], 'unknown or already answered dissent')
+        require(event.get('disposition') in ('UPHELD', 'RISK_ACCEPTED', 'REFUTED'), 'unknown dissent disposition')
+        text(event.get('response'), 'response'); text(event.get('risk_owner'), 'risk_owner')
+        strings(event.get('evidence_refs'), 'evidence_refs', True)
+        state['open_dissent'].remove(did)
+        state['dissent_responses'].append(copy.deepcopy(event))
+    elif kind == 'release_reserve':
+        # P6: the reserve is usable only by a named owner, for a named contingency, within its size.
+        require(issuer == owner, 'only named owner can release reserve')
+        amount = number(event.get('amount'), 'amount')
+        require(amount > 0, 'amount must be positive')
+        require(amount <= effective_reserve(instance, state), 'release exceeds remaining reserve')
+        text(event.get('contingency'), 'contingency'); text(event.get('reason'), 'reason')
+        strings(event.get('evidence_refs'), 'evidence_refs', True)
+        state['reserve_released'] += amount
+        state['reserve_releases'].append(copy.deepcopy(event))
     elif kind == 'terminate':
         require(issuer == owner, 'termination requires named owner')
         require(event['outcome'] in ('SUFFICIENT_RESULT', 'FAILURE', 'EXPIRED', 'REDESIGN', 'REJECT'), 'unknown termination outcome')
@@ -344,6 +388,10 @@ def apply(instance, prior, event):
             # Sufficiency cannot compensate a fatal defect or overwrite a negative decision.
             require(not any(c['classification'] == 'FATAL_DEFECT' for c in state['conditions'].values()), 'fatal defect prevents sufficient-result termination')
             require(state['decision_state'] not in ('REJECT', 'REDESIGN'), 'decision state requires REJECT/REDESIGN termination, not sufficient result')
+            # P4: sufficiency cannot relabel a pending decision, missing evidence or an unanswered objection.
+            require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'HOLD decision prevents sufficient-result termination')
+            require(not any(c['classification'] == 'PENDING_EVIDENCE' for c in state['conditions'].values()), 'pending evidence prevents sufficient-result termination')
+            require(not state['open_dissent'], 'unanswered dissent prevents sufficient-result termination')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
             text(event['closure'][field], field)
         strings(event['evidence_refs'], 'evidence_refs', True)
@@ -357,6 +405,7 @@ def apply(instance, prior, event):
         require(not expired(instance, at), 'EXPIRED mandate or deadline prevents success closure')
         require(bool(state['tasks']), 'success closure requires at least one task')
         require(not state['conditions'] and not state['review_required'], 'unresolved closure conditions')
+        require(not state['open_dissent'], 'unanswered dissent prevents success closure')
         require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'decision prevents success closure')
         require(all(p['status'] == 'SUCCEEDED' and not blockers(instance, state, t, at) for t, p in state['tasks'].items()), 'incomplete/stale work prevents success closure')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
@@ -396,8 +445,9 @@ def plan(instance, state, at):
         for root in claim['source_roots']: roots.setdefault(root, []).append(cid)
     option_comparison = runpy.run_path(str(ROOT / 'scripts/nexus-options.py'))['analyze'](instance['option_analysis']) if 'option_analysis' in instance else None
     return {'option_comparison': option_comparison, 'instance_id': instance['id'], 'decision_state': state['decision_state'], 'tasks': rows,
-            'spent': state['spent'], 'reserve': instance['budget']['reserve'],
-            'uncommitted_cost': instance['budget']['cost_limit'] - instance['budget']['reserve'] - state['spent'] - sum(p['reserved'] for p in state['tasks'].values()),
+            'spent': state['spent'], 'reserve': effective_reserve(instance, state), 'reserve_released': state['reserve_released'],
+            'uncommitted_cost': instance['budget']['cost_limit'] - effective_reserve(instance, state) - state['spent'] - sum(p['reserved'] for p in state['tasks'].values()),
+            'open_dissent': list(state['open_dissent']),
             'shared_source_roots': {k: v for k, v in roots.items() if len(v) > 1},
             'execution_authority': False, 'mode': 'OFFLINE_CONTRACT_REPLAY'}
 

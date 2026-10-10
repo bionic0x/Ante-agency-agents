@@ -257,6 +257,20 @@ class NexusTests(Env):
         self.assertEqual(10, state["spent"])
         nexus.engine()["replay"](self.instance(), self.contract.events())
 
+    def test_released_reserve_widens_relay_reservations(self):
+        inst = self.instance()
+        for task in inst["tasks"]:
+            task["cost_limit"] = inst["budget"]["cost_limit"]
+        self.write_instance(inst)
+        before = self.contract.available_reservation("A")
+        budget = self.instance()["budget"]
+        self.contract.admit({"id": "rr-1", "at": nexus.utc_now(), "issuer": OWNER, "type": "release_reserve",
+                             "amount": budget["reserve"], "contingency": "provider outage rerun",
+                             "reason": "named contingency occurred", "evidence_refs": ["incident-1"]})
+        after = self.contract.available_reservation("A")
+        self.assertEqual(budget["cost_limit"] - budget["reserve"], before)
+        self.assertEqual(budget["cost_limit"], after)
+
     def test_events_file_is_private(self):
         self.contract.start("r1", "A", OWNER)
         self.assertEqual(0o600, os.stat(self.cfg.events_path).st_mode & 0o777)
