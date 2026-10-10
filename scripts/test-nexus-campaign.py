@@ -29,7 +29,7 @@ def live_looking(packet, agent, model):
     return {**tr.fake_executor(packet, agent, model), 'host_version': 'claude-code-test'}
 
 
-def make_packs(root, count, author='outside-author'):
+def make_packs(root, count, author='outside-author', distinct=True):
     sources = sorted(PACKS.iterdir())
     for i in range(count):
         target = root / f'pack-{i + 1}'
@@ -37,6 +37,10 @@ def make_packs(root, count, author='outside-author'):
         data = json.loads((target / 'pack.json').read_text())
         data.pop('frozen'); data.update(id=target.name, split='held_out', author=author)
         (target / 'pack.json').write_text(json.dumps(data))
+        if distinct:  # a verbatim copy of published material is refused as exposed
+            for name in data['materials']:
+                with open(target / name, 'a', encoding='utf-8') as out:
+                    out.write(f'\n<!-- test fixture {target.name} -->\n')
         cp.freeze(target, author, AT)
 
 
@@ -134,6 +138,12 @@ class SmallCampaignTests(unittest.TestCase):
         plan = camp.plan(PACKS, IMPROVER, 'm', 'p', self.policies, None, 'operator', self.base / 'out')
         self.assertEqual(0, plan['runs_missing'])
         self.assertEqual(0, plan['spend_ceiling_usd'])
+
+    def test_a_copy_of_published_material_outside_the_checkout_does_not_count(self):
+        make_packs(self.base / 'copied', 1, distinct=False)
+        packs, problems = camp.held_out_packs(self.base / 'copied', IMPROVER)
+        self.assertEqual({}, packs)
+        self.assertTrue(any('published in this repository' in p for p in problems), problems)
 
     def test_symlink_into_public_checkout_does_not_bypass_exposure_guard(self):
         alias = self.base / 'public-alias'

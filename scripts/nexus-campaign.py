@@ -59,15 +59,13 @@ def held_out_packs(root, improvers):
     """Frozen held-out packs, and the reasons any of them cannot count."""
     if not improvers:
         raise CampaignError('name at least one improver; independence cannot be checked without one')
-    # A published pack cannot be an unseen test. This is a *location guard*, not
-    # proof that an external copy was secret or that the reviewer is independent.
-    # Resolve symlinks before checking so an alias into this checkout cannot pass.
-    pack_root = Path(root).resolve()
-    checkout = ROOT.resolve()
-    if pack_root == checkout or checkout in pack_root.parents:
-        return {}, ['held-out packs under the public repository checkout are exposed; '
-                    'use a separate evaluator-controlled, access-restricted corpus '
-                    '(published sample packs cannot establish a blind result)']
+    # A published pack cannot be an unseen test. These are mechanical guards
+    # (location, byte-identical published material), not proof that an external
+    # copy was secret or that the reviewer is independent.
+    located = CASEPACK.exposure(root)
+    if located:
+        return {}, located
+    published = CASEPACK.published_materials()
     packs, problems = {}, []
     for pack_json in sorted(Path(root).glob('*/pack.json')):
         try:
@@ -79,6 +77,10 @@ def held_out_packs(root, improvers):
         written = {pack['author'], pack['frozen']['frozen_by']} & set(improvers)
         if written:
             problems.append(f"{pack['id']}: written or frozen by improver {sorted(written)}; it cannot count")
+            continue
+        copied = CASEPACK.exposure(root, pack_json.parent, pack, published)
+        if copied:
+            problems.extend(copied)
             continue
         packs[pack['frozen']['inputs_hash']] = {'id': pack['id'], 'dir': pack_json.parent,
                                                'case_id': pack['case_ref'], 'author': pack['author']}

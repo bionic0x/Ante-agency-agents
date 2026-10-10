@@ -207,6 +207,48 @@ def scaffold(pack_dir, author, case_ref, split='held_out', template=None) -> dic
     return pack
 
 
+PUBLIC_PACKS = ROOT / 'examples/nexus/casepacks'
+
+
+def published_materials() -> dict[str, str]:
+    """sha256 of every material file in the public example packs -> 'pack/file'."""
+    seen = {}
+    for pack_json in sorted(PUBLIC_PACKS.glob('*/pack.json')):
+        try:
+            pack_dir, pack = load(pack_json.parent)
+        except PackError:
+            continue
+        for name in pack.get('materials', []):
+            path = pack_dir / name
+            if path.is_file():
+                seen.setdefault(sha256(path.read_bytes()), f"{pack_dir.name}/{name}")
+    return seen
+
+
+def exposure(root, pack_dir=None, pack=None, published=None) -> list[str]:
+    """Reasons evidence under `root` (or one pack in it) cannot count as unseen.
+
+    Two mechanical checks, neither a proof of secrecy: the root must lie outside
+    this public checkout (symlinks resolved), and a pack must not reuse a material
+    file published in it byte for byte. A reworded copy passes both; access
+    control and prior exposure still need an evaluator's attestation.
+    """
+    reasons = []
+    resolved, checkout = Path(root).resolve(), ROOT.resolve()
+    if resolved == checkout or checkout in resolved.parents:
+        reasons.append('held-out packs under the public repository checkout are exposed; use a separate '
+                       'evaluator-controlled, access-restricted corpus (published sample packs cannot '
+                       'establish a blind result)')
+    if pack_dir is not None and pack is not None:
+        published = published_materials() if published is None else published
+        for name in pack.get('materials', []):
+            path = Path(pack_dir) / name
+            if path.is_file() and sha256(path.read_bytes()) in published:
+                reasons.append(f"{pack['id']}: material {name!r} is published in this repository "
+                               f"({published[sha256(path.read_bytes())]}); a copy of a public case is not unseen")
+    return reasons
+
+
 def listing(root) -> list[dict]:
     rows = []
     for pack_json in sorted(Path(root).glob('*/pack.json')):

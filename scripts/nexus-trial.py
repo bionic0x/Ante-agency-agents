@@ -44,6 +44,7 @@ import datetime as dt
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -137,7 +138,8 @@ def load_policy(policies_path, policy_id):
     policy = data.get('policies', {}).get(policy_id)
     require(isinstance(policy, dict) and set(policy) == set(POLICY_KEYS), f'unknown or malformed budget policy {policy_id!r}')
     for key in POLICY_KEYS:
-        require(type(policy[key]) in (int, float) and policy[key] > 0, f'policy {key} must be positive')
+        require(type(policy[key]) in (int, float) and math.isfinite(policy[key]) and policy[key] > 0,
+                f'policy {key} must be a positive finite number')
     return policy
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# A failed automatic conversion must not install a partial generated roster.
+# A failed automatic conversion must not install a partial generated roster,
+# and the next install must not trust what it left behind.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -7,7 +8,8 @@ tmp="$(mktemp -d "${TMPDIR:-/tmp}/agency-convert-failure.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/repo/scripts" "$tmp/repo/integrations/codex" "$tmp/repo/engineering" "$tmp/home"
-cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$tmp/repo/scripts/"
+cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$SCRIPT_DIR/integration-state.py" "$SCRIPT_DIR/convert-engine.sh" "$tmp/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$tmp/repo/"  # runtime registries (scripts/registry.py)
 cat > "$tmp/repo/divisions.json" <<'EOF'
 {
   "divisions": {
@@ -43,8 +45,11 @@ if [[ -d "$tmp/home/.codex/agents" ]] && find "$tmp/home/.codex/agents" -type f 
   echo 'FAIL: install copied incomplete generated output' >&2
   exit 1
 fi
-if [[ -e "$tmp/repo/integrations/codex/agents/first.toml" ]]; then
-  echo 'FAIL: partial generated output would be used on the next install' >&2
+# The partial file may remain on disk; what matters is that it is never trusted.
+# Freshness is recorded only after a successful conversion, so the next install
+# must find codex unverified and convert again instead of copying it.
+if python3 "$tmp/repo/scripts/integration-state.py" check codex > /dev/null 2>&1; then
+  echo 'FAIL: partial generated output would be trusted on the next install' >&2
   exit 1
 fi
 grep -q 'convert.sh failed' "$tmp/output" || {

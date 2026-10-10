@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import ipaddress
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -175,7 +176,9 @@ def parse(raw: dict, data_dir: Path) -> RelayConfig:
     _require(isinstance(prices, dict), "model.prices: object")
     for name, price in prices.items():
         _keys(price, {"input", "output", "cache_write", "cache_read"}, {"input", "output"}, f"model.prices.{name}")
-        _require(all(isinstance(v, (int, float)) and v >= 0 for v in price.values()), f"model.prices.{name}: non-negative numbers")
+        # bool is an int and JSON admits Infinity: both would silently break the meter's bounds.
+        _require(all(type(v) in (int, float) and math.isfinite(v) and v >= 0 for v in price.values()),
+                 f"model.prices.{name}: finite non-negative numbers")
     if model["cost_unit"] == "usd":
         _require(bool(prices), "model.prices: required when cost_unit is usd")
     paths = tuple(model.get("allowed_paths", DEFAULT_MODEL_PATHS))

@@ -370,8 +370,14 @@ ensure_converted() {
   command -v python3 >/dev/null 2>&1 || { err "python3 is required for adapter freshness checks"; return 1; }
   if ! python3 "$SCRIPT_DIR/integration-state.py" check "$tool"; then
     warn "$tool: refreshing missing, changed or unverified integration files"
-    "$SCRIPT_DIR/convert.sh" --tool "$tool" || return 1
-    python3 "$SCRIPT_DIR/integration-state.py" record "$tool" || return 1
+    local rc=0
+    "$SCRIPT_DIR/convert.sh" --tool "$tool" || rc=$?
+    if (( rc != 0 )); then
+      err "$tool: convert.sh failed (exit $rc); nothing was installed for it and its output stays unverified"
+      return 1
+    fi
+    python3 "$SCRIPT_DIR/integration-state.py" record "$tool" \
+      || { err "$tool: could not record converted output; it stays unverified"; return 1; }
   fi
 }
 AUTO_CONVERT=true     # --no-convert disables
@@ -1537,7 +1543,7 @@ main() {
       --parallel)        use_parallel=true; shift ;;
       --jobs)            parallel_jobs="${2:?'--jobs requires a value'}"; shift 2 ;;
       --help|-h)         usage ;;
-      *)                 err "Unknown option: $1"; exit 1 ;;
+      *)                 err "Unknown option: $1"; usage 1 ;;
     esac
   done
 
@@ -1699,7 +1705,7 @@ main() {
   local installed=0 t i=0 rc
   local failed=()
   if $use_parallel; then
-    local install_out_dir install_status=0
+    local install_out_dir
     install_out_dir="$(mktemp -d)"
     export AGENCY_INSTALL_OUT_DIR="$install_out_dir"
     export AGENCY_INSTALL_SCRIPT="$SCRIPT_DIR/install.sh"

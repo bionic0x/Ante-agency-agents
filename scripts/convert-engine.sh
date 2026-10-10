@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #
+# --- USAGE-START ---  (sentinel for usage(); do not remove)
 # convert.sh — Convert agency agent .md files into tool-specific formats.
 #
 # Reads all agent files from the standard category directories and outputs
@@ -8,6 +9,13 @@
 #
 # Usage:
 #   ./scripts/convert.sh [--tool <name>] [--out <dir>] [--parallel] [--jobs N] [--help]
+#
+# Options:
+#   --tool <name>    Convert one tool (default: all).
+#   --out <dir>      Write to <dir>/<tool>/ instead of integrations/<tool>/.
+#   --parallel       When tool is 'all', run independent tools in parallel (output order may vary).
+#   --jobs N         Max parallel jobs when using --parallel (default: nproc or 4).
+#   --help, -h       Show this help.
 #
 # Tools:
 #   antigravity  — Antigravity skill files (~/.gemini/config/skills/)
@@ -24,13 +32,12 @@
 #   osaurus      — Osaurus skill files (~/.osaurus/skills/<name>/SKILL.md)
 #   hermes       — Hermes lazy-router plugin (one plugin + on-disk agent index)
 #   vibe         — Mistral Vibe agent TOML + prompt files (~/.vibe/agents/*.toml + ~/.vibe/prompts/*.md)
+#   dsh          — DeepSeek Harness skill files (.dsh/skills/<name>/SKILL.md)
 #   all          — All tools (default)
 #
 # Output is written to integrations/<tool>/ relative to the repo root.
 # This script never touches user config dirs — see install.sh for that.
-#
-#   --parallel       When tool is 'all', run independent tools in parallel (output order may vary).
-#   --jobs N         Max parallel jobs when using --parallel (default: nproc or 4).
+# --- USAGE-END ---
 
 set -euo pipefail
 
@@ -72,8 +79,13 @@ TODAY="$(date +%Y-%m-%d)"
 
 # --- Usage ---
 usage() {
-  sed -n '3,27p' "$0" | sed 's/^# \{0,1\}//'
-  exit 0
+  # Text between the USAGE-START / USAGE-END sentinels, so adding header lines
+  # cannot cut options off. An unknown option passes 1: stderr and non-zero exit.
+  local status="${1:-0}" text
+  text="$(sed -n '/^# --- USAGE-START ---/,/^# --- USAGE-END ---/p' "$0" \
+    | sed -e '1d;$d' -e 's/^# \{0,1\}//')"
+  if (( status == 0 )); then printf '%s\n' "$text"; else printf '%s\n' "$text" >&2; fi
+  exit "$status"
 }
 
 # Default parallel job count (nproc on Linux; sysctl on macOS when nproc missing)
@@ -812,7 +824,7 @@ main() {
       --parallel) use_parallel=true; shift ;;
       --jobs)     parallel_jobs="${2:?'--jobs requires a value'}"; shift 2 ;;
       --help|-h)  usage ;;
-      *)          error "Unknown option: $1"; exit 1 ;;
+      *)          error "Unknown option: $1"; usage 1 ;;
     esac
   done
 
@@ -871,17 +883,27 @@ main() {
       fi
     done
 
-    local parallel_out_dir
-    parallel_out_dir="$(mktemp -d)"
+    local parallel_out_dir worker_status=0
+    parallel_out_dir="$(mktemp -d "${TMPDIR:-/tmp}/agency-convert-parallel.XXXXXX")"
     info "Converting: ${#parallel_tools[@]}/${n_tools} tools in parallel (output buffered per tool)..."
     export AGENCY_CONVERT_OUT_DIR="$parallel_out_dir"
     export AGENCY_CONVERT_SCRIPT="$SCRIPT_DIR/convert.sh"
     export AGENCY_CONVERT_OUT="$OUT_DIR"
-    printf '%s\n' "${parallel_tools[@]}" | xargs -P "$parallel_jobs" -I {} sh -c '"$AGENCY_CONVERT_SCRIPT" --tool "{}" --out "$AGENCY_CONVERT_OUT" > "$AGENCY_CONVERT_OUT_DIR/{}" 2>&1'
+    # A failing worker makes xargs exit non-zero. Capture it so the buffered
+    # output (which holds the worker's error) is printed and the buffer removed
+    # before failing; under set -e the bare pipeline aborted first and hid both.
+    # The tool name is a positional argument, never spliced into the shell text.
+    printf '%s\n' "${parallel_tools[@]}" | xargs -P "$parallel_jobs" -I {} sh -c \
+      '"$AGENCY_CONVERT_SCRIPT" --tool "$1" --out "$AGENCY_CONVERT_OUT" > "$AGENCY_CONVERT_OUT_DIR/$1" 2>&1' \
+      agency-convert {} || worker_status=$?
     for t in "${parallel_tools[@]}"; do
       [[ -f "$parallel_out_dir/$t" ]] && cat "$parallel_out_dir/$t"
     done
     rm -rf "$parallel_out_dir"
+    if (( worker_status != 0 )); then
+      error "One or more parallel conversions failed; see the tool output above."
+      return "$worker_status"
+    fi
 
     local idx=$(( ${#parallel_tools[@]} + 1 ))
     for t in "${roster_tools[@]}"; do

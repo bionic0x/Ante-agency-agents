@@ -2,7 +2,6 @@
 """Offline end-to-end lifecycle tests for the NEXUS execution pilot."""
 from __future__ import annotations
 
-import copy
 import datetime as dt
 import importlib.util
 import json

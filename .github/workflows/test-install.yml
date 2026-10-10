@@ -44,6 +44,12 @@ jobs:
           bash scripts/test-install-openclaw-registration.sh
           bash scripts/test-install-link-ownership.sh
           bash scripts/test-install-parallel-logs.sh
+          bash scripts/test-install-all-path-collision.sh
+          bash scripts/test-install-continue-after-failure.sh
+          bash scripts/test-install-conversion-failure.sh
+          bash scripts/test-install-hermes-destination.sh
+          bash scripts/test-install-selection-completeness.sh
+          bash scripts/test-cli-usage.sh
 
       - name: All adapter installation and failure-mode regressions
         run: python3 scripts/test-install-functional.py

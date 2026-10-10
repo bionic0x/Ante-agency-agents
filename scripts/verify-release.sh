@@ -44,5 +44,11 @@ bash scripts/test-convert-frontmatter.sh
 bash scripts/test-agent-selection.sh
 python3 scripts/test-install-functional.py
 bash scripts/test-install.sh
+for regression in test-install-all-path-collision test-install-continue-after-failure \
+                  test-install-conversion-failure test-install-hermes-destination \
+                  test-install-selection-completeness test-cli-usage test-convert-parallel-failure \
+                  test-lint-fences test-frontmatter-closing; do
+  bash "scripts/$regression.sh"
+done
 bash scripts/test-convert-outputs.sh "$@"
 echo 'PASSED: complete release gate'

@@ -1,5 +1,33 @@
 # Changelog
 
+## Repository audit fixes — 2026-10-10
+
+- **Nine regression tests were not run anywhere** (neither CI nor the release gate) and
+  seven of them failed. Four only needed their sandboxes updated for the registries
+  (`tools.json`, `scripts/registry.py`, `convert-engine.sh`, `integration-state.py`).
+  The other three exposed real defects, fixed here:
+  - `convert.sh --parallel`: a failing converter aborted under `set -e` before its
+    buffered error was printed or the buffer removed; the failure now shows the
+    worker's output, cleans up and exits non-zero. Tool names pass as arguments.
+  - `install.sh`: a failed automatic conversion left no `[ERR]` line although the
+    summary points to one; it now names the conversion failure.
+  - `convert.sh` and `install.sh`: an unknown option printed no usage. `convert.sh
+    --help` read a fixed line range that cut off `--parallel` and `--jobs`, did not
+    describe `--out`, and omitted the registered `dsh` converter; it now uses
+    sentinels and the test checks every registered tool is listed.
+  All nine now run in CI and in `verify-release.sh`.
+- **Relay:** model prices accepted `true` and `Infinity` (`math.floor` then raised
+  instead of refusing the request); they must now be finite non-negative numbers.
+- **Trial runner:** budget policies accepted an infinite limit; refused now.
+- **Evaluation boundary:** the improvement gate now refuses held-out roots inside the
+  public checkout, as the campaign already did, and both refuse packs that reuse a
+  published material file byte for byte, which a copy outside the checkout used to
+  pass. Both guards are mechanical, not proof of secrecy.
+- `CONTRIBUTING.md` described hand-maintained `AGENT_DIRS` and tool lists and put
+  renderers in `convert.sh`; it now matches the registry-driven scripts.
+- Remove two unused imports and a dead installer variable; mark 33 scripts with a
+  shebang executable.
+
 ## NEXUS Overdrive held-out packs, first set — 2026-10-10
 
 - Add three frozen held-out case packs by `claude-session-pack-author`:
