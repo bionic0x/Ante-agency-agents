@@ -1,6 +1,6 @@
 # Ante: Agent Catalog and NEXUS Strategic Coordination
 
-**500 agent profiles across 19 divisions**, **9 NEXUS runbooks**, and **17 registered tool targets** (see [generated catalog](CATALOG.md), [runbooks](strategy/runbooks.json), and [tool registry](tools.json)). NEXUS combines a governed offline contract engine, a local-only Relay execution pilot and an evidence-first Overdrive measurement programme.
+**506 agent profiles across 19 divisions**, **9 NEXUS runbooks**, and **17 registered tool targets** (see [generated catalog](CATALOG.md), [runbooks](strategy/runbooks.json), and [tool registry](tools.json)). NEXUS combines a governed offline contract engine, a local-only Relay execution pilot and an evidence-first Overdrive measurement programme.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Runbook checks](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml/badge.svg)](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml)
@@ -45,7 +45,7 @@ This section describes **what is implemented versus what has been measured**. Th
 
 | Subsystem | Implemented | Evidence or open condition |
 |---|---|---|
-| Catalog / adapters | 500 agents, 19 divisions, 9 runbooks, 17 registered tool targets; selective conversion and installation | Installed profiles are **not** proof a host executes each agent correctly |
+| Catalog / adapters | 506 agents, 19 divisions, 9 runbooks, 17 registered tool targets; selective conversion and installation | Installed profiles are **not** proof a host executes each agent correctly |
 | NEXUS contract engine | Offline validate/plan/replay; budgets, dependencies, claim ancestry, HOLD, P1–P8 independent judgment/dissent/assertion conflict and Macro → Quant challenger veto | A valid event trace does not authenticate real-world authority or prove better decisions |
 | NEXUS Relay | v1 local shared room, owner-gated approvals, container execution, policy-limited model proxy, accounting, evidence digest and reconciliation | Local-only pilot, not a multi-tenant production deployment or a comprehensive kernel isolation guarantee |
 | NEXUS Overdrive | Phase 1 casepack freezing, trial runner, campaign status, blind judging interface and improvement guard | **NOT_MEASURED**: checked-in `host-trials.json` and `host-judgments.json` contain no live trial results |
@@ -186,6 +186,10 @@ Browse the agents below and copy/adapt the ones you need!
 See the [Multi-Tool Integrations](#-multi-tool-integrations) section below for full details.
 
 ---
+
+## Alpha Research Suite — research-only integration
+
+Six complementary specialists extend the Macro Regime → Quant challenger workflow with data integrity, portfolio risk, on-chain flows, protocol fundamentals, catalysts and independent thesis critique. They are available as optional agents in the [Investment Hypothesis Validation runbook](strategy/runbooks/scenario-investment-hypothesis-validation.md); see the [suite contract](strategy/alpha-research-suite/README.md). No trading, provider connection, backtest or measured alpha is provided by this integration.
 
 ## NEXUS offline pilot
 
@@ -954,7 +958,7 @@ Illustrative role language, not empirical results or universal acceptance rules.
 
 ## 📊 Repository inventory
 
-- **500 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
+- **506 profiles in 19 divisions** — [CATALOG.md](CATALOG.md) is the generated source of truth.
 - **9 runbooks** — declared in [strategy/runbooks.json](strategy/runbooks.json).
 - **17 registered tool targets** — declared in [tools.json](tools.json).
 - **14 converted targets**, plus native profile installation for Claude Code and Copilot.
@@ -1377,7 +1381,7 @@ MIT License - Use freely, commercially or personally. Attribution appreciated bu
 
 ## 🙏 Acknowledgments
 
-What started as a Reddit thread about AI agent specialization has grown into a broad, generated catalog — **500 agents across 19 divisions** at this snapshot, supported by upstream and fork contributors. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
+What started as a Reddit thread about AI agent specialization has grown into a broad, generated catalog — **506 agents across 19 divisions** at this snapshot, supported by upstream and fork contributors. Thanks to upstream authors and contributors for the profiles and examples. Inclusion in the catalog does not certify every profile as tested in a live host.
 
 To everyone who has opened a PR, filed an issue, started a Discussion, or simply tried an agent and told us what worked — thank you. You're the reason The Agency keeps getting better.
 

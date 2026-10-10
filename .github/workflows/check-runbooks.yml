@@ -68,6 +68,9 @@ jobs:
           python3 scripts/nexus-lint.py examples/nexus/strategic-decision.instance.json
           for pack in examples/nexus/casepacks/*/; do python3 scripts/nexus-casepack.py verify "$pack"; done
 
+      - name: Check Alpha Research Suite example contracts
+        run: python3 scripts/test-alpha-research-suite.py
+
       - name: Keep HTP Gate 0 handoffs single-network and non-executing
         run: |
           python3 scripts/check-htp-gate0.py
