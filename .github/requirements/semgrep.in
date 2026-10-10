@@ -1,0 +1,3 @@
+semgrep==1.179.0
+# Transitive (via semgrep and mcp). Floor from osv-scanner: pyjwt < 2.15.0 has published advisories.
+pyjwt>=2.15.0

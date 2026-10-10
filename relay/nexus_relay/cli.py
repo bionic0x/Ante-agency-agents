@@ -60,7 +60,7 @@ def cmd_init(args) -> int:
     }
     parse(raw, data_dir)  # fail before touching the filesystem
     data_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(data_dir, 0o700)
+    os.chmod(data_dir, 0o700)  # nosemgrep: insecure-file-permissions -- owner-only; the rule's 0o644 is looser
     _write_private(data_dir / CONFIG_NAME, json.dumps(raw, indent=2) + "\n")
     store = Store(data_dir / "relay.db", chain_key=chain_key_from_env())
     owner = instance["mandate"]["owner"]

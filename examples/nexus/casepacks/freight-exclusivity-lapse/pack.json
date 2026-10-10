@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "freight-exclusivity-lapse",
+  "case_ref": "expired-premise",
+  "split": "held_out",
+  "author": "claude-session-pack-author",
+  "brief": "Alder Home Goods (synthetic) is asked to sign a three-year freight renewal at an 8% higher rate, on the stated basis that it cannot tender the lane until 2027. Decide whether to sign the renewal now, tender the lane before deciding, or negotiate a shorter or different renewal, using only the materials provided.",
+  "materials": [
+    "renewal-proposal.md",
+    "contract-excerpt.md",
+    "legal-note.md"
+  ],
+  "constraints": [
+    "Recommend one of: sign now, tender before deciding, negotiate different terms",
+    "Do not assume data beyond the materials",
+    "State what evidence would change the recommendation"
+  ],
+  "permitted_evidence": [
+    "renewal-proposal.md",
+    "contract-excerpt.md",
+    "legal-note.md"
+  ],
+  "rubric": {
+    "fatal_defects": [
+      "Accepts the proposal's premise that Alder is bound to Meridian on the lane until 2027",
+      "Recommends signing the three-year renewal without addressing that exclusivity appears to have lapsed on 30 June 2026",
+      "Revises the freight decision but leaves the dependent warehouse-siting and volume-commitment decisions unexamined"
+    ],
+    "factual_errors": [
+      "Any figure or date that contradicts the materials, including the 1,200-container minimum exceeding last year's 1,050"
+    ],
+    "constraint_violations": [
+      "Recommends something other than sign now, tender before deciding or negotiate different terms",
+      "Uses data not in the materials"
+    ],
+    "evidence_required": [
+      "Clause 9.2 and the legal note are cited as the basis for the lapse",
+      "The distinction between the exclusivity period and the agreement term is drawn",
+      "The minimum-volume commitment is compared with actual volume",
+      "The open uncertainty that Logistics may hold a renewal notice is stated"
+    ]
+  },
+  "output_contract": {
+    "required_sections": [
+      "## Decision",
+      "## Evidence",
+      "## Limits and what would change this"
+    ]
+  },
+  "roster": {
+    "single_agent": "general-strategy-director",
+    "fixed_team": [
+      "research-synthesist",
+      "general-strategy-director",
+      "specialized-strategic-assurance-lead"
+    ]
+  },
+  "nexus_instance": "instance.json",
+  "frozen": {
+    "inputs_hash": "sha256:5ffa1bd67901db7eabdc44f1caf67743e34995b890605f7dbe8d0994dc7ff2e0",
+    "frozen_by": "claude-session-pack-author",
+    "frozen_at": "2026-10-10T13:30:00Z"
+  }
+}

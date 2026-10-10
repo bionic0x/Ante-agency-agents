@@ -73,6 +73,7 @@ loopback, such as `tailscale serve`. The relay refuses to bind a non-loopback ad
 | T15 | One run plants instructions or hooks for the next | The default agent command runs Claude Code with `--bare --strict-mcp-config`, which ignores workspace settings, hooks and `CLAUDE.md`. Changes to such control files since the task's last accepted run are flagged, and acceptance requires acknowledging each by name. |
 | T16 | Acceptance based on what the agent claims rather than what it delivered | Each run records a workspace manifest (files hashed, symlinks never followed); its digest is part of the NEXUS `finish` evidence. A workspace above `runtime.workspace_max` fails the run. |
 | T17 | Supply chain of the agent image | The reference image pins its base by digest and Claude Code by version; runs never pull; `serve` warns when the image is a mutable tag. |
+| T18 | A regression reopens a closed gap, or the CI that guards it is compromised | Property tests state T2 and T4 as invariants and run in CI; every workflow action is pinned by commit, checkouts drop the token, and CI tools install from hash-locked files or checksum-verified releases. Secret, workflow, static and dependency scans run on each pull request and weekly. |
 
 Residual risk, stated plainly: a container shares the host kernel, so a kernel or runtime
 escape defeats T1. A security audit of v1 and its fixes is summarised in the pull request

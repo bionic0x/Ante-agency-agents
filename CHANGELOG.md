@@ -1,5 +1,45 @@
 # Changelog
 
+## NEXUS Overdrive held-out packs, first set — 2026-10-10
+
+- Add three frozen held-out case packs by `claude-session-pack-author`:
+  `harbor-pricing-intent` (attributed-intent), `freight-exclusivity-lapse`
+  (expired-premise) and `clinic-reminder-release` (qa-versus-purpose). Each buries
+  its trap in ordinary detail; the development smoke run showed an obvious trap
+  does not separate the variants.
+- That label is barred from authoring improvement proposals judged on these packs;
+  the gate and the campaign refuse it as `--improver`. Three more packs from
+  another author are needed for the Phase 1 exit.
+
+## NEXUS Overdrive, Phase 1: measurement — 2026-10-10
+
+- Add the Overdrive charter (`strategy/NEXUS-OVERDRIVE.md`): planner, orchestrator,
+  synthesis and contract engine are overhauled in three phases; the owner's gates stay.
+- Add frozen case packs (`scripts/nexus-casepack.py`): brief, materials, rubric,
+  output contract, roster and NEXUS instance hashed into `inputs_hash`; a frozen pack
+  cannot be edited, only replaced under a new id. Two synthetic development packs.
+- Add the trial runner (`scripts/nexus-trial.py`) for `single_agent`, `fixed_team`
+  and `nexus_instance` under a named budget policy, with a deterministic fake executor
+  for tests. NEXUS runs pause for independent acceptance and block on assertion
+  conflicts until the owner resolves them; owner wait is excluded from wall time.
+- Add the self-improvement gate (`scripts/nexus-improve.py`) and its protected-path
+  policy (`strategy/overdrive-protected.json`, read from the base revision): no change
+  to the evaluator, tests, CI or held-out packs; held-out Pareto non-regression with
+  zero tolerance for fatal defects; never merges.
+- Add the Phase 1 campaign (`scripts/nexus-campaign.py`): exit and kill rule fixed
+  in code; `plan` prints missing runs and their spend ceiling without spending;
+  `status` returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`. Fake-executor
+  rows and packs written by an improver never count.
+- Add `nexus-casepack.py new` (placeholders refused until written) and the
+  held-out authoring guide; the improvement gate now requires `--improver` and
+  refuses held-out packs that improver wrote or froze.
+- Start the live host with an allowlisted environment and refuse a call that reuses the
+  calling session id. A live smoke run from inside a Claude Code session showed the
+  inherited environment loading that session's tools, plugins and context into the
+  trial (286k tokens, $1.20 for one answer); with the allowlist the same answer took
+  14k tokens and $0.09. Smoke rows are kept out of the repository; they are not evidence.
+- Add 54 tests across the four tools and wire them into CI and the release gate.
+
 ## NEXUS assertion conflicts (P7) — 2026-10-10
 
 - Tasks may declare `asserts`: shared keys their accepted result must state a value for.

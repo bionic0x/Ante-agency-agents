@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "id": "casepack-clinic-reminder-release",
+  "runbook_ref": "strategic-decision",
+  "doctrine_sha256": "f81abe2e06ee8311a98dfa61f980b0f9e3ebb2d8b7a90eaa142e413771963570",
+  "mandate": {
+    "owner": "trial-owner",
+    "reviewers": [
+      "trial-reviewer"
+    ],
+    "authority_ref": "Evaluation trial under a frozen case pack; no live authority",
+    "scope": "offline-analysis",
+    "expires": "2030-01-01T00:00:00Z"
+  },
+  "objective": {
+    "id": "PURPOSE-1",
+    "purpose": "Improve patient access without breaching patient confidentiality",
+    "non_object": "Ship because every technical gate passed",
+    "success_condition": "The recommendation keeps policy PM-3 above the technical PASS and preserves the release's benefits where it can",
+    "constraints": [
+      "Use only the pack materials",
+      "No external actions"
+    ]
+  },
+  "decision_state": "PROCEED",
+  "budget": {
+    "cost_limit": 10,
+    "reserve": 2,
+    "deadline": "2030-01-01T00:00:00Z",
+    "unit": "attempts"
+  },
+  "claims": [
+    {
+      "id": "CLM-1",
+      "statement": "The pack materials describe the situation accurately",
+      "status": "ASSUMPTION",
+      "revision": 1,
+      "scope": "shared",
+      "source_refs": [
+        "pack-materials"
+      ],
+      "source_roots": [
+        "pack-author"
+      ],
+      "expires": "2030-01-01T00:00:00Z",
+      "depends_on": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "A",
+      "agent": "general-strategy-director",
+      "level": "strategic",
+      "vector": "causal",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Assess the release decision against patient access and confidentiality",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-A"
+      ],
+      "asserts": [
+        "release.compliant_as_built"
+      ]
+    },
+    {
+      "id": "B",
+      "agent": "research-synthesist",
+      "level": "strategic",
+      "vector": "evidence",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Check what each approval covers and test the release notes against policy",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-B"
+      ],
+      "asserts": [
+        "release.compliant_as_built"
+      ]
+    },
+    {
+      "id": "C",
+      "agent": "specialized-strategic-assurance-lead",
+      "level": "operational",
+      "vector": "assurance",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Integrate both analyses into one release decision with conditions",
+      "evidence_scope": "decision",
+      "depends_on": [
+        "A",
+        "B"
+      ],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-C"
+      ],
+      "asserts": []
+    }
+  ],
+  "open_conditions": [],
+  "option_analysis": {
+    "factors": {
+      "cost": "lower",
+      "time_to_evidence_days": "lower"
+    },
+    "options": [
+      {
+        "id": "bounded-pilot",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 2,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "large-team",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 4,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "inadmissible-fast",
+        "admissibility": "INADMISSIBLE",
+        "fatal_defect": true,
+        "factors": {
+          "cost": {
+            "value": 1,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 5,
+            "status": "HYPOTHESIS"
+          }
+        }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "team-delivers-earlier",
+        "overrides": {
+          "large-team": {
+            "time_to_evidence_days": {
+              "value": 1,
+              "status": "HYPOTHESIS"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
