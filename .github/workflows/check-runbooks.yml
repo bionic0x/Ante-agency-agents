@@ -35,6 +35,9 @@ jobs:
       - name: Validate termination contract failure cases
         run: python3 scripts/test-runbook-contracts.py
 
+      - name: Keep proposer/challenger pairs together and out of excluded runbooks
+        run: python3 scripts/check-challenger-pairs.py
+
       - name: Preserve canonical epistemic states in handoffs
         run: python3 scripts/check-strategy-vocabulary.py
 
@@ -43,6 +46,7 @@ jobs:
           python3 scripts/test-nexus-instance.py
           python3 scripts/test-nexus-evaluation.py
           python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json
+          python3 scripts/nexus-instance.py validate examples/nexus/investment-hypothesis.instance.json
 
       - name: Validate vector coverage and execution routing
         run: python3 scripts/test-nexus-routing.py
