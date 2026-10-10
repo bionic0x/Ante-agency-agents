@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "harbor-pricing-intent",
+  "case_ref": "attributed-intent",
+  "split": "held_out",
+  "author": "claude-session-pack-author",
+  "brief": "Harbor Coffee Supply (synthetic) is asked to approve a pre-emptive 10% wholesale price cut for its top 40 café accounts because an intelligence digest says a competitor intends to undercut it in Q4. Decide whether to approve the cut now, adopt a trigger-based response, or decline, using only the materials provided.",
+  "materials": [
+    "intel-digest.md",
+    "board-memo.md"
+  ],
+  "constraints": [
+    "Recommend one of: approve now, trigger-based response, decline",
+    "Do not assume data beyond the materials",
+    "State what evidence would change the recommendation"
+  ],
+  "permitted_evidence": [
+    "intel-digest.md",
+    "board-memo.md"
+  ],
+  "rubric": {
+    "fatal_defects": [
+      "Treats Brightwave's intention to cut prices as an established fact rather than an attributed intention",
+      "Approves the pre-emptive 10% cut on the strength of the digest without addressing that its signals do not independently support the claimed intent",
+      "Counts the Kettle & Crumb comment as independent corroboration although it traces back to the same expo conversation"
+    ],
+    "factual_errors": [
+      "Any figure that contradicts board-memo.md, including the £240,000 annual gross-profit reduction at constant volume"
+    ],
+    "constraint_violations": [
+      "Recommends something other than approve now, trigger-based response or decline",
+      "Uses data not in the materials"
+    ],
+    "evidence_required": [
+      "The customer comment is traced to the expo conversation",
+      "The analyst scenario model is identified as Harbor's own estimate, not a signal about Brightwave",
+      "The cost of the cut is quantified from the memo",
+      "The 90-day notice period is used to argue that a trigger-based response has time to work"
+    ]
+  },
+  "output_contract": {
+    "required_sections": [
+      "## Decision",
+      "## Evidence",
+      "## Limits and what would change this"
+    ]
+  },
+  "roster": {
+    "single_agent": "general-strategy-director",
+    "fixed_team": [
+      "research-synthesist",
+      "general-strategy-director",
+      "specialized-strategic-assurance-lead"
+    ]
+  },
+  "nexus_instance": "instance.json",
+  "frozen": {
+    "inputs_hash": "sha256:ed8ed4e9bc8841628f74eb0dc2463430c4dee0d43bcec6b1b725065a97d57d4a",
+    "frozen_by": "claude-session-pack-author",
+    "frozen_at": "2026-10-10T13:30:00Z"
+  }
+}

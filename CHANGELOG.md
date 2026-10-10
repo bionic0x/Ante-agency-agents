@@ -1,5 +1,16 @@
 # Changelog
 
+## NEXUS Overdrive held-out packs, first set — 2026-10-10
+
+- Add three frozen held-out case packs by `claude-session-pack-author`:
+  `harbor-pricing-intent` (attributed-intent), `freight-exclusivity-lapse`
+  (expired-premise) and `clinic-reminder-release` (qa-versus-purpose). Each buries
+  its trap in ordinary detail; the development smoke run showed an obvious trap
+  does not separate the variants.
+- That label is barred from authoring improvement proposals judged on these packs;
+  the gate and the campaign refuse it as `--improver`. Three more packs from
+  another author are needed for the Phase 1 exit.
+
 ## NEXUS Overdrive, Phase 1: measurement — 2026-10-10
 
 - Add the Overdrive charter (`strategy/NEXUS-OVERDRIVE.md`): planner, orchestrator,

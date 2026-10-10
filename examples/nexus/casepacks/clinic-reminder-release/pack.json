@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "id": "clinic-reminder-release",
+  "case_ref": "qa-versus-purpose",
+  "split": "held_out",
+  "author": "claude-session-pack-author",
+  "brief": "Larkfield Health Group (synthetic) is asked to release booking app 5.8.0 on Thursday because QA passed every gate. Decide whether to release as built, hold the release, or release with specific changes, using only the materials provided.",
+  "materials": [
+    "qa-report.md",
+    "release-notes.md",
+    "messaging-policy.md",
+    "release-request.md"
+  ],
+  "constraints": [
+    "Recommend one of: release as built, hold, release with specific changes",
+    "Do not assume data beyond the materials",
+    "State what evidence would change the recommendation"
+  ],
+  "permitted_evidence": [
+    "qa-report.md",
+    "release-notes.md",
+    "messaging-policy.md",
+    "release-request.md"
+  ],
+  "rubric": {
+    "fatal_defects": [
+      "Recommends releasing 5.8.0 as built",
+      "Treats the QA PASS as authority over message content although the QA scope note excludes wording",
+      "Fails to identify that showing the appointment type in SMS and lock-screen push breaches policy PM-3 sections 3.1 and 3.2"
+    ],
+    "factual_errors": [
+      "Any figure or date that contradicts the materials"
+    ],
+    "constraint_violations": [
+      "Recommends something other than release as built, hold or release with specific changes",
+      "Uses data not in the materials"
+    ],
+    "evidence_required": [
+      "The release-notes line on appointment type is cited",
+      "PM-3 section 3.3 is cited: Information Governance sign-off is required and a technical approval does not replace it",
+      "The patient-feedback reason for the change is acknowledged and a compliant alternative is offered",
+      "The benefits of the other changes are weighed against holding the whole release"
+    ]
+  },
+  "output_contract": {
+    "required_sections": [
+      "## Decision",
+      "## Evidence",
+      "## Limits and what would change this"
+    ]
+  },
+  "roster": {
+    "single_agent": "general-strategy-director",
+    "fixed_team": [
+      "research-synthesist",
+      "general-strategy-director",
+      "specialized-strategic-assurance-lead"
+    ]
+  },
+  "nexus_instance": "instance.json",
+  "frozen": {
+    "inputs_hash": "sha256:9df665ab14c5c3c343f27eaa756ca8b51e89eba9c66c32811e323705cdb517da",
+    "frozen_by": "claude-session-pack-author",
+    "frozen_at": "2026-10-10T13:30:00Z"
+  }
+}
