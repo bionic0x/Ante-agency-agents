@@ -24,7 +24,8 @@ RELAY = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RELAY))
 
 from nexus_relay import auth, config, evidence, media, nexus, proxy, runner, server, service, store  # noqa: E402
-from nexus_relay.cli import verify  # noqa: E402
+from nexus_relay import reconcile  # noqa: E402
+from nexus_relay.cli import Busy, _reconcile, relay_lock, verify  # noqa: E402
 
 EXAMPLE = RELAY / "examples" / "relay-pilot.instance.json"
 OWNER = json.loads(EXAMPLE.read_text())["mandate"]["owner"]
@@ -858,7 +859,7 @@ class FakeProxy:
         pass
 
 
-class ServiceTests(Env):
+class ServiceEnv(Env):
     def setUp(self):
         super().setUp()
         uid = mock.patch.object(runner.os, "getuid", return_value=1000)
@@ -878,6 +879,20 @@ class ServiceTests(Env):
             time.sleep(0.02)
         self.fail(f"run did not reach {state}: {self.store.run(run_id)['state']}")
 
+    def _complete(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        self.relay.approve(self.owner, run_id)
+        self.wait_state(run_id, "completed")
+        return run_id
+
+    def _edit_row(self, run_id, **cols):
+        raw = sqlite3.connect(self.cfg.db_path)
+        raw.execute(f"UPDATE runs SET {', '.join(f'{k} = ?' for k in cols)} WHERE id = ?", (*cols.values(), run_id))
+        raw.commit()
+        raw.close()
+
+
+class ServiceTests(ServiceEnv):
     def test_roles_are_enforced(self):
         with self.assertRaises(service.Forbidden):
             self.relay.request_run(self.viewer, "A", "do it")
@@ -1101,18 +1116,6 @@ class ServiceTests(Env):
 
 
     # chained completion entry is the source of truth (review finding 2)
-    def _complete(self):
-        run_id = self.relay.request_run(self.op, "A", "x")
-        self.relay.approve(self.owner, run_id)
-        self.wait_state(run_id, "completed")
-        return run_id
-
-    def _edit_row(self, run_id, **cols):
-        raw = sqlite3.connect(self.cfg.db_path)
-        raw.execute(f"UPDATE runs SET {', '.join(f'{k} = ?' for k in cols)} WHERE id = ?", (*cols.values(), run_id))
-        raw.commit()
-        raw.close()
-
     def test_consistent_edit_of_artifact_and_row_is_refused(self):
         run_id = self._complete()
         forged = b"forged result"
@@ -1175,6 +1178,87 @@ class ServiceTests(Env):
                         self.relay.review(self.owner, run_id, accepted, ["contract_met"] if accepted else [], "x")
         raw.close()
         self.assertEqual([], [e for e in self.contract.events() if e["type"] == "finish"])
+
+
+class ReconcileTests(ServiceEnv):
+    """Crash windows between the NEXUS events file and SQLite (reconcile.py)."""
+
+    def _interrupted_review(self, accepted: bool):
+        run_id = self._complete()
+        with mock.patch.object(self.relay, "_set_state", side_effect=RuntimeError("crash after NEXUS finish")):
+            with self.assertRaises(RuntimeError):
+                self.relay.review(self.owner, run_id, accepted, ["contract_met"] if accepted else [], "lost note")
+        self.assertEqual("completed", self.store.run(run_id)["state"])
+        self.assertEqual(1, len([e for e in self.contract.events() if e["type"] == "finish"]))
+        return run_id
+
+    def test_interrupted_review_is_stuck_until_reconciled(self):
+        run_id = self._interrupted_review(True)
+        self.assertTrue(verify(self.cfg))
+        finish = [e for e in self.contract.events() if e["type"] == "finish"][0]
+        retry = {**finish, "at": "2999-01-01T00:00:00Z"}  # any later retry differs at least in its time
+        with self.assertRaisesRegex(nexus.AdmissionError, "conflicting duplicate"):
+            self.contract.admit(retry)
+        self.contract.admit(finish)  # an identical retry is a no-op and is not written twice
+        self.assertEqual(1, len([e for e in self.contract.events() if e["type"] == "finish"]))
+        before = self.store.head()
+        self.assertEqual(0, _reconcile(self.cfg, False))  # dry run
+        self.assertEqual(before, self.store.head())
+        self.assertEqual("completed", self.store.run(run_id)["state"])
+        self.assertEqual(0, _reconcile(self.cfg, True))
+        self.assertEqual("accepted", self.store.run(run_id)["state"])
+        entry = [e for e in self.store.entries_after(0) if e["kind"] == "run.accepted"][0]["payload"]
+        self.assertEqual(f"relay-{run_id}-finish", entry["reconciled_from"])
+        self.assertIsNone(entry["note"])
+        self.assertEqual(["contract_met"], entry["predicates"])
+        self.assertEqual([], verify(self.cfg))
+        self.assertTrue(reconcile.plan(self.store, self.contract).empty)
+
+    def test_interrupted_rejection_is_recorded_as_rejected(self):
+        run_id = self._interrupted_review(False)
+        self.assertEqual(0, _reconcile(self.cfg, True))
+        self.assertEqual("rejected", self.store.run(run_id)["state"])
+        self.assertEqual([], verify(self.cfg))
+
+    def test_finish_that_disagrees_with_the_log_is_left_for_a_person(self):
+        run_id = self._complete()
+        head = self.store.head()[1]
+        self.contract.finish(run_id, "A", OWNER, 1, False, [f"relay-log:sha256:{head}"], [])  # cost 150 was logged
+        result = reconcile.plan(self.store, self.contract)
+        self.assertEqual([], result.project)
+        self.assertTrue(any("finish cost differs" in m for m in result.manual))
+        self.assertEqual(1, _reconcile(self.cfg, True))
+        self.assertEqual("completed", self.store.run(run_id)["state"])
+
+    def test_interrupted_run_is_recovered_offline(self):
+        run_id = self.relay.request_run(self.op, "A", "x")
+        with mock.patch.object(service.threading, "Thread"):  # relay dies right after NEXUS start
+            self.relay.approve(self.owner, run_id)
+        self.assertEqual("running", self.store.run(run_id)["state"])
+        self.assertEqual([run_id], reconcile.plan(self.store, self.contract).recover)
+        self.assertEqual(0, _reconcile(self.cfg, True))
+        row = self.store.run(run_id)
+        self.assertEqual(("completed", 150000), (row["state"], row["actual_cost"]))
+        self.relay.review(self.owner, run_id, False, [], "interrupted")
+        self.assertEqual([], verify(self.cfg))
+
+    def test_apply_refuses_to_run_beside_another_relay_process(self):
+        self._interrupted_review(True)
+        with relay_lock(self.cfg):
+            with self.assertRaises(Busy):
+                with relay_lock(self.cfg):
+                    pass
+        self.assertEqual(0o600, (self.cfg.data_dir / "relay.lock").stat().st_mode & 0o777)
+
+    def test_tampered_chain_blocks_any_repair(self):
+        run_id = self._interrupted_review(True)
+        raw = sqlite3.connect(self.cfg.db_path)
+        raw.execute("DROP TRIGGER IF EXISTS log_no_update")
+        raw.execute("UPDATE log SET payload = ? WHERE seq = 1", (store.canonical({"note": "edited"}),))
+        raw.commit()
+        raw.close()
+        self.assertEqual(1, _reconcile(self.cfg, True))
+        self.assertEqual("completed", self.store.run(run_id)["state"])
 
 
 class MediaTests(unittest.TestCase):

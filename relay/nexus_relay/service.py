@@ -226,13 +226,15 @@ class Relay:
         previous = evidence.load(self.cfg.runs_dir / last["id"] / "manifest.json") if last else None
         return evidence.digest(man), evidence.control_changes(previous, man), evidence.size_bytes(man)
 
-    def recover(self) -> list[str]:
+    def recover(self, only: set[str] | None = None) -> list[str]:
         """After a restart, no run is executing. Anything left approved or running is
         marked completed with an error so the owner reconciles it with a NEXUS finish."""
         recovered = []
         started = {e.get("id"): e.get("reserved_cost", 0) for e in self.contract.events() if e.get("type") == "start"}
         for row in self.store.query("SELECT id, state, reserved_cost FROM runs WHERE state IN ('approved','running')"):
             run_id = row["id"]
+            if only is not None and run_id not in only:
+                continue
             self._runner_factory(self.cfg, run_id, [], self.cfg.runs_dir / run_id / "output.txt").stop("relay restarted")
             with self.store.tx() as db:
                 if f"relay-{run_id}-start" in started:
@@ -313,6 +315,26 @@ class Relay:
                              "acknowledged_control_changes": changes if accepted else [],
                              **({"record_mismatches": mismatches} if mismatches else {})},
                             **(self._logged_columns(logged) if mismatches else {}))
+
+    def project_finish(self, run_id: str, finish: dict) -> bool:
+        """Record a NEXUS finish whose SQLite update was lost (see reconcile.py, which checks
+        it against the chained completion entry first). The review note is not recoverable
+        and is recorded as absent. Returns False if the run is no longer awaiting review."""
+        accepted = finish["accepted"] is True
+        with self.store.tx() as db:
+            row = db.execute("SELECT state FROM runs WHERE id = ?", (run_id,)).fetchone()
+            if row is None or row["state"] != "completed":
+                return False
+            logged = self.store.run_completion(run_id)
+            predicates = sorted(p for p, ok in (finish.get("predicate_results") or {}).items() if ok is True)
+            self._set_state(db, run_id, "accepted" if accepted else "rejected", "relay",
+                            "run.accepted" if accepted else "run.rejected",
+                            {"note": None, "predicates": predicates if accepted else [],
+                             "evidence_refs": list(finish.get("evidence_refs") or []),
+                             # The review gate requires acknowledging these before NEXUS sees an acceptance.
+                             "acknowledged_control_changes": list(logged.get("control_changes") or []) if accepted else [],
+                             "reconciled_from": finish.get("id")})
+        return True
 
     @staticmethod
     def _logged_columns(logged: dict) -> dict:

@@ -89,8 +89,20 @@ entry or a NEXUS finish that cites other digests, and reports a
 NEXUS finish whose acceptance/rejection was not persisted in SQLite. Acceptance checks
 the archived evidence again; a missing, changed or incomplete artifact must be rejected.
 This verifies the recorded manifest, not an immutable copy of every delivered file:
-task workspaces remain shared by retries. An interrupted review requires reconciliation;
-the verifier detects it but does not invent a review note or retry the finish event.
+task workspaces remain shared by retries.
+
+If the relay stopped between writing to NEXUS and to its database, repair it with:
+
+```bash
+python3 scripts/nexus-relay.py reconcile            # dry run: what would change, and what needs a person
+python3 scripts/nexus-relay.py reconcile --apply    # with `serve` stopped (they share a lock)
+```
+
+`reconcile` refuses to act on a log that does not verify. It marks interrupted runs
+completed (as `serve` does at startup) and records a NEXUS finish whose database update was
+lost, after checking its owner, cost and digests against the run's chained `run.completed`
+entry. The lost review note stays empty; nothing is invented. Anything else `verify`
+reports is listed for a person and left unchanged (exit status 1).
 
 ## Tests
 

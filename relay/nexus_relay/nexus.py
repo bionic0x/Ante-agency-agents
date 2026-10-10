@@ -93,6 +93,8 @@ class Contract:
                 new_state = engine()["apply"](instance, state, event)
             except (ValueError, KeyError, TypeError) as exc:
                 raise AdmissionError(str(exc)) from exc
+            if event.get("id") in state.get("events", {}):
+                return new_state  # identical retry: the engine treats it as a no-op; do not log it twice
             line = json.dumps(event, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n"
             self.events_path.parent.mkdir(parents=True, exist_ok=True)
             fd = os.open(self.events_path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
