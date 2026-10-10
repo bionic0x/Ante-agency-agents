@@ -107,6 +107,20 @@ class CasePackTests(unittest.TestCase):
         with self.assertRaisesRegex(cp.PackError, 'directory name'):
             cp.freeze(self.pack, 'tester', AT)
 
+    def test_scaffold_refuses_to_validate_until_every_todo_is_written(self):
+        target = Path(self.temp.name) / 'new-case'
+        cp.scaffold(target, 'outside-author', 'level-inversion')
+        with self.assertRaisesRegex(cp.PackError, 'unfilled TODO'):
+            cp.freeze(target, 'outside-author', AT)
+        data = json.loads((target / 'pack.json').read_text())
+        data['brief'] = 'Decide whether to extend the pilot.'
+        data['constraints'] = ['Two-page limit']; data['permitted_evidence'] = ['The attached memo']
+        data['rubric'] = {k: [f'{k} example'] for k in cp.RUBRIC_KEYS}
+        (target / 'pack.json').write_text(json.dumps(data))
+        self.assertEqual('held_out', cp.freeze(target, 'outside-author', AT)['split'])
+        with self.assertRaisesRegex(cp.PackError, 'already exists'):
+            cp.scaffold(target, 'outside-author', 'level-inversion')
+
 
 if __name__ == '__main__':
     unittest.main()

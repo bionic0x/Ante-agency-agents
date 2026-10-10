@@ -15,7 +15,14 @@
   policy (`strategy/overdrive-protected.json`, read from the base revision): no change
   to the evaluator, tests, CI or held-out packs; held-out Pareto non-regression with
   zero tolerance for fatal defects; never merges.
-- Add 39 tests across the three tools and wire them into CI and the release gate.
+- Add the Phase 1 campaign (`scripts/nexus-campaign.py`): exit and kill rule fixed
+  in code; `plan` prints missing runs and their spend ceiling without spending;
+  `status` returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`. Fake-executor
+  rows and packs written by an improver never count.
+- Add `nexus-casepack.py new` (placeholders refused until written) and the
+  held-out authoring guide; the improvement gate now requires `--improver` and
+  refuses held-out packs that improver wrote or froze.
+- Add 52 tests across the four tools and wire them into CI and the release gate.
 
 ## NEXUS assertion conflicts (P7) — 2026-10-10
 

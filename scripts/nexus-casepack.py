@@ -7,6 +7,7 @@ constraints, permitted evidence, defect rubric, output contract, and the roster
 each variant uses. Its `inputs_hash` binds every trial row to exactly that
 material, so a variant cannot be credited for answering a different question.
 
+    nexus-casepack.py new      PACK_DIR --author NAME --case-ref ID [--split held_out] [--from PACK_DIR]
     nexus-casepack.py validate PACK_DIR
     nexus-casepack.py freeze   PACK_DIR --by NAME --at ISO_TIME
     nexus-casepack.py verify   PACK_DIR
@@ -43,14 +44,19 @@ def require(condition, message):
         raise PackError(message)
 
 
+PLACEHOLDER = 'TODO'
+
+
 def text(value, field):
     require(isinstance(value, str) and value.strip(), f'{field}: non-empty text required')
+    require(not value.strip().startswith(PLACEHOLDER), f'{field}: unfilled {PLACEHOLDER} placeholder')
     return value
 
 
 def texts(value, field, nonempty=True):
     require(isinstance(value, list) and all(isinstance(v, str) and v.strip() for v in value),
             f'{field}: list of non-empty strings required')
+    require(not any(v.strip().startswith(PLACEHOLDER) for v in value), f'{field}: unfilled {PLACEHOLDER} placeholder')
     require(len(value) == len(set(value)), f'{field}: duplicate entries')
     require(not nonempty or value, f'{field}: must not be empty')
     return value
@@ -166,6 +172,41 @@ def freeze(pack_dir, by, at) -> dict:
     return pack
 
 
+def scaffold(pack_dir, author, case_ref, split='held_out', template=None) -> dict:
+    """Start a new pack. Every field the author must write is a TODO that validation refuses.
+
+    The NEXUS instance is copied from a template pack as a structural starting point;
+    its tasks, asserts and claims still have to be rewritten for the new case.
+    """
+    pack_dir = Path(pack_dir)
+    require(not pack_dir.exists(), f'{pack_dir}: already exists; a new case needs a new directory')
+    require(split in SPLITS, f'split must be one of {SPLITS}')
+    text(author, 'author')
+    template = Path(template) if template else ROOT / 'examples/nexus/casepacks/level-inversion-northwind'
+    _, source = load(template)
+    pack_dir.mkdir(parents=True)
+    (pack_dir / 'instance.json').write_bytes((template / source['nexus_instance']).read_bytes())
+    todo = lambda what: f'{PLACEHOLDER}: {what}'
+    pack = {
+        'schema_version': 1, 'id': pack_dir.name, 'case_ref': case_ref, 'split': split, 'author': author,
+        'brief': todo('the decision the deliverable must support, for whom, and by when'),
+        'materials': [],
+        'constraints': [todo('a limit the answer must respect')],
+        'permitted_evidence': [todo('what the answer may rely on')],
+        'rubric': {
+            'fatal_defects': [todo('an observable error that would make the deliverable unusable')],
+            'factual_errors': [todo('a claim that contradicts the materials')],
+            'constraint_violations': [todo('how a broken constraint shows in the output')],
+            'evidence_required': [todo('a point the answer must ground in named evidence')],
+        },
+        'output_contract': {'required_sections': ['## Decision', '## Evidence', '## Limits and what would change this']},
+        'roster': source['roster'],
+        'nexus_instance': 'instance.json',
+    }
+    (pack_dir / 'pack.json').write_text(json.dumps(pack, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    return pack
+
+
 def listing(root) -> list[dict]:
     rows = []
     for pack_json in sorted(Path(root).glob('*/pack.json')):
@@ -182,6 +223,9 @@ def main(argv=None):
         sub.add_parser(name).add_argument('pack')
     f = sub.add_parser('freeze'); f.add_argument('pack'); f.add_argument('--by', required=True); f.add_argument('--at', required=True)
     sub.add_parser('list').add_argument('root')
+    n = sub.add_parser('new'); n.add_argument('pack'); n.add_argument('--author', required=True)
+    n.add_argument('--case-ref', required=True); n.add_argument('--split', default='held_out', choices=SPLITS)
+    n.add_argument('--from', dest='template')
     args = ap.parse_args(argv)
     try:
         if args.command == 'validate':
@@ -190,6 +234,10 @@ def main(argv=None):
             pack = verify(args.pack); result = {'status': 'FROZEN_OK', 'id': pack['id'], 'inputs_hash': pack['frozen']['inputs_hash']}
         elif args.command == 'freeze':
             pack = freeze(args.pack, args.by, args.at); result = {'status': 'FROZEN', 'id': pack['id'], 'inputs_hash': pack['frozen']['inputs_hash']}
+        elif args.command == 'new':
+            pack = scaffold(args.pack, args.author, args.case_ref, args.split, args.template)
+            result = {'status': 'SCAFFOLDED', 'id': pack['id'],
+                      'next': 'replace every TODO, add materials, rewrite instance.json, then validate and freeze'}
         else:
             result = listing(args.root)
         print(json.dumps(result, indent=2))

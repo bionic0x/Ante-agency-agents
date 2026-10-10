@@ -48,9 +48,14 @@ Build what makes the existing protocol executable:
   touches the protected evaluator, and refuses one that regresses on held-out
   evidence.
 
+- **Campaign** (`scripts/nexus-campaign.py`): fixes the exit and the kill rule
+  below in code before results exist, plans the missing runs with their spend
+  ceiling, and returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`. Pack
+  authors follow [`NEXUS-CASEPACK-AUTHORING.md`](NEXUS-CASEPACK-AUTHORING.md).
+
 **Exit.** At least six held-out packs authored by someone other than the
 improver, run with all three variants, two trials each, under one model and one
-budget policy, blind-judged through `nexus-blind.py`.
+budget policy, on a live host, blind-judged through `nexus-blind.py`.
 
 **Kill or redirect.** If `nexus_instance` does not avoid more fatal defects than
 `fixed_team` on held-out packs, Phase 2 does not speed up the control plane.

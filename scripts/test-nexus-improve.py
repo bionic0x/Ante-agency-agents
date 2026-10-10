@@ -172,6 +172,15 @@ class CompareGateTests(unittest.TestCase):
         with self.assertRaisesRegex(imp.GateError, 'fully judged'):
             self.compare((b, self.judge('b', b)), (c, judgments))
 
+    def test_packs_written_by_the_improver_are_refused(self):
+        b = self.record('b'); c = self.record('c')
+        with self.assertRaisesRegex(imp.GateError, 'written or frozen by the improver'):
+            imp.compare('nexus_instance', self.held, {}, (b, self.judge('b', b, {'nexus_instance': 1})),
+                        (c, self.judge('c', c)), improvers=['independent-author'])
+        decision, _, _ = imp.compare('nexus_instance', self.held, {}, (b, self.judge('b', b, {'nexus_instance': 1})),
+                                     (c, self.judge('c', c)), improvers=['profile-optimizer'])
+        self.assertEqual('PROPOSE', decision)
+
     def test_tolerances_cannot_name_unknown_metrics(self):
         b = self.record('b'); c = self.record('c')
         with self.assertRaisesRegex(imp.GateError, 'unknown tolerance'):

@@ -14,7 +14,7 @@ admits a proposal only when both of these hold, and it never merges anything:
 There is no composite score: a fatal defect cannot be bought back with tokens.
 
     nexus-improve.py paths   --base REF --head REF [--repo DIR]
-    nexus-improve.py compare --variant V --held-out PACK_ROOT --tolerances FILE \\
+    nexus-improve.py compare --variant V --held-out PACK_ROOT --tolerances FILE --improver NAME \\
                              --baseline-trials F --baseline-judgments F \\
                              --candidate-trials F --candidate-judgments F
     nexus-improve.py gate    (all of the above)
@@ -113,12 +113,16 @@ def _evaluate(trials_path, judgments_path):
     return trials, report
 
 
-def _held_out_hashes(pack_root):
+def _held_out_hashes(pack_root, improvers=()):
     hashes = {}
     for pack_json in sorted(Path(pack_root).glob('*/pack.json')):
         pack = CASEPACK.verify(pack_json.parent)
         if pack['split'] == 'held_out':
             hashes[pack['frozen']['inputs_hash']] = pack['id']
+            written = {pack['author'], pack['frozen']['frozen_by']} & set(improvers)
+            if written:
+                raise GateError(f"{pack['id']}: held-out pack written or frozen by the improver ({sorted(written)}); "
+                                'the improver cannot be judged on cases it wrote')
     if not hashes:
         raise GateError(f'{pack_root}: no frozen held-out packs; the gate cannot run on development evidence')
     return hashes
@@ -132,7 +136,7 @@ def _value(entry, metric):
     return entry[metric]['median']
 
 
-def compare(variant, held_out_root, tolerances, baseline, candidate):
+def compare(variant, held_out_root, tolerances, baseline, candidate, improvers=()):
     """Pareto non-regression on held-out packs for one variant. Returns (decision, reasons, table)."""
     if variant not in EVALUATION.VARIANTS:
         raise GateError(f'unknown variant {variant!r}')
@@ -140,7 +144,7 @@ def compare(variant, held_out_root, tolerances, baseline, candidate):
         raise GateError(f'unknown tolerance metric(s) {sorted(set(tolerances) - set(METRICS))}')
     if any(type(v) not in (int, float) or v < 0 for v in tolerances.values()):
         raise GateError('tolerances must be non-negative fractions')
-    held_out = _held_out_hashes(held_out_root)
+    held_out = _held_out_hashes(held_out_root, improvers)
     reports = {}
     for label, (trials_path, judgments_path) in (('baseline', baseline), ('candidate', candidate)):
         trials, report = _evaluate(trials_path, judgments_path)
@@ -192,6 +196,8 @@ def main(argv=None):
             for flag in ('--variant', '--held-out', '--tolerances', '--baseline-trials', '--baseline-judgments',
                          '--candidate-trials', '--candidate-judgments'):
                 p.add_argument(flag, required=True)
+            p.add_argument('--improver', action='append', required=True,
+                           help='author label of the proposal (repeatable); held-out packs it wrote are refused')
     args = ap.parse_args(argv)
     try:
         result = {}
@@ -204,7 +210,7 @@ def main(argv=None):
             tolerances = json.loads(Path(args.tolerances).read_text())
             verdict, reasons, table = compare(args.variant, args.held_out, tolerances,
                                               (args.baseline_trials, args.baseline_judgments),
-                                              (args.candidate_trials, args.candidate_judgments))
+                                              (args.candidate_trials, args.candidate_judgments), args.improver)
             result['compare'] = {'decision': verdict, 'reasons': reasons, **table}
             if verdict != 'PROPOSE':
                 decision = 'REJECT'
