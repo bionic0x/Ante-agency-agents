@@ -35,6 +35,7 @@ python3 -m unittest discover -s relay/tests
 python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json >/dev/null
 python3 scripts/nexus-instance.py validate examples/nexus/investment-hypothesis.instance.json >/dev/null
 python3 scripts/check-challenger-pairs.py
+python3 scripts/test-alpha-research-suite.py
 python3 scripts/check-htp-gate0.py
 python3 scripts/test-htp-gate0.py
 python3 scripts/check-hermes-plugin.py

@@ -1,5 +1,12 @@
 # Changelog
 
+## Alpha Research Suite integration — 2026-10-10
+
+- Add six non-executing investment research specialists and a versioned common artifact envelope.
+- Extend the existing Investment Hypothesis Validation optional roster, preserving Macro → Quant P8 independent validation.
+- Keep the suite's evidence classes separate from NEXUS claim and decision vocabularies.
+- Run the six synthetic standard-library examples in CI and update the generated catalog to 506 agents.
+
 ## NEXUS Overdrive, Phase 2: throughput — 2026-10-10
 
 - Add the parallel schedule to the trial runner: ready tasks the engine admits start
