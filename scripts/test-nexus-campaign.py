@@ -168,6 +168,22 @@ class SmallCampaignTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_public_casepacks_are_not_independent_held_out_evidence(self):
+        result = camp.status(PACKS, IMPROVER, self.base / 'none.json')
+        self.assertEqual('INCOMPLETE', result['decision'])
+        self.assertEqual(0, result['held_out_packs'])
+        self.assertTrue(any('public repository checkout' in x for x in result['missing']))
+        plan = camp.plan(PACKS, IMPROVER, 'm', 'p', self.policies, None, 'operator', self.base / 'out')
+        self.assertEqual(0, plan['runs_missing'])
+        self.assertEqual(0, plan['spend_ceiling_usd'])
+
+    def test_symlink_into_public_checkout_does_not_bypass_exposure_guard(self):
+        alias = self.base / 'public-alias'
+        alias.symlink_to(PACKS, target_is_directory=True)
+        result = camp.status(alias, IMPROVER, self.base / 'none.json')
+        self.assertEqual(0, result['held_out_packs'])
+        self.assertTrue(any('public repository checkout' in x for x in result['missing']))
+
     def test_too_few_packs_is_incomplete_and_says_how_many(self):
         make_packs(self.base / 'held', 2)
         result = camp.status(self.base / 'held', IMPROVER, self.base / 'none.json')

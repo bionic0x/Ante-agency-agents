@@ -53,6 +53,18 @@ Build what makes the existing protocol executable:
   ceiling, and returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`. Pack
   authors follow [`NEXUS-CASEPACK-AUTHORING.md`](NEXUS-CASEPACK-AUTHORING.md).
 
+**Evaluation boundary (before any real campaign).** The three sample `held_out`
+packs published in this public repository are **exposed fixtures**, not an
+unseen evaluation set; their labels and frozen hashes do not make them secret.
+The Phase 1 exit therefore needs **at least six previously undisclosed packs**
+from evaluator-controlled storage **outside this public checkout**, with access
+restricted from the proposer/improver and any agents they can invoke. The CLI
+rejects pack roots within the checkout (including symlink aliases). This is
+only a mechanical location check: an external copy of a public case is still
+contaminated. An authorized independent evaluator must attest access control,
+prior exposure, author/reviewer separation, and the pre-registered rubric.
+Do not publish private pack materials or answer keys when publishing verdicts.
+
 **Exit.** At least six held-out packs authored by someone other than the
 improver, run with all three variants, two trials each, under one model and one
 budget policy, on a live host, blind-judged through `nexus-blind.py`.

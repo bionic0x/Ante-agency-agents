@@ -7,6 +7,25 @@ of the measurement the improver never sees, so its value depends on two things:
 you write it independently, and you settle what counts as a failure before any
 variant answers it.
 
+## Isolation boundary for a real Phase 1 campaign
+
+The cases under `examples/nexus/casepacks/` are intentionally public examples.
+They cannot be reused as **blind/held-out evidence**, even if `pack.json` says
+`held_out`. Use at least six **new, previously unseen** packs stored in a
+separate private, evaluator-controlled directory outside the public checkout.
+Keep their materials and answer keys out of PRs, public CI logs, development
+sandboxes, and any environment or account accessible to the improver. The
+independent evaluator—not the improver—runs the judge/gate and releases only
+a bounded verdict plus redacted evidence references. Record who actually had
+access before each evaluation; labels such as `author` do not authenticate it.
+
+`nexus-campaign.py` rejects roots within this checkout, including symlink
+aliases. This prevents the simplest accidental self-test but **does not certify
+secrecy, access isolation, model non-exposure, or reviewer independence**. A copy
+of a public pack outside the checkout remains contaminated. Provision private
+pack storage and runtime permissions outside this public repository before any
+claim of independent superiority.
+
 ## Who may author
 
 - Anyone who does not write or tune the agency's profiles, runbooks or code for
