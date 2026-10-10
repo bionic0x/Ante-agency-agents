@@ -59,6 +59,15 @@ def held_out_packs(root, improvers):
     """Frozen held-out packs, and the reasons any of them cannot count."""
     if not improvers:
         raise CampaignError('name at least one improver; independence cannot be checked without one')
+    # A published pack cannot be an unseen test. This is a *location guard*, not
+    # proof that an external copy was secret or that the reviewer is independent.
+    # Resolve symlinks before checking so an alias into this checkout cannot pass.
+    pack_root = Path(root).resolve()
+    checkout = ROOT.resolve()
+    if pack_root == checkout or checkout in pack_root.parents:
+        return {}, ['held-out packs under the public repository checkout are exposed; '
+                    'use a separate evaluator-controlled, access-restricted corpus '
+                    '(published sample packs cannot establish a blind result)']
     packs, problems = {}, []
     for pack_json in sorted(Path(root).glob('*/pack.json')):
         try:
