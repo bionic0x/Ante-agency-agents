@@ -1,0 +1,25 @@
+# Keeps the pinned actions and hash-locked CI tools current. The cooldown lets a release
+# age for a week before it is proposed, so a compromised release has time to be caught.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: pip
+    directories:
+      - /.github/requirements
+      - /relay/tests
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      ci-tools:
+        patterns: ['*']

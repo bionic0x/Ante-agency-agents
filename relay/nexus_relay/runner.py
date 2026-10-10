@@ -63,7 +63,7 @@ def prepare(cfg: RelayConfig, run_id: str, task: dict) -> RunPaths:
     socket_dir = run_dir / "sock"
     for d in (cfg.workspaces_dir, cfg.runs_dir, workspace, run_dir, socket_dir):
         d.mkdir(mode=0o700, exist_ok=True)
-        os.chmod(d, 0o700)
+        os.chmod(d, 0o700)  # nosemgrep: insecure-file-permissions -- owner-only; the rule's 0o644 is looser
     return RunPaths(workspace=workspace, socket_dir=socket_dir, output=run_dir / "output.txt")
 
 

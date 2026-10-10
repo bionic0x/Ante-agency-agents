@@ -107,9 +107,20 @@ reports is listed for a person and left unchanged (exit status 1).
 ## Tests
 
 ```bash
-python3 -m unittest discover -s relay/tests               # unit and HTTP tests
+python3 -m unittest discover -s relay/tests               # unit, HTTP and property tests
+python3 -m pip install --require-hashes --no-deps -r relay/tests/requirements-property.txt  # enables the property tests
 RELAY_E2E=1 RELAY_E2E_ENGINE=podman python3 relay/tests/e2e_container.py   # real container escape probe
 ```
+
+The property tests (`test_properties.py`, Hypothesis) generate interleavings of holds,
+settlements and shutdown against the budget meter, and request bodies against the egress
+policy and the media bound. Without Hypothesis they skip; CI requires them. Their oracles
+are written independently of the code under test, and each was checked by reintroducing
+earlier bugs: every one fails the suite.
+
+CI also runs `.github/workflows/security.yml` on every pull request and weekly: gitleaks
+over the full history, zizmor on the workflows, Semgrep, and OSV-Scanner on the hash-locked
+CI dependencies in `.github/requirements/`.
 
 Pin `runtime.image` by digest (`name@sha256:...`); runs never pull, and `serve` warns
 about mutable tags. When a run changes files that steer later agent sessions

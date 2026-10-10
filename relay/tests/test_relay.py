@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 import socket
 import sqlite3
+import ssl
 import struct
 import sys
 import tempfile
@@ -706,6 +707,16 @@ class ProxyTests(unittest.TestCase):
         self.assertEqual(300, up.forwarded(0)["max_tokens"])
         p2_status, _ = unix_post(self.sock, "/v1/messages", body, TOKEN)
         self.assertEqual(402, p2_status)  # 300 tokens spent: the PDF's hold no longer fits
+
+    def test_upstream_tls_verifies_certificates_and_hostnames(self):
+        p = proxy.ModelProxy(self.sock, "t", "k", "https://api.example.test", ("/v1/messages",),
+                             proxy.Meter("tokens", {}, 1))
+        conn = p._connect()  # constructing an HTTPSConnection does not connect
+        context = conn._context
+        self.assertEqual(ssl.CERT_REQUIRED, context.verify_mode)
+        self.assertTrue(context.check_hostname)
+        self.assertGreaterEqual(context.minimum_version, ssl.TLSVersion.TLSv1_2)
+        self.assertEqual(("api.example.test", 443), (conn.host, conn.port))
 
     # metering
     def test_meters_streaming_usage(self):
