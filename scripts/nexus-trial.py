@@ -11,8 +11,14 @@ model (strategy/NEXUS-MEASUREMENT-PROTOCOL.md):
   nexus_instance  the pack's NEXUS instance, admitted event by event by the
                   engine; every result waits for owner acceptance (P1)
 
+The nexus_instance schedule is `sequential` (one task at a time, the Phase 1
+baseline) or `parallel` (Phase 2: every ready task the engine admits starts at
+once, up to --max-parallel). A trials file records one schedule in a
+`<trials>.schedule` manifest and refuses rows from the other.
+
     nexus-trial.py run    --pack DIR --variant V --trial-id T --model M --policy ID \\
                           --operator NAME --runs DIR --artifacts DIR --trials FILE [--executor claude|fake]
+                          [--schedule sequential|parallel] [--max-parallel N]
     nexus-trial.py accept --run DIR --task-id X (--accepted|--rejected) --issuer NAME \\
                           [--predicates JSON] [--asserts JSON | --accept-proposed-asserts]
     nexus-trial.py owner-event --run DIR --event JSON   # resolve_conflict, dissent_response, decision...
@@ -28,7 +34,8 @@ Instrumentation rules, applied identically to all variants:
                           (unavailable data is never entered as zero)
   wall_time_seconds       sum of measured model-call time; owner waiting time is
                           recorded in the run record but excluded, because the
-                          other variants have no owner gate to wait on
+                          other variants have no owner gate to wait on. Calls
+                          made concurrently count once, at the longest of them
   invalid_decisions       output-contract failures of the final artifact (each
                           required section missing or repeated)
   rework_cycles           results the owner rejected and that were redone
@@ -48,6 +55,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 import sys
 import tempfile
 
@@ -55,6 +63,8 @@ ROOT = Path(__file__).resolve().parents[1]
 VARIANTS = ('single_agent', 'fixed_team', 'nexus_instance')
 POLICY_KEYS = ('max_cost_usd', 'max_tokens', 'max_calls', 'max_wall_seconds')
 FAKE_HOST = 'fake-executor'
+SCHEDULES = ('sequential', 'parallel')
+DEFAULT_MAX_PARALLEL = 4
 
 
 def _module(name, path):
@@ -193,13 +203,22 @@ class Run:
         if spent['wall_time_seconds'] >= policy['max_wall_seconds']: return 'max_wall_seconds'
         return None
 
-    def call(self, executor, packet, agent_id, label):
-        """One model call under the policy. Returns the step record, or None if budget stops the run."""
+    def admit(self):
+        """The budget is checked before calls are made; False stops the run."""
         reason = self.budget_reason()
         if reason:
             self.state.update(status='BUDGET_EXHAUSTED', stop_reason=reason)
+            return False
+        return True
+
+    def call(self, executor, packet, agent_id, label):
+        """One model call under the policy. Returns the step record, or None if budget stops the run."""
+        if not self.admit():
             return None
-        result = executor(packet, agent_id, self.state['model'])
+        return self.record(executor(packet, agent_id, self.state['model']), packet, agent_id, label)
+
+    def record(self, result, packet, agent_id, label, charge_wall=True):
+        """Store one call. Concurrent calls pass charge_wall=False and charge their batch once."""
         index = len(self.state['steps']) + 1
         step = {'index': index, 'label': label, 'agent': agent_id, **{k: result.get(k) for k in
                 ('cost_usd', 'tokens_total', 'wall_time_seconds', 'host_version', 'model_version', 'evidence_ref')}}
@@ -209,7 +228,7 @@ class Run:
             self.state.update(status='INCOMPLETE_INSTRUMENTATION',
                               stop_reason=f'step {index} lacks host cost, token or time counters')
             return None
-        for key in ('cost_usd', 'tokens_total', 'wall_time_seconds'):
+        for key in ('cost_usd', 'tokens_total') + (('wall_time_seconds',) if charge_wall else ()):
             self.state['spent'][key] += result[key]
         self.state['spent']['calls'] += 1
         hosts = {s['host_version'] for s in self.state['steps']}
@@ -274,55 +293,129 @@ def nexus_sinks(instance):
     return [t['id'] for t in instance['tasks'] if t['id'] not in consumed]
 
 
+def nexus_packet(run, instance, case, task):
+    inputs = [{'task': parent, 'accepted_result': run.output(run.state['accepted_step'][parent])}
+              for parent in task.get('depends_on', [])]
+    return {'instance_id': instance['id'], 'case': case, 'dependency_results': inputs,
+            'task': {'id': task['id'], 'purpose': instance['objective']['purpose'],
+                     'mechanism': task['mechanism'], 'level': task['level'], 'vector': task['vector'],
+                     'asserts': task.get('asserts', []),
+                     'instruction': ('Produce the complete deliverable from the accepted dependency results.'
+                                     if task['id'] in nexus_sinks(instance) else
+                                     'Produce your analysis for this task.')
+                                    + (' End with a fenced ```asserts block: a JSON object giving a value for '
+                                       'each listed key.' if task.get('asserts') else '')}}
+
+
+def set_pending(run):
+    """`pending` is the earliest result awaiting acceptance; `pending_all` holds every one."""
+    waiting = sorted(run.state.get('pending_all', {}).values(), key=lambda p: p['step'])
+    run.state['pending'] = waiting[0] if waiting else None
+
+
 def advance_nexus(run, executor):
-    """Start every ready task in instance order until one result awaits acceptance."""
+    """Start ready tasks the engine admits, then wait for acceptance.
+
+    sequential: one task at a time, as in Phase 1.
+    parallel:   every ready task the engine admits (disjoint resource scopes, budget
+                reservations within the ordinary budget) up to max_parallel running
+                at once, including results still awaiting acceptance.
+    """
     pack = run.pack()
     case = case_material(run.pack_dir, pack)
     instance = read_json(run.pack_dir / pack['nexus_instance'])
     tasks = {t['id']: t for t in instance['tasks']}
+    parallel = run.state.get('schedule') == 'parallel'
+    run.state.setdefault('pending_all', {})
     while True:
         state = nexus_state(run, instance)
-        if any(p['status'] == 'RUNNING' for p in state['tasks'].values()):
-            run.state['status'] = 'AWAITING_ACCEPTANCE'; return
         if all(p['status'] == 'SUCCEEDED' for p in state['tasks'].values()):
             run.state['final_steps'] = [run.state['accepted_step'][tid] for tid in nexus_sinks(instance)]
             run.state['status'] = 'COMPLETE'; return
+        running = [tid for tid, p in state['tasks'].items() if p['status'] == 'RUNNING']
+        slots = (run.state.get('max_parallel', DEFAULT_MAX_PARALLEL) if parallel else 1) - len(running)
+        if slots <= 0:
+            run.state['status'] = 'AWAITING_ACCEPTANCE'; return
         at = iso(now())
-        ready = [row for row in ENGINE.plan(instance, state, at)['tasks'] if row['ready']]
+        rows = ENGINE.plan(instance, state, at)['tasks']
+        ready = [row['task_id'] for row in rows if row['ready']]
         if not ready:
-            blocked = {row['task_id']: row['blockers'] for row in ENGINE.plan(instance, state, at)['tasks']
-                       if row['status'] != 'SUCCEEDED'}
-            run.state.update(status='BLOCKED', blockers=blocked); return
-        task = tasks[ready[0]['task_id']]
-        reason = run.budget_reason()
-        if reason:
-            run.state.update(status='BUDGET_EXHAUSTED', stop_reason=reason); return
-        nexus_append(run, instance, {'id': f"start-{task['id']}-{len(run.state['steps']) + 1}", 'at': at,
-                                     'issuer': task['agent'], 'type': 'start', 'task_id': task['id'],
-                                     'reserved_cost': 1, 'model_id': run.state['model']})
-        inputs = [{'task': parent, 'accepted_result': run.output(run.state['accepted_step'][parent])}
-                  for parent in task.get('depends_on', [])]
-        packet = {'instance_id': instance['id'], 'case': case, 'dependency_results': inputs,
-                  'task': {'id': task['id'], 'purpose': instance['objective']['purpose'],
-                           'mechanism': task['mechanism'], 'level': task['level'], 'vector': task['vector'],
-                           'asserts': task.get('asserts', []),
-                           'instruction': ('Produce the complete deliverable from the accepted dependency results.'
-                                           if task['id'] in nexus_sinks(instance) else
-                                           'Produce your analysis for this task.')
-                                          + (' End with a fenced ```asserts block: a JSON object giving a value for '
-                                             'each listed key.' if task.get('asserts') else '')}}
-        step = run.call(executor, packet, task['agent'], task['id'])
-        if not step:
+            if running:
+                run.state['status'] = 'AWAITING_ACCEPTANCE'; return
+            run.state.update(status='BLOCKED', blockers={row['task_id']: row['blockers'] for row in rows
+                                                         if row['status'] != 'SUCCEEDED'})
             return
-        run.state['pending'] = {'task_id': task['id'], 'step': step['index'],
-                                'proposed_asserts': proposed_asserts(step['output']), 'since': iso(now())}
-        run.state['status'] = 'AWAITING_ACCEPTANCE'; return
+        if not run.admit():
+            return
+        slots = min(slots, run.state['policy']['max_calls'] - run.state['spent']['calls'])
+        started = []
+        for tid in ready:
+            if len(started) >= slots:
+                break
+            task = tasks[tid]
+            try:
+                nexus_append(run, instance, {'id': f"start-{tid}-{len(run.state['steps']) + len(started) + 1}",
+                                             'at': at, 'issuer': task['agent'], 'type': 'start', 'task_id': tid,
+                                             'reserved_cost': 1, 'model_id': run.state['model']})
+            except ValueError:
+                continue  # not admitted now (shared resource, reservation boundary); it waits
+            started.append(task)
+        if not started:
+            if running:
+                run.state['status'] = 'AWAITING_ACCEPTANCE'; return
+            run.state.update(status='BLOCKED', blockers={tid: ['NOT_ADMITTED'] for tid in ready})
+            return
+        packets = [(task, nexus_packet(run, instance, case, task)) for task in started]
+        if len(packets) == 1:
+            task, packet = packets[0]
+            steps = [run.record(executor(packet, task['agent'], run.state['model']), packet, task['agent'], task['id'])]
+        else:
+            with ThreadPoolExecutor(max_workers=len(packets)) as pool:
+                futures = [pool.submit(executor, packet, task['agent'], run.state['model']) for task, packet in packets]
+                results = [future.result() for future in futures]
+            steps = []
+            for (task, packet), result in zip(packets, results):
+                step = run.record(result, packet, task['agent'], task['id'], charge_wall=False)
+                steps.append(step)
+                if step is None:
+                    break
+            walls = [r['wall_time_seconds'] for r in results if r.get('wall_time_seconds') is not None]
+            run.state['spent']['wall_time_seconds'] += max(walls) if walls else 0
+        for step in steps:
+            if step is None:
+                return
+            run.state['pending_all'][step['label']] = {
+                'task_id': step['label'], 'step': step['index'],
+                'proposed_asserts': proposed_asserts(step['output']), 'since': iso(now())}
+        set_pending(run)
+        if not parallel:
+            run.state['status'] = 'AWAITING_ACCEPTANCE'; return
 
 
 # --- lifecycle ---------------------------------------------------------------------------
 
-def start(pack_dir, variant, trial_id, model, policy_id, policies, operator, runs, artifacts, trials, executor):
+def schedule_manifest(trials):
+    return Path(trials).with_name(Path(trials).name + '.schedule')
+
+
+def trials_schedule(trials):
+    """The schedule a trials file already holds; files from before Phase 2 are sequential."""
+    manifest = schedule_manifest(trials)
+    if manifest.exists():
+        return manifest.read_text(encoding='utf-8').strip()
+    return 'sequential' if Path(trials).exists() else None
+
+
+def start(pack_dir, variant, trial_id, model, policy_id, policies, operator, runs, artifacts, trials, executor,
+          schedule='sequential', max_parallel=DEFAULT_MAX_PARALLEL):
     require(variant in VARIANTS, f'variant must be one of {VARIANTS}')
+    require(schedule in SCHEDULES, f'schedule must be one of {SCHEDULES}')
+    require(type(max_parallel) is int and max_parallel >= 1, 'max_parallel must be a positive integer')
+    held = trials_schedule(trials)
+    require(held in (None, schedule), f'{trials} holds {held} trials; a {schedule} run needs its own trials file')
+    if held is None:  # the first run claims the file for its schedule
+        schedule_manifest(trials).parent.mkdir(parents=True, exist_ok=True)
+        schedule_manifest(trials).write_text(schedule + '\n', encoding='utf-8')
     for label, value in (('trial_id', trial_id), ('model', model), ('operator', operator)):
         require(isinstance(value, str) and value.strip(), f'{label} required')
     pack = CASEPACK.verify(pack_dir)
@@ -337,7 +430,8 @@ def start(pack_dir, variant, trial_id, model, policy_id, policies, operator, run
              'submission_id': secrets.token_hex(8), 'started_at': iso(now()),
              'artifacts': str(Path(artifacts).resolve()), 'trials': str(Path(trials).resolve()),
              'status': 'RUNNING', 'steps': [], 'spent': {'cost_usd': 0, 'tokens_total': 0, 'calls': 0, 'wall_time_seconds': 0},
-             'rework_cycles': 0, 'owner_wait_seconds': 0, 'accepted_step': {}, 'acceptances': []}
+             'rework_cycles': 0, 'owner_wait_seconds': 0, 'accepted_step': {}, 'acceptances': [],
+             'schedule': schedule, 'max_parallel': max_parallel, 'pending_all': {}}
     atomic_json(run_dir / 'run.json', state)
     run = Run(run_dir)
     case = case_material(pack_dir, pack)
@@ -377,7 +471,12 @@ def finish_if_done(run):
         require(all((r['host_version'] == FAKE_HOST) == (row['host_version'] == FAKE_HOST) for r in rows),
                 'fake-executor rows and live rows cannot share a trials file')
         EVALUATION.load_trials(rows + [row])  # same validation the evaluator applies
+        schedule = run.state.get('schedule', 'sequential')
+        held = trials_schedule(trials_path)
+        require(held in (None, schedule), f'{trials_path} holds {held} trials; this run is {schedule}')
         atomic_json(trials_path, rows + [row])
+        if not schedule_manifest(trials_path).exists():
+            schedule_manifest(trials_path).write_text(schedule + '\n', encoding='utf-8')
         run.state['row'] = row
     run.save()
     return run.state
@@ -386,8 +485,10 @@ def finish_if_done(run):
 def accept(run_dir, task_id, accepted, issuer, predicates=None, asserts=None, use_proposed=False, executor=None):
     run = Run(run_dir)
     require(run.state['variant'] == 'nexus_instance', 'only nexus_instance runs have acceptance')
-    pending = run.state.get('pending')
-    require(run.state['status'] == 'AWAITING_ACCEPTANCE' and pending and pending['task_id'] == task_id,
+    waiting = run.state.get('pending_all') or ({run.state['pending']['task_id']: run.state['pending']}
+                                               if run.state.get('pending') else {})
+    pending = waiting.get(task_id)
+    require(run.state['status'] == 'AWAITING_ACCEPTANCE' and pending is not None,
             f'task {task_id} is not awaiting acceptance')
     pack = run.pack()
     instance = read_json(run.pack_dir / pack['nexus_instance'])
@@ -416,7 +517,8 @@ def accept(run_dir, task_id, accepted, issuer, predicates=None, asserts=None, us
         run.state['accepted_step'][task_id] = pending['step']
     else:
         run.state['rework_cycles'] += 1
-    run.state['pending'] = None
+    run.state.setdefault('pending_all', {}).pop(task_id, None)
+    set_pending(run)
     run.state['status'] = 'RUNNING'
     run.save()
     return resume(run_dir, executor)
@@ -458,6 +560,8 @@ def main(argv=None):
         r.add_argument(flag, required=True)
     r.add_argument('--policies', default=str(ROOT / 'examples/nexus/budget-policies.json'))
     r.add_argument('--executor', choices=('claude', 'fake'), default='claude')
+    r.add_argument('--schedule', choices=SCHEDULES, default='sequential')
+    r.add_argument('--max-parallel', type=int, default=DEFAULT_MAX_PARALLEL)
     a = sub.add_parser('accept')
     a.add_argument('--run', required=True); a.add_argument('--task-id', required=True); a.add_argument('--issuer', required=True)
     g = a.add_mutually_exclusive_group(required=True); g.add_argument('--accepted', action='store_true'); g.add_argument('--rejected', action='store_true')
@@ -474,7 +578,8 @@ def main(argv=None):
     try:
         if args.command == 'run':
             state = start(args.pack, args.variant, args.trial_id, args.model, args.policy, args.policies, args.operator,
-                          args.runs, args.artifacts, args.trials, executor_for(args.operator))
+                          args.runs, args.artifacts, args.trials, executor_for(args.operator),
+                          schedule=args.schedule, max_parallel=args.max_parallel)
         elif args.command == 'status':
             state = Run(args.run).state
         else:
@@ -490,6 +595,8 @@ def main(argv=None):
             else:
                 state = resume(args.run, executor)
         summary = {k: state.get(k) for k in ('run_id', 'status', 'stop_reason', 'pending', 'blockers', 'spent', 'row')}
+        if len(state.get('pending_all') or {}) > 1:
+            summary['pending_all'] = state['pending_all']
         print(json.dumps({k: v for k, v in summary.items() if v is not None}, indent=2))
         return 0
     except (TrialError, CASEPACK.PackError, ValueError, OSError, json.JSONDecodeError) as exc:

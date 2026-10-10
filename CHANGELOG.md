@@ -1,5 +1,21 @@
 # Changelog
 
+## NEXUS Overdrive, Phase 2: throughput — 2026-10-10
+
+- Add the parallel schedule to the trial runner: ready tasks the engine admits start
+  together (bounded by `--max-parallel` and remaining calls); acceptance may come in
+  any order; concurrent calls are charged once in wall time. `sequential` stays the
+  default. A `<trials>.schedule` manifest keeps the two schedules in separate files.
+- Add the plan linter (`scripts/nexus-lint.py`): critical path, depth, widest level;
+  warnings for serialized resources, budget headroom, single-source, dependent or
+  same-agent assertion keys, and multiple final tasks.
+- Add `nexus-campaign.py plan --schedule parallel` and `throughput`, the Phase 2 exit:
+  `ADOPT_PARALLEL` only when median NEXUS wall time falls with no more fatal defects
+  or constraint violations, and Phase 1 did not redirect.
+- Live check on a development pack: two tasks ran concurrently and the run completed
+  in 59 s against 76 s sequential (one sample; not evidence).
+- Add 19 tests.
+
 ## NEXUS Overdrive held-out packs, first set — 2026-10-10
 
 - Add three frozen held-out case packs by `claude-session-pack-author`:
