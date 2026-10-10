@@ -57,6 +57,9 @@ class InstanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'new evidence'):
             self.run_event('claim_revision', claim=c, reason='same source')
         c['source_refs'].append('fixture-new-source')
+        with self.assertRaisesRegex(ValueError,'new independent source root'):
+            self.run_event('claim_revision', claim=c, reason='new reference, same lineage')
+        c['source_roots'].append('fixture-independent-root')
         self.run_event('claim_revision', claim=c, reason='new discriminating observation')
         self.assertIn('CLM-2',self.s['review_required'])
         self.assertIn('CLAIM_REVIEW:CLM-1', n.blockers(self.i,self.s,'A',AT))
@@ -276,5 +279,174 @@ class InstanceTests(unittest.TestCase):
             event = self.event('dissent'); event.pop(field)
             with self.assertRaisesRegex(ValueError, f'event.{field} required'):
                 n.apply(self.i, self.s, event)
+
+
+class IndependentJudgmentTests(unittest.TestCase):
+    """P1-P6 of the 2026-10-10 stress test: who may judge, and on what evidence."""
+    setUp, event, run_event = InstanceTests.setUp, InstanceTests.event, InstanceTests.run_event
+    start, finish, closure = InstanceTests.start, InstanceTests.finish, InstanceTests.closure
+
+    def complete_fixture(self):
+        for task in ('A', 'B', 'C'):
+            self.start(task); self.finish(task)
+
+    # P1: work never grades itself.
+    def test_p1_task_agent_cannot_accept_its_own_work(self):
+        self.start('A')
+        with self.assertRaisesRegex(ValueError, 'independent owner/reviewer'):
+            self.run_event('finish', issuer='general-strategy-director', task_id='A', accepted=True, actual_cost=1,
+                           evidence_refs=['own-output'], predicate_results={'contract_met': True})
+        # The agent may still report a non-accepted finish; a named reviewer may accept.
+        self.run_event('finish', issuer='general-strategy-director', task_id='A', accepted=False, actual_cost=1,
+                       evidence_refs=['own-output'])
+        self.assertEqual('FAILED', self.s['tasks']['A']['status'])
+        self.start('A')
+        self.run_event('finish', issuer='fixture-reviewer', task_id='A', accepted=True, actual_cost=1,
+                       evidence_refs=['reviewed-output'], predicate_results={'contract_met': True})
+        self.assertEqual('SUCCEEDED', self.s['tasks']['A']['status'])
+
+    def test_p1_reviewer_named_as_task_agent_still_cannot_self_accept(self):
+        self.i['mandate']['reviewers'].append('general-strategy-director')
+        self.s = n.initial(self.i)
+        self.start('A')
+        with self.assertRaisesRegex(ValueError, 'independent owner/reviewer'):
+            self.run_event('finish', issuer='general-strategy-director', task_id='A', accepted=True, actual_cost=1,
+                           evidence_refs=['own-output'], predicate_results={'contract_met': True})
+
+    # P2: task output and old lineage are not corroboration.
+    def test_p2_task_output_cannot_promote_claim(self):
+        self.start('A'); self.finish('A')
+        c = copy.deepcopy(self.s['claims']['CLM-1'])
+        c.update(revision=2, status='EVIDENCE', source_refs=c['source_refs'] + ['fixture-result'],
+                 source_roots=c['source_roots'] + ['task-A-run'])
+        with self.assertRaisesRegex(ValueError, 'task outputs cannot promote'):
+            self.run_event('claim_revision', issuer='fixture-reviewer', claim=c, reason='agent output agrees')
+
+    def test_p2_rejected_output_is_also_not_evidence(self):
+        self.start('A'); self.finish('A', accepted=False)
+        c = copy.deepcopy(self.s['claims']['CLM-1'])
+        c.update(revision=2, status='EVIDENCE', source_refs=c['source_refs'] + ['fixture-result'],
+                 source_roots=c['source_roots'] + ['task-A-run'])
+        with self.assertRaisesRegex(ValueError, 'task outputs cannot promote'):
+            self.run_event('claim_revision', claim=c, reason='rejected output reused')
+
+    # P3: widening or transferring a scoped claim costs as much as a promotion.
+    def scoped_fixture(self):
+        self.i['claims'][0]['scope'] = 'solana'
+        self.i['claims'][1]['depends_on'] = []
+        self.i['tasks'][0]['evidence_scope'] = 'solana'
+        self.i['tasks'][2]['evidence_scope'] = 'arbitrum'
+        self.s = n.initial(self.i)
+
+    def test_p3_reviewer_cannot_launder_scope_to_shared(self):
+        self.scoped_fixture()
+        c = copy.deepcopy(self.s['claims']['CLM-1']); c.update(revision=2, scope='shared')
+        with self.assertRaisesRegex(ValueError, 'scope reclassification requires the named owner'):
+            self.run_event('claim_revision', issuer='fixture-reviewer', claim=c, reason='reclassified',
+                           evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'evidence_refs'):
+            self.run_event('claim_revision', claim=c, reason='reclassified without evidence')
+        self.run_event('claim_revision', claim=c, reason='network-independent premise',
+                       evidence_refs=['owner-review:network-independence'])
+        self.assertEqual('shared', self.s['claims']['CLM-1']['scope'])
+
+    def test_p3_transfer_between_scopes_needs_owner_evidence(self):
+        self.scoped_fixture()
+        c = copy.deepcopy(self.s['claims']['CLM-1']); c.update(revision=2, scope='arbitrum')
+        with self.assertRaisesRegex(ValueError, 'scope reclassification'):
+            self.run_event('claim_revision', issuer='fixture-reviewer', claim=c, reason='move premise')
+
+    def test_p3_narrowing_a_shared_claim_stays_open_to_reviewers(self):
+        c = copy.deepcopy(self.s['claims']['CLM-1']); c.update(revision=2, scope='solana')
+        self.run_event('claim_revision', issuer='fixture-reviewer', claim=c, reason='applies only to Solana')
+        self.assertEqual('solana', self.s['claims']['CLM-1']['scope'])
+
+    # P4: sufficiency cannot relabel a pending decision or missing evidence.
+    def test_p4_sufficient_result_refused_under_hold_decision(self):
+        self.run_event('decision', state='HOLD', reason='await evidence')
+        with self.assertRaisesRegex(ValueError, 'HOLD decision prevents'):
+            self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='good enough',
+                           closure=self.closure(), evidence_refs=['x'])
+        self.run_event('terminate', outcome='FAILURE', reason='abandoned while held',
+                       closure=self.closure(), evidence_refs=['x'])
+        self.assertEqual('FAILURE', self.s['termination_outcome'])
+
+    def test_p4_sufficient_result_refused_with_pending_evidence(self):
+        self.run_event('hold', condition={'id': 'h1', 'classification': 'PENDING_EVIDENCE', 'task_ids': ['A'],
+                                          'reason': 'unverified market data'})
+        with self.assertRaisesRegex(ValueError, 'pending evidence prevents'):
+            self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='good enough',
+                           closure=self.closure(), evidence_refs=['x'])
+
+    def test_p4_accepted_risk_does_not_block_sufficiency(self):
+        self.run_event('hold', condition={'id': 'r1', 'classification': 'ACCEPTED_RISK', 'task_ids': ['A'],
+                                          'reason': 'known exposure'})
+        self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='need met by cooperation',
+                       closure=self.closure(), evidence_refs=['x'])
+        self.assertTrue(self.s['closed'])
+
+    # P5: dissent needs an answer before success.
+    def dissent(self):
+        self.run_event('dissent', issuer='fixture-reviewer', objection='Subplans A and B are incompatible',
+                       risk_owner='fixture-owner', evidence_refs=['review-1'])
+        return self.s['open_dissent'][-1]
+
+    def test_p5_unanswered_dissent_blocks_success(self):
+        self.complete_fixture()
+        did = self.dissent()
+        with self.assertRaisesRegex(ValueError, 'unanswered dissent prevents success closure'):
+            self.run_event('close', closure=self.closure(), evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'unanswered dissent prevents sufficient-result'):
+            self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='done', closure=self.closure(),
+                           evidence_refs=['x'])
+        self.assertIn(did, n.plan(self.i, self.s, AT)['open_dissent'])
+
+    def test_p5_owner_answer_unblocks_closure_and_is_preserved(self):
+        self.complete_fixture()
+        did = self.dissent()
+        with self.assertRaisesRegex(ValueError, 'only named owner can answer'):
+            self.run_event('dissent_response', issuer='fixture-reviewer', dissent_id=did, disposition='REFUTED',
+                           response='no', risk_owner='fixture-owner', evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'unknown dissent disposition'):
+            self.run_event('dissent_response', dissent_id=did, disposition='IGNORED',
+                           response='no', risk_owner='fixture-owner', evidence_refs=['x'])
+        self.run_event('dissent_response', dissent_id=did, disposition='RISK_ACCEPTED',
+                       response='Integration conflict accepted until pricing pilot', risk_owner='fixture-owner',
+                       evidence_refs=['owner-memo-1'])
+        with self.assertRaisesRegex(ValueError, 'already answered'):
+            self.run_event('dissent_response', dissent_id=did, disposition='REFUTED',
+                           response='again', risk_owner='fixture-owner', evidence_refs=['x'])
+        self.run_event('close', closure=self.closure(), evidence_refs=['x'])
+        self.assertTrue(self.s['closed'])
+        self.assertEqual('RISK_ACCEPTED', self.s['dissent_responses'][0]['disposition'])
+
+    def test_p5_negative_termination_allowed_with_open_dissent(self):
+        self.dissent()
+        self.run_event('terminate', outcome='REDESIGN', reason='objection upheld in substance',
+                       closure=self.closure(), evidence_refs=['x'])
+        self.assertEqual('REDESIGN', self.s['termination_outcome'])
+
+    # P6: the reserve has conditions of use.
+    def test_p6_owner_can_release_reserve_for_named_contingency(self):
+        for task in self.i['tasks']: task['cost_limit'] = 10
+        with self.assertRaisesRegex(ValueError, 'reserve boundary'):
+            self.start('A', 9)
+        with self.assertRaisesRegex(ValueError, 'only named owner can release'):
+            self.run_event('release_reserve', issuer='fixture-reviewer', amount=1, contingency='c',
+                           reason='r', evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'exceeds remaining reserve'):
+            self.run_event('release_reserve', amount=3, contingency='c', reason='r', evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'positive'):
+            self.run_event('release_reserve', amount=0, contingency='c', reason='r', evidence_refs=['x'])
+        self.run_event('release_reserve', amount=1, contingency='provider outage rerun',
+                       reason='named contingency occurred', evidence_refs=['incident-7'])
+        self.start('A', 9)
+        report = n.plan(self.i, self.s, AT)
+        self.assertEqual(1, report['reserve']); self.assertEqual(1, report['reserve_released'])
+        self.assertEqual(0, report['uncommitted_cost'])
+
+    def test_p6_release_survives_replay(self):
+        events = [self.event('release_reserve', amount=2, contingency='c', reason='r', evidence_refs=['x'])]
+        self.assertEqual(0, n.effective_reserve(self.i, n.replay(self.i, events)))
 
 if __name__ == '__main__':unittest.main()

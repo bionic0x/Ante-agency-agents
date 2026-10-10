@@ -82,7 +82,7 @@ class Contract:
         task = next(t for t in instance["tasks"] if t["id"] == task_id)
         progress = state["tasks"][task_id]
         committed = state["spent"] + sum(t["reserved"] for t in state["tasks"].values())
-        overall = instance["budget"]["cost_limit"] - instance["budget"]["reserve"] - committed
+        overall = instance["budget"]["cost_limit"] - engine()["effective_reserve"](instance, state) - committed
         return max(0.0, min(task["cost_limit"] - progress["spent"], overall))
 
     def admit(self, event: dict) -> dict:

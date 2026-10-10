@@ -108,22 +108,27 @@ authentication and independently verify the mandate. JSON labels are not signatu
 | Event | Additional fields and effect |
 |---|---|
 | `start` | `task_id`, `reserved_cost`; checks dependencies, HOLD, scope/expiry, budget, attempts and resource ownership |
-| `finish` | `task_id`, `actual_cost`, `accepted`, `evidence_refs`; accepted outputs need all named `predicate_results` true |
+| `finish` | `task_id`, `actual_cost`, `accepted`, `evidence_refs`; accepted outputs need all named `predicate_results` true and an issuer who is the owner or a reviewer and **not the task agent**. The agent may report only a non-accepted finish. Every reference becomes a recorded task output |
 | `hold` | `condition` with ID, classification, reason and `task_ids`; blocks affected work and its consumers |
 | `resolve_hold` | Condition ID, reason and evidence; owner only; fatal defects require redesign |
 | `decision` | Canonical state and reason; owner only; favorable QA cannot clear HOLD |
-| `claim_revision` | Complete next claim revision and reason; owner/reviewer only |
+| `claim_revision` | Complete next claim revision and reason; owner/reviewer only. Promotion to `EVIDENCE` needs a new reference **and** a new source root, and no added reference may be a recorded task output. Widening or transferring a scoped claim (any scope change away from a non-`shared` scope) needs the owner and `evidence_refs`; narrowing a `shared` claim stays open to reviewers |
 | `rebind_claims` | Task ID, exact set of input claims with reviewed revisions, and reason; resets the task for rerun and invalidates its consumers |
-| `dissent` | Objection, evidence references and residual-risk owner; preserved in history |
-| `close` | Evidence and closure record; mandate and deadline must be current, with at least one task and all planned work complete and current |
+| `dissent` | Objection, evidence references and residual-risk owner; preserved in history and kept open until answered |
+| `dissent_response` | Owner only: `dissent_id` (the dissent event ID), `disposition` (`UPHELD`, `RISK_ACCEPTED` or `REFUTED`), `response`, `risk_owner`, `evidence_refs`. Each dissent is answered once |
+| `release_reserve` | Owner only: positive `amount` not exceeding the remaining reserve, named `contingency`, `reason`, `evidence_refs`. Released reserve becomes committable budget |
+| `close` | Evidence and closure record; mandate and deadline must be current, with at least one task and all planned work complete and current, and no unanswered dissent |
 | `terminate` | Outcome, reason, evidence and closure record; cancels unnecessary/pending work without claiming it succeeded |
 
 A closure record contains `achieved`, `outstanding`, `accountable`, `on_breach`
 and `conservation_resources`. Termination can record sufficient result, failure,
 expiry, redesign or rejection. Running work must be reconciled first.
-`SUFFICIENT_RESULT` is refused while a `FATAL_DEFECT` condition is open or the
-decision is `REJECT`/`REDESIGN`: sufficiency cannot compensate a fatal defect or
-relabel a negative decision. Use the matching negative outcome instead. No new event
+`SUFFICIENT_RESULT` is refused while a `FATAL_DEFECT` or `PENDING_EVIDENCE`
+condition is open, while any dissent is unanswered, or unless the decision is
+`PROCEED`/`PROCEED_WITH_CONDITIONS`: sufficiency cannot compensate a fatal defect,
+relabel a negative or held decision, or close over missing evidence. It may still
+cancel planned work when the need was met another way. Use the matching negative
+outcome otherwise; negative outcomes remain available with open dissent. No new event
 may reopen a closed instance: create a reviewed successor with new assumptions.
 
 A scoped HOLD does not stop independent work under an existing mandate. A global
@@ -131,6 +136,30 @@ HOLD without scoped conditions blocks all starts. Actual cost overruns are recor
 rather than discarded; subsequent starts are blocked as appropriate. A task PASS
 never modifies the strategic decision. Uncertain evidence may support bounded
 analysis; its presence is not authorization for the action being analyzed.
+
+## Independent judgment
+
+The 2026-10-10 stress test showed that ordering guarantees did not protect the
+independence of the judgment. Six rules now hold in the engine:
+
+1. **No self-acceptance.** A task agent cannot accept its own work, even if it is
+   also listed as a reviewer.
+2. **Outputs are not corroboration.** References attached to any `finish`,
+   accepted or not, cannot promote a claim to `EVIDENCE`; promotion also needs a
+   new source root, not only a new reference on an old lineage.
+3. **Scope moves cost as much as promotion.** Widening or transferring a scoped
+   claim needs the owner and evidence; it can no longer launder a Solana-only
+   premise into an Arbitrum task through a reviewer's reason string.
+4. **Sufficiency cannot relabel.** See the termination rule above.
+5. **Dissent needs an answer.** Open dissent blocks success closure and
+   sufficient-result termination until the owner records a disposition.
+6. **The reserve has conditions of use.** Only `release_reserve` moves reserve
+   into committable budget; `plan` reports the remaining reserve, released total
+   and open dissent.
+
+These rules check who issued what. They do not authenticate issuers, establish
+that a new source root is truly independent, or judge whether a dissent answer is
+adequate. A live host must still authenticate the mandate.
 
 ## Multifactor comparison
 
