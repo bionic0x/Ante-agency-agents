@@ -101,4 +101,6 @@ Measurement here records what the runner and reviewers report; it does not
 authenticate costs or reviewer independence. Six packs do not support claims of
 statistical superiority, and the gate's tolerance rule is a decision convention,
 not a significance test. Live trials need a model key and money; the runner
-does not spend either without an explicit operator command.
+does not spend either without an explicit operator command. The host runs with an
+allowlisted environment, so a trial agent sees only its packet; user-level host
+configuration under `HOME` is not isolated and should be kept identical across a campaign.

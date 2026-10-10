@@ -22,7 +22,12 @@
 - Add `nexus-casepack.py new` (placeholders refused until written) and the
   held-out authoring guide; the improvement gate now requires `--improver` and
   refuses held-out packs that improver wrote or froze.
-- Add 52 tests across the four tools and wire them into CI and the release gate.
+- Start the live host with an allowlisted environment and refuse a call that reuses the
+  calling session id. A live smoke run from inside a Claude Code session showed the
+  inherited environment loading that session's tools, plugins and context into the
+  trial (286k tokens, $1.20 for one answer); with the allowlist the same answer took
+  14k tokens and $0.09. Smoke rows are kept out of the repository; they are not evidence.
+- Add 54 tests across the four tools and wire them into CI and the release gate.
 
 ## NEXUS assertion conflicts (P7) — 2026-10-10
 

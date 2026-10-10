@@ -56,6 +56,23 @@ def _iso(value):
     return value.isoformat()
 
 
+# The host is started with an allowlisted environment. Run from inside another
+# Claude Code session, an inherited environment carries that session's id, tools,
+# plugins, project and memory into the call: the measured agent then sees context
+# outside its packet, and its counters measure the parent's context, not the task.
+HOST_ENV_ALLOW = ('PATH', 'HOME', 'USER', 'LANG', 'LC_ALL', 'TMPDIR', 'TERM',
+                  'HTTPS_PROXY', 'HTTP_PROXY', 'NO_PROXY', 'https_proxy', 'http_proxy', 'no_proxy',
+                  'SSL_CERT_FILE', 'SSL_CERT_DIR', 'NODE_EXTRA_CA_CERTS', 'REQUESTS_CA_BUNDLE',
+                  'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL', 'CLAUDE_CONFIG_DIR')
+
+
+def host_env(environ=None):
+    environ = os.environ if environ is None else environ
+    env = {k: environ[k] for k in HOST_ENV_ALLOW if k in environ}
+    env['CLAUDE_CODE_NONINTERACTIVE'] = '1'
+    return env
+
+
 def _run(cmd, cwd, timeout=600):
     return subprocess.run(
         cmd,
@@ -63,7 +80,7 @@ def _run(cmd, cwd, timeout=600):
         capture_output=True,
         text=True,
         timeout=timeout,
-        env={**os.environ, 'CLAUDE_CODE_NONINTERACTIVE': '1'},
+        env=host_env(),
     )
 
 
@@ -217,6 +234,9 @@ def _invoke(model_id, prompt, cwd, agent=None, timeout=600):
     proc = _run(cmd, cwd, timeout=timeout)
     wall = time.monotonic() - started
     parsed = parse_stream(proc.stdout, proc.returncode, wall)
+    parent = os.environ.get('CLAUDE_CODE_SESSION_ID')
+    if parent and parsed['session_id'] == parent:
+        raise AdapterError('host call reused the calling session id; its context and counters are not the task\'s')
     parsed['stderr'] = proc.stderr
     return parsed
 
