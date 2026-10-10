@@ -449,4 +449,119 @@ class IndependentJudgmentTests(unittest.TestCase):
         events = [self.event('release_reserve', amount=2, contingency='c', reason='r', evidence_refs=['x'])]
         self.assertEqual(0, n.effective_reserve(self.i, n.replay(self.i, events)))
 
+
+class AssertionConflictTests(unittest.TestCase):
+    """P7: subplans that contradict each other are detected, not synthesised over."""
+    setUp, event, run_event = InstanceTests.setUp, InstanceTests.event, InstanceTests.run_event
+    start, closure = InstanceTests.start, InstanceTests.closure
+
+    def declare(self, **keys):
+        for task in self.i['tasks']:
+            task['asserts'] = keys.get(task['id'], [])
+        self.s = n.initial(self.i)
+
+    def finish(self, task, asserts=None, accepted=True, issuer='fixture-owner'):
+        fields = dict(task_id=task, accepted=accepted, actual_cost=1, evidence_refs=[f'result-{task}-{self.count}'],
+                      issuer=issuer)
+        if accepted:
+            fields['predicate_results'] = {'contract_met': True}
+        if asserts is not None:
+            fields['asserts'] = asserts
+        return self.run_event('finish', **fields)
+
+    def nexus_spatial(self):
+        """Two parallel agents fix the same commercial variable differently."""
+        self.declare(A=['pricing.seat_usd', 'platform.first'], B=['pricing.seat_usd'])
+        self.start('A'); self.finish('A', {'pricing.seat_usd': 99, 'platform.first': 'web'})
+        self.start('B'); self.finish('B', {'pricing.seat_usd': 29})
+
+    def test_p7_conflict_reported_and_blocks_synthesis(self):
+        self.nexus_spatial()
+        report = n.plan(self.i, self.s, AT)
+        self.assertEqual({'A': 99, 'B': 29}, report['assertion_conflicts']['pricing.seat_usd']['values'])
+        self.assertFalse(report['assertion_conflicts']['pricing.seat_usd']['resolved'])
+        self.assertNotIn('platform.first', report['assertion_conflicts'])
+        rows = {r['task_id']: r for r in report['tasks']}
+        self.assertIn('ASSERTION_CONFLICT:pricing.seat_usd', rows['C']['blockers'])
+        with self.assertRaisesRegex(ValueError, 'ASSERTION_CONFLICT'):
+            self.start('C')
+
+    def test_p7_agreement_is_not_a_conflict(self):
+        self.declare(A=['pricing.seat_usd'], B=['pricing.seat_usd'])
+        self.start('A'); self.finish('A', {'pricing.seat_usd': 39})
+        self.start('B'); self.finish('B', {'pricing.seat_usd': 39.0})
+        self.assertEqual({}, n.plan(self.i, self.s, AT)['assertion_conflicts'])
+        self.start('C')
+
+    def test_p7_owner_resolution_unblocks_and_closes(self):
+        self.nexus_spatial()
+        with self.assertRaisesRegex(ValueError, 'only named owner'):
+            self.run_event('resolve_conflict', issuer='fixture-reviewer', key='pricing.seat_usd', value=29,
+                           reason='r', evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'no current assertion conflict'):
+            self.run_event('resolve_conflict', key='platform.first', value='web', reason='r', evidence_refs=['x'])
+        self.run_event('resolve_conflict', key='pricing.seat_usd', value=39,
+                       reason='pricing pilot decides between PLG and team tiers', evidence_refs=['owner-memo-2'])
+        report = n.plan(self.i, self.s, AT)
+        self.assertTrue(report['assertion_conflicts']['pricing.seat_usd']['resolved'])
+        self.assertEqual(39, report['assertion_conflicts']['pricing.seat_usd']['resolution'])
+        self.start('C'); self.finish('C')
+        self.run_event('close', closure=self.closure(), evidence_refs=['x'])
+        self.assertTrue(self.s['closed'])
+
+    def test_p7_unresolved_conflict_blocks_success_and_sufficiency(self):
+        self.declare(A=['pricing.seat_usd'], C=['pricing.seat_usd'])
+        self.start('A'); self.finish('A', {'pricing.seat_usd': 99})
+        self.start('B'); self.finish('B')
+        self.start('C'); self.finish('C', {'pricing.seat_usd': 29})
+        with self.assertRaisesRegex(ValueError, 'unresolved assertion conflict prevents success closure'):
+            self.run_event('close', closure=self.closure(), evidence_refs=['x'])
+        with self.assertRaisesRegex(ValueError, 'unresolved assertion conflict prevents sufficient-result'):
+            self.run_event('terminate', outcome='SUFFICIENT_RESULT', reason='done', closure=self.closure(),
+                           evidence_refs=['x'])
+        self.run_event('terminate', outcome='REDESIGN', reason='subplans incompatible', closure=self.closure(),
+                       evidence_refs=['x'])
+        self.assertEqual('REDESIGN', self.s['termination_outcome'])
+
+    def test_p7_new_result_reopens_a_resolved_conflict(self):
+        self.nexus_spatial()
+        self.run_event('resolve_conflict', key='pricing.seat_usd', value=29, reason='PLG first', evidence_refs=['x'])
+        self.run_event('rebind_claims', task_id='B', claim_revisions={}, reason='rerun pricing with new inputs')
+        self.start('B'); self.finish('B', {'pricing.seat_usd': 249})
+        self.assertFalse(n.plan(self.i, self.s, AT)['assertion_conflicts']['pricing.seat_usd']['resolved'])
+
+    def test_p7_stale_or_failed_results_do_not_count(self):
+        self.nexus_spatial()
+        self.run_event('rebind_claims', task_id='B', claim_revisions={}, reason='rerun')
+        self.assertEqual({}, n.plan(self.i, self.s, AT)['assertion_conflicts'])
+        self.start('B'); self.finish('B', accepted=False)
+        self.assertEqual({}, n.plan(self.i, self.s, AT)['assertion_conflicts'])
+
+    def test_p7_accepted_finish_must_state_exactly_its_keys(self):
+        self.declare(A=['pricing.seat_usd'])
+        self.start('A')
+        with self.assertRaisesRegex(ValueError, 'exactly the task asserts keys'):
+            self.finish('A')
+        with self.assertRaisesRegex(ValueError, 'exactly the task asserts keys'):
+            self.finish('A', {'pricing.seat_usd': 29, 'extra': 1})
+        with self.assertRaisesRegex(ValueError, 'string, number or boolean'):
+            self.finish('A', {'pricing.seat_usd': {'tier': 'pro'}})
+        with self.assertRaisesRegex(ValueError, 'only accepted finishes'):
+            self.finish('A', {'pricing.seat_usd': 29}, accepted=False)
+
+    def test_p7_declared_keys_are_validated(self):
+        self.i['tasks'][0]['asserts'] = ['k', 'k']
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            n.initial(self.i)
+
+    def test_p7_shared_model_is_reported_not_counted_as_corroboration(self):
+        self.declare()
+        self.run_event('start', task_id='A', reserved_cost=1, model_id='claude-opus-5-5'); self.finish('A')
+        self.run_event('start', task_id='B', reserved_cost=1, model_id='claude-opus-5-5'); self.finish('B')
+        self.run_event('start', task_id='C', reserved_cost=1, model_id='claude-sonnet-5-5')
+        self.assertEqual({'claude-opus-5-5': ['A', 'B']}, n.plan(self.i, self.s, AT)['shared_model_tasks'])
+        self.s = n.initial(self.i)
+        with self.assertRaisesRegex(ValueError, 'model_id'):
+            self.run_event('start', task_id='A', reserved_cost=1, model_id=' ')
+
 if __name__ == '__main__':unittest.main()

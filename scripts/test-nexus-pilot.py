@@ -199,5 +199,27 @@ class PilotTests(unittest.TestCase):
             self.step(NOW, model='not-there')
 
 
+    def test_pilot_records_model_and_stops_synthesis_on_conflicting_results(self):
+        self.instance['tasks'][0]['asserts'] = ['pricing.seat_usd']
+        self.instance['tasks'][1]['asserts'] = ['pricing.seat_usd']
+        first = self.step(NOW)
+        with self.assertRaisesRegex(p.PilotError, 'must assert values'):
+            self.accept(first['execution_record'], NOW + dt.timedelta(minutes=1))
+        p.accept(self.instance, self.events, first['execution_record'], True, 0.5,
+                 self.instance['mandate']['owner'], {'contract_met': True},
+                 at=NOW + dt.timedelta(minutes=1), asserts={'pricing.seat_usd': 99})
+        second = self.step(NOW + dt.timedelta(minutes=2))
+        p.accept(self.instance, self.events, second['execution_record'], True, 0.5,
+                 self.instance['mandate']['owner'], {'contract_met': True},
+                 at=NOW + dt.timedelta(minutes=3), asserts={'pricing.seat_usd': 29})
+        # The synthesis task C cannot run over contradictory inputs.
+        blocked = self.step(NOW + dt.timedelta(minutes=4))
+        self.assertEqual('BLOCKED', blocked['status'])
+        state = p.replay(self.instance, self.events)['state']
+        report = p.ENGINE.plan(self.instance, state, (NOW + dt.timedelta(minutes=4)).isoformat())
+        self.assertEqual({'claude-fixture': ['A', 'B']}, report['shared_model_tasks'])
+        self.assertIn('pricing.seat_usd', report['assertion_conflicts'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

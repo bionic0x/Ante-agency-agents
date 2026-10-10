@@ -47,7 +47,9 @@ format, not a concurrent event database. Use separate output paths for writers.
 | `option_analysis` | Optional non-additive comparison with scenario overrides |
 
 Each task also defines `claim_revisions`, `evidence_scope`, `cost_limit`,
-`attempt_limit`, `retry_rationale`, `resource_scope` and `acceptance_predicates`.
+`attempt_limit`, `retry_rationale`, `resource_scope` and `acceptance_predicates`,
+and may declare `asserts`: the shared keys (for example `pricing.seat_usd` or
+`platform.first`) on which its accepted result must state a value.
 Resource-scope strings are logical exclusive-resource identifiers. They are not
 filesystem permissions, sandbox paths or tool grants. A live adapter must resolve
 and enforce resource identity; two different labels for the same file are not
@@ -107,8 +109,8 @@ authentication and independently verify the mandate. JSON labels are not signatu
 
 | Event | Additional fields and effect |
 |---|---|
-| `start` | `task_id`, `reserved_cost`; checks dependencies, HOLD, scope/expiry, budget, attempts and resource ownership |
-| `finish` | `task_id`, `actual_cost`, `accepted`, `evidence_refs`; accepted outputs need all named `predicate_results` true and an issuer who is the owner or a reviewer and **not the task agent**. The agent may report only a non-accepted finish. Every reference becomes a recorded task output |
+| `start` | `task_id`, `reserved_cost`, optional `model_id`; checks dependencies, HOLD, scope/expiry, budget, attempts, resource ownership and unresolved assertion conflicts among the task's direct dependencies |
+| `finish` | `task_id`, `actual_cost`, `accepted`, `evidence_refs`; accepted outputs need all named `predicate_results` true and an issuer who is the owner or a reviewer and **not the task agent**. The agent may report only a non-accepted finish. Every reference becomes a recorded task output. An accepted finish carries `asserts` with exactly the task's declared keys (string, number or boolean values) |
 | `hold` | `condition` with ID, classification, reason and `task_ids`; blocks affected work and its consumers |
 | `resolve_hold` | Condition ID, reason and evidence; owner only; fatal defects require redesign |
 | `decision` | Canonical state and reason; owner only; favorable QA cannot clear HOLD |
@@ -116,6 +118,7 @@ authentication and independently verify the mandate. JSON labels are not signatu
 | `rebind_claims` | Task ID, exact set of input claims with reviewed revisions, and reason; resets the task for rerun and invalidates its consumers |
 | `dissent` | Objection, evidence references and residual-risk owner; preserved in history and kept open until answered |
 | `dissent_response` | Owner only: `dissent_id` (the dissent event ID), `disposition` (`UPHELD`, `RISK_ACCEPTED` or `REFUTED`), `response`, `risk_owner`, `evidence_refs`. Each dissent is answered once |
+| `resolve_conflict` | Owner only: `key` with a current conflict, chosen `value`, `reason`, `evidence_refs`. Holds while the competing results are unchanged; any new result on the key reopens it |
 | `release_reserve` | Owner only: positive `amount` not exceeding the remaining reserve, named `contingency`, `reason`, `evidence_refs`. Released reserve becomes committable budget |
 | `close` | Evidence and closure record; mandate and deadline must be current, with at least one task and all planned work complete and current, and no unanswered dissent |
 | `terminate` | Outcome, reason, evidence and closure record; cancels unnecessary/pending work without claiming it succeeded |
@@ -140,7 +143,7 @@ analysis; its presence is not authorization for the action being analyzed.
 ## Independent judgment
 
 The 2026-10-10 stress test showed that ordering guarantees did not protect the
-independence of the judgment. Six rules now hold in the engine:
+independence of the judgment. Seven rules now hold in the engine:
 
 1. **No self-acceptance.** A task agent cannot accept its own work, even if it is
    also listed as a reviewer.
@@ -156,10 +159,19 @@ independence of the judgment. Six rules now hold in the engine:
 6. **The reserve has conditions of use.** Only `release_reserve` moves reserve
    into committable budget; `plan` reports the remaining reserve, released total
    and open dissent.
+7. **Subplans must be compatible.** When current accepted results state
+   different values for the same shared key, `plan` lists the conflict under
+   `assertion_conflicts`, a consumer of those results cannot start
+   (`ASSERTION_CONFLICT:<key>`), and neither success closure nor
+   `SUFFICIENT_RESULT` is possible until the owner records `resolve_conflict`.
+   Negative outcomes stay available. Numbers compare by value (`39` equals
+   `39.0`). `plan` also lists `shared_model_tasks`: agreement among runs of one
+   model is not independent corroboration.
 
-These rules check who issued what. They do not authenticate issuers, establish
-that a new source root is truly independent, or judge whether a dissent answer is
-adequate. A live host must still authenticate the mandate.
+These rules check who issued what and which declared values disagree. They do
+not detect contradictions on keys no task declared, authenticate issuers,
+establish that a new source root is truly independent, or judge whether a dissent
+answer or conflict resolution is adequate. A live host must still authenticate the mandate.
 
 ## Multifactor comparison
 
