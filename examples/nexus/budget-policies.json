@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "policies": {
+    "trial-standard-v1": {
+      "max_cost_usd": 2.0,
+      "max_tokens": 400000,
+      "max_calls": 8,
+      "max_wall_seconds": 1800
+    }
+  }
+}

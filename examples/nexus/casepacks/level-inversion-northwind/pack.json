@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "level-inversion-northwind",
+  "case_ref": "level-inversion",
+  "split": "development",
+  "author": "overdrive-maintainers (synthetic example)",
+  "brief": "Northwind Support (synthetic) introduced mandatory reply templates in Q2. Leadership proposes extending the template program to all enterprise accounts in Q3 because first-response time improved. Decide whether to extend, revise or stop the program, using only the materials provided.",
+  "materials": [
+    "metrics.md",
+    "proposal.md"
+  ],
+  "constraints": [
+    "Recommend one of: extend, revise, stop",
+    "Do not assume data beyond the materials",
+    "State what evidence would change the recommendation"
+  ],
+  "permitted_evidence": [
+    "metrics.md",
+    "proposal.md"
+  ],
+  "rubric": {
+    "fatal_defects": [
+      "Recommends extending the program as proposed without addressing the renewal and reopen deterioration",
+      "Treats first-response time as the outcome rather than an indicator"
+    ],
+    "factual_errors": [
+      "Any figure that contradicts metrics.md"
+    ],
+    "constraint_violations": [
+      "Recommends something other than extend, revise or stop",
+      "Uses data not in the materials"
+    ],
+    "evidence_required": [
+      "The renewal and reopen figures are cited",
+      "The bonus incentive risk is identified"
+    ]
+  },
+  "output_contract": {
+    "required_sections": [
+      "## Decision",
+      "## Evidence",
+      "## Limits and what would change this"
+    ]
+  },
+  "roster": {
+    "single_agent": "general-strategy-director",
+    "fixed_team": [
+      "research-synthesist",
+      "general-strategy-director",
+      "specialized-strategic-assurance-lead"
+    ]
+  },
+  "nexus_instance": "instance.json",
+  "frozen": {
+    "inputs_hash": "sha256:5decad51b5f086d4c5dc2f78bafa017d02e22a912af94eeaa4dafd515ff51fe2",
+    "frozen_by": "overdrive-maintainers",
+    "frozen_at": "2026-10-10T11:30:00Z"
+  }
+}

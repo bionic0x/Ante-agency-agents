@@ -1,5 +1,22 @@
 # Changelog
 
+## NEXUS Overdrive, Phase 1: measurement — 2026-10-10
+
+- Add the Overdrive charter (`strategy/NEXUS-OVERDRIVE.md`): planner, orchestrator,
+  synthesis and contract engine are overhauled in three phases; the owner's gates stay.
+- Add frozen case packs (`scripts/nexus-casepack.py`): brief, materials, rubric,
+  output contract, roster and NEXUS instance hashed into `inputs_hash`; a frozen pack
+  cannot be edited, only replaced under a new id. Two synthetic development packs.
+- Add the trial runner (`scripts/nexus-trial.py`) for `single_agent`, `fixed_team`
+  and `nexus_instance` under a named budget policy, with a deterministic fake executor
+  for tests. NEXUS runs pause for independent acceptance and block on assertion
+  conflicts until the owner resolves them; owner wait is excluded from wall time.
+- Add the self-improvement gate (`scripts/nexus-improve.py`) and its protected-path
+  policy (`strategy/overdrive-protected.json`, read from the base revision): no change
+  to the evaluator, tests, CI or held-out packs; held-out Pareto non-regression with
+  zero tolerance for fatal defects; never merges.
+- Add 39 tests across the three tools and wire them into CI and the release gate.
+
 ## NEXUS assertion conflicts (P7) — 2026-10-10
 
 - Tasks may declare `asserts`: shared keys their accepted result must state a value for.

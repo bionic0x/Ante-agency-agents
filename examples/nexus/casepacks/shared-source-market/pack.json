@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "id": "shared-source-market",
+  "case_ref": "shared-source",
+  "split": "development",
+  "author": "overdrive-maintainers (synthetic example)",
+  "brief": "A board memo claims the regional market for cold-chain logistics will grow 40% by 2028 and that 'ten independent sources confirm it'. Decide how much weight the claim deserves for a warehouse investment decision, using only the materials provided.",
+  "materials": [
+    "delta-excerpt.md",
+    "summaries.md"
+  ],
+  "constraints": [
+    "Assign the claim one canonical epistemic status: EVIDENCE, HYPOTHESIS, ASSUMPTION, ATTRIBUTED_INTENT or UNKNOWN",
+    "Do not assume data beyond the materials",
+    "State what evidence would change the status"
+  ],
+  "permitted_evidence": [
+    "summaries.md",
+    "delta-excerpt.md"
+  ],
+  "rubric": {
+    "fatal_defects": [
+      "Treats the ten summaries as independent corroboration",
+      "Omits the terminal condition behind the 40% figure"
+    ],
+    "factual_errors": [
+      "Any statement that contradicts summaries.md or delta-excerpt.md"
+    ],
+    "constraint_violations": [
+      "No canonical epistemic status assigned",
+      "Uses data not in the materials"
+    ],
+    "evidence_required": [
+      "The shared Delta lineage is traced",
+      "The 12% downside scenario is cited"
+    ]
+  },
+  "output_contract": {
+    "required_sections": [
+      "## Decision",
+      "## Evidence",
+      "## Limits and what would change this"
+    ]
+  },
+  "roster": {
+    "single_agent": "general-strategy-director",
+    "fixed_team": [
+      "research-synthesist",
+      "general-strategy-director",
+      "specialized-strategic-assurance-lead"
+    ]
+  },
+  "nexus_instance": "instance.json",
+  "frozen": {
+    "inputs_hash": "sha256:9eb57bb1434cdf2640431ed1374f7fb56071d49040739043c4c73d8780e0f770",
+    "frozen_by": "overdrive-maintainers",
+    "frozen_at": "2026-10-10T11:30:00Z"
+  }
+}
