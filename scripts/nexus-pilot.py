@@ -327,6 +327,8 @@ def step(instance, observations_path, authority, events_path, records_root,
         'id': 'pilot-start-' + uuid.uuid4().hex,
         'at': at.isoformat(), 'type': 'start', 'issuer': task['agent'],
         'task_id': task_id, 'reserved_cost': authority['reserved_costs'][task_id],
+        # Recorded so the engine can report agreement among runs of one model (P7).
+        'model_id': model_id,
     }
     # Apply before persisting: engine remains the authority on task readiness.
     next_state = ENGINE.apply(instance, state, start)
@@ -392,7 +394,7 @@ def step(instance, observations_path, authority, events_path, records_root,
 
 
 def accept(instance, events_path, execution_record, accepted, actual_cost,
-           issuer, predicate_results=None, at=None):
+           issuer, predicate_results=None, at=None, asserts=None):
     at = at or dt.datetime.now(dt.timezone.utc)
     ENGINE.validate(instance)
     record = load_json(execution_record, 'execution record')
@@ -432,6 +434,12 @@ def accept(instance, events_path, execution_record, accepted, actual_cost,
         if not isinstance(predicate_results, dict) or set(predicate_results) != set(expected) or not all(v is True for v in predicate_results.values()):
             raise PilotError(f'accepted finish requires every predicate true: {expected}')
         event['predicate_results'] = predicate_results
+        if tasks[task_id].get('asserts'):
+            if not isinstance(asserts, dict):
+                raise PilotError(f"accepted finish must assert values for {tasks[task_id]['asserts']}")
+            event['asserts'] = asserts
+    elif asserts is not None:
+        raise PilotError('only an accepted finish carries assertions')
     ENGINE.apply(instance, state, event)
     append_event(events_path, event)
     replayed = ENGINE.replay(instance, load_events(events_path))
@@ -464,6 +472,7 @@ def main():
     accept_ap.add_argument('--actual-cost', required=True, type=float)
     accept_ap.add_argument('--issuer', required=True)
     accept_ap.add_argument('--predicate-results', help='JSON object, required when --accepted')
+    accept_ap.add_argument('--asserts', help='JSON object of shared-key values; required when the task declares asserts')
     replay_ap = sub.add_parser('replay')
     replay_ap.add_argument('instance'); replay_ap.add_argument('--events', required=True)
     args = ap.parse_args()
@@ -474,8 +483,9 @@ def main():
                           args.events, args.records_root, requested_model=args.model_id)
         elif args.command == 'accept':
             predicates = json.loads(args.predicate_results) if args.predicate_results else None
+            asserts = json.loads(args.asserts) if args.asserts else None
             result = accept(instance, args.events, args.execution_record, args.accepted,
-                            args.actual_cost, args.issuer, predicates)
+                            args.actual_cost, args.issuer, predicates, asserts=asserts)
         else:
             result = replay(instance, args.events)
         print(json.dumps(result, indent=2, ensure_ascii=False))

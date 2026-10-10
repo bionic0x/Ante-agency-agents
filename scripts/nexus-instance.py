@@ -102,6 +102,42 @@ def validate_claim(claim):
     when(claim['expires'])
 
 
+def assertion_value(value, field):
+    """Shared-key values are JSON scalars compared by canonical encoding."""
+    require(isinstance(value, (str, bool)) or (type(value) in (int, float) and math.isfinite(value)),
+            f'{field}: string, number or boolean required')
+    # 39 and 39.0 state the same value; compare numbers, not their spelling.
+    return int(value) if type(value) is float and value.is_integer() else value
+
+
+def assertion_conflicts(state):
+    """P7: keys on which current accepted results disagree, with their resolution status.
+
+    Only SUCCEEDED, non-stale results count. A resolution holds while the set of
+    competing (task, value) pairs is unchanged; any new result reopens the key."""
+    by_key = {}
+    for tid, values in state['assertions'].items():
+        progress = state['tasks'][tid]
+        if progress['status'] != 'SUCCEEDED' or progress['inputs_stale']:
+            continue
+        for key, value in values.items():
+            by_key.setdefault(key, {})[tid] = value
+    conflicts = {}
+    for key, values in sorted(by_key.items()):
+        if len({digest(v) for v in values.values()}) > 1:
+            basis = digest(values)
+            resolution = state['conflict_resolutions'].get(key)
+            conflicts[key] = {'values': values,
+                              'resolved': resolution is not None and resolution['basis'] == basis,
+                              'resolution': resolution['value'] if resolution and resolution['basis'] == basis else None}
+    return conflicts
+
+
+def unresolved_conflicts(state, task_ids=None):
+    return sorted(k for k, c in assertion_conflicts(state).items()
+                  if not c['resolved'] and (task_ids is None or set(c['values']).intersection(task_ids)))
+
+
 def claim_ancestry(claims, cid):
     """Include every premise: a shared conclusion cannot erase a scoped source."""
     found, pending = set(), [cid]
@@ -169,6 +205,8 @@ def validate(instance):
         require(type(task['attempt_limit']) is int and task['attempt_limit'] > 0, 'invalid attempt_limit')
         strings(task['acceptance_predicates'], 'acceptance_predicates', True)
         strings(task['resource_scope'], 'resource_scope')
+        # P7: shared keys this task must state a value for when accepted (price, platform, date...).
+        strings(task.get('asserts', []), 'asserts')
         require(isinstance(task['claim_revisions'], dict), 'claim_revisions must be an object')
         for cid, revision in task['claim_revisions'].items():
             require(cid in claims and type(revision) is int and revision == claims[cid]['revision'], 'unknown/stale initial claim revision')
@@ -197,7 +235,10 @@ def initial(instance):
             'review_required': [], 'spent': 0, 'closed': False, 'dissent': [], 'events': {}, 'last_at': None,
             # Every reference a task attached to its finish: agent output, never independent evidence.
             'output_refs': [], 'open_dissent': [], 'dissent_responses': [],
-            'reserve_released': 0, 'reserve_releases': []}
+            'reserve_released': 0, 'reserve_releases': [],
+            # P7: values accepted results state on shared keys, the model each run used,
+            # and owner resolutions of disagreements between results.
+            'assertions': {}, 'models': {}, 'conflict_resolutions': {}}
 
 
 def blockers(instance, state, tid, at):
@@ -225,6 +266,10 @@ def blockers(instance, state, tid, at):
         if claim_expired(cid): reasons.append('CLAIM_EXPIRED:' + cid)
         for parent in claim_ancestry(state['claims'], cid):
             if state['claims'][parent]['scope'] not in ('shared', task['evidence_scope']): reasons.append('CLAIM_SCOPE:' + parent)
+    # P7: a consumer (typically a synthesis task) may not integrate results that contradict each other
+    # until the owner elevates the incompatibility to a decision.
+    if task.get('depends_on'):
+        reasons.extend('ASSERTION_CONFLICT:' + key for key in unresolved_conflicts(state, task['depends_on']))
     if state['tasks'][tid]['spent'] > task['cost_limit']: reasons.append('TASK_COST_OVERRUN')
     if state['spent'] > instance['budget']['cost_limit'] - effective_reserve(instance, state): reasons.append('BUDGET_OVERRUN')
     return sorted(set(reasons))
@@ -275,6 +320,10 @@ def apply(instance, prior, event):
             for other, p in state['tasks'].items():
                 require(p['status'] != 'RUNNING' or not set(task['resource_scope']).intersection(tasks[other]['resource_scope']), 'shared resource already owned')
             progress.update(status='RUNNING', attempts=progress['attempts'] + 1, reserved=reserved)
+            if 'model_id' in event:
+                state['models'][tid] = text(event['model_id'], 'model_id')
+            else:
+                state['models'].pop(tid, None)
             progress['dependency_revisions'] = {parent: state['tasks'][parent]['result_revision']
                                                 for parent in task.get('depends_on', [])}
         else:
@@ -291,7 +340,14 @@ def apply(instance, prior, event):
             progress['status'] = 'SUCCEEDED' if event['accepted'] else 'FAILED'
             progress['evidence_refs'] = evidence
             state['output_refs'] = sorted(set(state['output_refs']) | set(evidence))
-            if event['accepted']: progress['result_revision'] += 1
+            if event['accepted']:
+                progress['result_revision'] += 1
+                asserted = event.get('asserts', {})
+                require(isinstance(asserted, dict) and set(asserted) == set(task.get('asserts', [])),
+                        'accepted finish must assert exactly the task asserts keys')
+                state['assertions'][tid] = {k: assertion_value(v, 'asserts.' + k) for k, v in asserted.items()}
+            else:
+                require('asserts' not in event, 'only accepted finishes carry assertions')
     elif kind == 'hold':
         require(issuer in [owner, *reviewers], 'hold requires named owner/reviewer')
         c = event['condition']; text(c['id'], 'condition id')
@@ -370,6 +426,17 @@ def apply(instance, prior, event):
         strings(event.get('evidence_refs'), 'evidence_refs', True)
         state['open_dissent'].remove(did)
         state['dissent_responses'].append(copy.deepcopy(event))
+    elif kind == 'resolve_conflict':
+        # P7: the owner elevates a disagreement between results to an explicit decision.
+        require(issuer == owner, 'only named owner can resolve an assertion conflict')
+        key = text(event.get('key'), 'key')
+        conflict = assertion_conflicts(state).get(key)
+        require(conflict is not None, 'no current assertion conflict on this key')
+        value = assertion_value(event.get('value'), 'value')
+        text(event.get('reason'), 'reason')
+        strings(event.get('evidence_refs'), 'evidence_refs', True)
+        state['conflict_resolutions'][key] = {'value': value, 'basis': digest(conflict['values']),
+                                              'event_id': eid}
     elif kind == 'release_reserve':
         # P6: the reserve is usable only by a named owner, for a named contingency, within its size.
         require(issuer == owner, 'only named owner can release reserve')
@@ -392,6 +459,7 @@ def apply(instance, prior, event):
             require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'HOLD decision prevents sufficient-result termination')
             require(not any(c['classification'] == 'PENDING_EVIDENCE' for c in state['conditions'].values()), 'pending evidence prevents sufficient-result termination')
             require(not state['open_dissent'], 'unanswered dissent prevents sufficient-result termination')
+            require(not unresolved_conflicts(state), 'unresolved assertion conflict prevents sufficient-result termination')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
             text(event['closure'][field], field)
         strings(event['evidence_refs'], 'evidence_refs', True)
@@ -406,6 +474,7 @@ def apply(instance, prior, event):
         require(bool(state['tasks']), 'success closure requires at least one task')
         require(not state['conditions'] and not state['review_required'], 'unresolved closure conditions')
         require(not state['open_dissent'], 'unanswered dissent prevents success closure')
+        require(not unresolved_conflicts(state), 'unresolved assertion conflict prevents success closure')
         require(state['decision_state'] in ('PROCEED', 'PROCEED_WITH_CONDITIONS'), 'decision prevents success closure')
         require(all(p['status'] == 'SUCCEEDED' and not blockers(instance, state, t, at) for t, p in state['tasks'].items()), 'incomplete/stale work prevents success closure')
         for field in ('achieved', 'outstanding', 'accountable', 'on_breach', 'conservation_resources'):
@@ -448,6 +517,11 @@ def plan(instance, state, at):
             'spent': state['spent'], 'reserve': effective_reserve(instance, state), 'reserve_released': state['reserve_released'],
             'uncommitted_cost': instance['budget']['cost_limit'] - effective_reserve(instance, state) - state['spent'] - sum(p['reserved'] for p in state['tasks'].values()),
             'open_dissent': list(state['open_dissent']),
+            'assertion_conflicts': assertion_conflicts(state),
+            # Agreement among results produced by one model is not independent corroboration.
+            'shared_model_tasks': {m: sorted(t for t, x in state['models'].items() if x == m)
+                                   for m in sorted(set(state['models'].values()))
+                                   if sum(1 for x in state['models'].values() if x == m) > 1},
             'shared_source_roots': {k: v for k, v in roots.items() if len(v) > 1},
             'execution_authority': False, 'mode': 'OFFLINE_CONTRACT_REPLAY'}
 

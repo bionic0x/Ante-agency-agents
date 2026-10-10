@@ -1,5 +1,18 @@
 # Changelog
 
+## NEXUS assertion conflicts (P7) — 2026-10-10
+
+- Tasks may declare `asserts`: shared keys their accepted result must state a value for.
+  Accepted finishes must assert exactly those keys with scalar values.
+- `plan` reports `assertion_conflicts` among current accepted results and
+  `shared_model_tasks` from the new optional `model_id` on `start`.
+- A task cannot start over conflicting results from its direct dependencies;
+  success closure and `SUFFICIENT_RESULT` are refused while a conflict is unresolved.
+- Add owner-only `resolve_conflict`; a resolution lapses when a new result changes
+  the competing values.
+- The live pilot records `model_id` and accepts `--asserts`.
+- Add 9 engine tests and 1 pilot test.
+
 ## NEXUS independent judgment (P1–P6) — 2026-10-10
 
 - **P1** Refuse an accepted `finish` issued by the task agent; acceptance needs the
