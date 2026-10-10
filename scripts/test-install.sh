@@ -140,9 +140,26 @@ assert_eq "" "$missing" "--list teams names every division in divisions.json"
 
 home="$(sandbox list-agents)"
 run_install "$home" --list agents
-listed=$(printf '%s\n' "$RUN_OUT" | grep -c "$FIRST_ENG_SLUG")
-[[ "$listed" -ge 1 ]] && pass "--list agents includes $FIRST_ENG_SLUG" \
-  || fail "--list agents includes $FIRST_ENG_SLUG"
+assert_eq 0 "$RUN_STATUS" "--list agents exits successfully"
+# Read the structured columns with Bash built-ins. Piping the full Unicode agent
+# roster through a platform-specific grep is not a reliable membership test on macOS.
+listed=false
+while IFS= read -r agent_line; do
+  read -r listed_div listed_slug listed_extra <<< "$agent_line"
+  if [[ "$listed_div" == engineering && "$listed_slug" == "$FIRST_ENG_SLUG" && -z "$listed_extra" ]]; then
+    listed=true
+    break
+  fi
+done <<< "$RUN_OUT"
+if $listed; then
+  pass "--list agents includes $FIRST_ENG_SLUG"
+else
+  fail "--list agents includes $FIRST_ENG_SLUG"
+  printf '  diagnostic: status=%s, slug=%q, lines=%s, engineering_matches=%s\n' \
+    "$RUN_STATUS" "$FIRST_ENG_SLUG" \
+    "$(printf '%s\n' "$RUN_OUT" | wc -l | tr -d ' ')" \
+    "$(printf '%s\n' "$RUN_OUT" | grep -c '^engineering ' || true)"
+fi
 
 # ---------------------------------------------------------------------------
 # 2. --dry-run writes nothing
