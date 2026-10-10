@@ -50,7 +50,7 @@ Five are supplied by the runner under a shared instrumentation contract:
 |---|---|
 | `cost_usd` | Money spent by the run, as reported by the host |
 | `tokens_total` | Input plus output tokens across every session in the run |
-| `wall_time_seconds` | First request to final artifact |
+| `wall_time_seconds` | First request to final artifact, excluding time spent waiting for the owner's acceptance (recorded separately by `nexus-trial.py` as `owner_wait_seconds`) |
 | `invalid_decisions` | Decisions rejected by the same external validity checks applied to all three variants |
 | `rework_cycles` | Artifacts withdrawn and redone inside the run |
 
@@ -170,3 +170,13 @@ Both files are empty. Twelve cases are defined and unmeasured. See
 [NEXUS-INSTANCE.md](NEXUS-INSTANCE.md) for the engine this protocol would
 measure, and [OPERATIONS.md](../OPERATIONS.md) for the surrounding release
 boundary.
+
+## Running trials under NEXUS Overdrive
+
+`scripts/nexus-trial.py` runs the three variants against a frozen case pack
+(`scripts/nexus-casepack.py`) and appends rows in the format above; judgments
+remain a separate, blind step (`scripts/nexus-blind.py`). Reviewers judge against
+the pack's own `rubric`. Changes the agency proposes to itself are admitted for
+human review only through `scripts/nexus-improve.py`, which compares baseline and
+candidate on held-out packs without a composite score. See
+[`NEXUS-OVERDRIVE.md`](NEXUS-OVERDRIVE.md).

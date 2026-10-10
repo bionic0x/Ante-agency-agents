@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -19,6 +20,7 @@ def module(path):
 
 
 a = module(ROOT / 'scripts' / 'nexus-anthropic.py')
+PARENT_SESSION = os.environ.get('CLAUDE_CODE_SESSION_ID')
 
 
 def stream(model='claude-fixture', version='2.1.278', session='s1'):
@@ -37,6 +39,32 @@ def stream(model='claude-fixture', version='2.1.278', session='s1'):
 
 
 class AnthropicAdapterTests(unittest.TestCase):
+    def test_host_environment_is_allowlisted(self):
+        parent = {'PATH': '/bin', 'HOME': '/h', 'HTTPS_PROXY': 'p', 'ANTHROPIC_API_KEY': 'k',
+                  'CLAUDECODE': '1', 'CLAUDE_CODE_SESSION_ID': 'parent', 'CLAUDE_PROJECT_UUID': 'x',
+                  'CLAUDE_CODE_POST_TURN_MEMORY': '1', 'SECRET_TOKEN': 's'}
+        env = a.host_env(parent)
+        self.assertEqual({'PATH', 'HOME', 'HTTPS_PROXY', 'ANTHROPIC_API_KEY', 'CLAUDE_CODE_NONINTERACTIVE'}, set(env))
+
+    def test_a_call_that_reuses_the_calling_session_is_refused(self):
+        original_run, original_which = a._run, a.shutil.which
+        stream = '\n'.join(json.dumps(e) for e in [
+            {'type': 'system', 'subtype': 'init', 'session_id': 'parent', 'claude_code_version': '2.1.0', 'tools': []},
+            {'type': 'result', 'subtype': 'success', 'is_error': False, 'session_id': 'parent', 'total_cost_usd': 0.1,
+             'usage': {'input_tokens': 1, 'output_tokens': 1}, 'result': 'ok'}])
+        try:
+            a.shutil.which = lambda name: '/bin/claude'
+            a._run = lambda *args, **kwargs: type('P', (), {'stdout': stream, 'stderr': '', 'returncode': 0})()
+            os.environ['CLAUDE_CODE_SESSION_ID'] = 'parent'
+            with self.assertRaisesRegex(a.AdapterError, 'reused the calling session'):
+                a._invoke('m', 'p', Path('.'))
+        finally:
+            a._run, a.shutil.which = original_run, original_which
+            if PARENT_SESSION is None:
+                os.environ.pop('CLAUDE_CODE_SESSION_ID', None)
+            else:
+                os.environ['CLAUDE_CODE_SESSION_ID'] = PARENT_SESSION
+
     def test_stream_parser_binds_host_model_session_and_counters(self):
         row = a.parse_stream(stream(), 0, measured_wall_time=1.5)
         self.assertEqual('s1', row['session_id'])

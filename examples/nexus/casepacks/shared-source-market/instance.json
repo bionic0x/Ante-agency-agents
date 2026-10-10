@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "id": "casepack-shared-source-market",
+  "runbook_ref": "strategic-decision",
+  "doctrine_sha256": "f81abe2e06ee8311a98dfa61f980b0f9e3ebb2d8b7a90eaa142e413771963570",
+  "mandate": {
+    "owner": "trial-owner",
+    "reviewers": [
+      "trial-reviewer"
+    ],
+    "authority_ref": "Evaluation trial under a frozen case pack; no live authority",
+    "scope": "offline-analysis",
+    "expires": "2030-01-01T00:00:00Z"
+  },
+  "objective": {
+    "id": "PURPOSE-1",
+    "purpose": "Weight the growth claim correctly for an investment decision",
+    "non_object": "Count supporting sources",
+    "success_condition": "The memo traces lineage and states the conditional basis of the figure",
+    "constraints": [
+      "Use only the pack materials",
+      "No external actions"
+    ]
+  },
+  "decision_state": "PROCEED",
+  "budget": {
+    "cost_limit": 10,
+    "reserve": 2,
+    "deadline": "2030-01-01T00:00:00Z",
+    "unit": "attempts"
+  },
+  "claims": [
+    {
+      "id": "CLM-1",
+      "statement": "The pack materials describe the situation accurately",
+      "status": "ASSUMPTION",
+      "revision": 1,
+      "scope": "shared",
+      "source_refs": [
+        "pack-materials"
+      ],
+      "source_roots": [
+        "pack-author"
+      ],
+      "expires": "2030-01-01T00:00:00Z",
+      "depends_on": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "A",
+      "agent": "general-strategy-director",
+      "level": "strategic",
+      "vector": "causal",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Analyse the decision against the superior purpose",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-A"
+      ],
+      "asserts": [
+        "evidence.independent_sources"
+      ]
+    },
+    {
+      "id": "B",
+      "agent": "research-synthesist",
+      "level": "strategic",
+      "vector": "evidence",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Trace evidence lineage and separate observations from claims",
+      "evidence_scope": "decision",
+      "depends_on": [],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-B"
+      ],
+      "asserts": [
+        "evidence.independent_sources"
+      ]
+    },
+    {
+      "id": "C",
+      "agent": "specialized-strategic-assurance-lead",
+      "level": "operational",
+      "vector": "assurance",
+      "purpose_ref": "PURPOSE-1",
+      "mechanism": "Integrate analyses into one decision with stated limits",
+      "evidence_scope": "decision",
+      "depends_on": [
+        "A",
+        "B"
+      ],
+      "claim_revisions": {
+        "CLM-1": 1
+      },
+      "cost_limit": 3,
+      "attempt_limit": 3,
+      "retry_rationale": "One correction is affordable in this synthetic exercise",
+      "acceptance_predicates": [
+        "contract_met"
+      ],
+      "resource_scope": [
+        "fixture-artifact-C"
+      ],
+      "asserts": []
+    }
+  ],
+  "open_conditions": [],
+  "option_analysis": {
+    "factors": {
+      "cost": "lower",
+      "time_to_evidence_days": "lower"
+    },
+    "options": [
+      {
+        "id": "bounded-pilot",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 2,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "large-team",
+        "admissibility": "ADMISSIBLE",
+        "fatal_defect": false,
+        "factors": {
+          "cost": {
+            "value": 4,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 3,
+            "status": "HYPOTHESIS"
+          }
+        }
+      },
+      {
+        "id": "inadmissible-fast",
+        "admissibility": "INADMISSIBLE",
+        "fatal_defect": true,
+        "factors": {
+          "cost": {
+            "value": 1,
+            "status": "HYPOTHESIS"
+          },
+          "time_to_evidence_days": {
+            "value": 5,
+            "status": "HYPOTHESIS"
+          }
+        }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "team-delivers-earlier",
+        "overrides": {
+          "large-team": {
+            "time_to_evidence_days": {
+              "value": 1,
+              "status": "HYPOTHESIS"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

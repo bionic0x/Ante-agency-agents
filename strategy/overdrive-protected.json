@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "purpose": "Paths a self-improvement proposal may not modify. Changing them needs a separate, human-authored pull request (strategy/NEXUS-OVERDRIVE.md).",
+  "protected": [
+    "strategy/overdrive-protected.json",
+    "strategy/NEXUS-OVERDRIVE.md",
+    "strategy/NEXUS-MEASUREMENT-PROTOCOL.md",
+    "strategy/NEXUS-CASEPACK-AUTHORING.md",
+    "strategy/GENERAL-STRATEGY-DOCTRINE.md",
+    "strategy/contracts.json",
+    "examples/nexus/evaluation-cases.json",
+    "examples/nexus/budget-policies.json",
+    "examples/nexus/host-trials.json",
+    "examples/nexus/host-judgments.json",
+    "scripts/nexus-instance.py",
+    "scripts/evaluate-nexus.py",
+    "scripts/nexus-blind.py",
+    "scripts/nexus-casepack.py",
+    "scripts/nexus-trial.py",
+    "scripts/nexus-improve.py",
+    "scripts/nexus-campaign.py",
+    "scripts/test-*.py",
+    "scripts/test-*.sh",
+    "scripts/verify-release.sh",
+    ".github/**"
+  ],
+  "held_out_packs": "examples/nexus/casepacks/*/ whose pack.json declares split held_out, at the base or the head of the proposal"
+}

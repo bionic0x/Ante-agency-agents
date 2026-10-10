@@ -52,6 +52,14 @@ jobs:
           python3 scripts/test-nexus-anthropic.py
           python3 scripts/test-nexus-pilot.py
 
+      - name: Validate NEXUS Overdrive case packs, trial runner and improvement gate
+        run: |
+          python3 scripts/test-nexus-casepack.py
+          python3 scripts/test-nexus-trial.py
+          python3 scripts/test-nexus-improve.py
+          python3 scripts/test-nexus-campaign.py
+          for pack in examples/nexus/casepacks/*/; do python3 scripts/nexus-casepack.py verify "$pack"; done
+
       - name: Keep HTP Gate 0 handoffs single-network and non-executing
         run: |
           python3 scripts/check-htp-gate0.py
