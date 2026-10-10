@@ -60,27 +60,8 @@ jobs:
       - name: Refuse symlinked conversion output directories
         run: bash scripts/test-convert-symlink-output.sh
 
-      - name: Temporary manifest regeneration (CI diagnostic; removed before merge)
-        run: |
-          bash scripts/test-convert-outputs.sh --update
-          python3 - <<'PY'
-          import pathlib, subprocess
-          old = subprocess.check_output(["git", "show", "HEAD:scripts/convert-outputs.sha256"], text=True)
-          new = pathlib.Path("scripts/convert-outputs.sha256").read_text()
-          def mapping(s):
-              out = {}
-              for line in s.splitlines():
-                  parts = line.split("\t")
-                  if len(parts) == 3 and parts[0] in ("agent","tool","contract"):
-                      out[(parts[0],parts[1])] = line
-              return out
-          a, b = mapping(old), mapping(new)
-          for key in sorted(set(a) | set(b)):
-              if a.get(key) != b.get(key):
-                  if key in b: print("MANIFEST_DELTA:" + b[key])
-                  else: print("MANIFEST_REMOVED:" + repr(key))
-          PY
-
+      - name: Validate converted outputs (round-trip, strict parse, counts, drift)
+        run: bash scripts/test-convert-outputs.sh
 
       - name: Parse indented code fences like lib.sh in the outputs eval
         run: bash scripts/test-convert-fence-model.sh
