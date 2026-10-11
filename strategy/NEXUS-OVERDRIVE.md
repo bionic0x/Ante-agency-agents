@@ -112,7 +112,13 @@ pack falls with fatal defects and constraint violations no worse than Phase 1.
   every linter warning is accepted by code; `verify` checks the pin later. A
   planner that returns anything besides tasks is refused.
 
-Still to build: the profile optimizer. Agents propose profile
+- **Profile optimizer** (`scripts/nexus-optimize.py`, protected): proposes a
+  body-only edit to one profile from development-split feedback. It refuses
+  held-out evidence, any frontmatter change, a body change above the size bound, a
+  dropped core section, and overfitting (naming an evidence pack or copying eight
+  consecutive words of its materials). It writes a patch; it never commits.
+
+Agents propose profile
 and runbook edits, scored on development packs and admitted only through the
 improvement gate on held-out packs. **Exit:** owner events per closed instance
 fall with no regression in judged metrics. **Kill:** the owner can no longer

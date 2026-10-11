@@ -1,5 +1,22 @@
 # Changelog
 
+## NEXUS Overdrive: profile optimizer — 2026-10-11
+
+- Add `scripts/nexus-optimize.py` (Phase 3, protected from self-improvement
+  proposals). It proposes a body-only edit to one agent profile from
+  development-split feedback and writes a patch; it never commits or merges.
+  Refused: held-out evidence, frontmatter changes, body changes above
+  `--max-change` (30%), a dropped Identity/Core Mission/Critical Rules section, a
+  proposal that names an evidence pack or copies eight consecutive words of its
+  materials, and an unchanged body. One refusal is fed back; every attempt is kept.
+- Live checks on claude-opus-5-5 (about $0.58). The first run was refused twice:
+  the body grew 36%, and then the reply's outer fence was shorter than the profile's
+  own code blocks. With longer outer fences accepted and requested, the next run
+  proposed a 28% edit on its first attempt: a measure audit (activity, proxy,
+  outcome), an incentive-gaming check, and an outcome guardrail for each proxy. It
+  was not applied; admission needs the held-out gate.
+- Add 12 tests.
+
 ## NEXUS Overdrive: planner agent — 2026-10-11
 
 - Add `scripts/nexus-plan.py` (Phase 3). The owner writes an objective file

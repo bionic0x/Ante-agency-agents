@@ -20,6 +20,7 @@
     "scripts/nexus-improve.py",
     "scripts/nexus-campaign.py",
     "scripts/nexus-review.py",
+    "scripts/nexus-optimize.py",
     "scripts/test-*.py",
     "scripts/test-*.sh",
     "scripts/verify-release.sh",
