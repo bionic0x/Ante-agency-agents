@@ -1,0 +1,64 @@
+{
+  "id": "SYNTHETIC-STRATEGIC-DECISION-001",
+  "runbook_ref": "strategic-decision",
+  "mandate": {
+    "owner": "fixture-owner",
+    "reviewers": [
+      "fixture-reviewer"
+    ],
+    "authority_ref": "synthetic fixture; no live authority",
+    "scope": "offline-analysis",
+    "expires": "2030-01-01T00:00:00Z"
+  },
+  "objective": {
+    "id": "PURPOSE-1",
+    "purpose": "Choose a supportable bounded course of action",
+    "non_object": "Maximize completed tasks or agent calls",
+    "success_condition": "The owner can reconstruct evidence, alternatives, limits and conservation",
+    "constraints": [
+      "No external actions; synthetic data only"
+    ]
+  },
+  "budget": {
+    "cost_limit": 10,
+    "reserve": 2,
+    "deadline": "2030-01-01T00:00:00Z",
+    "unit": "synthetic-cost-units"
+  },
+  "claims": [
+    {
+      "id": "CLM-1",
+      "revision": 1,
+      "statement": "Synthetic decision premise; not external evidence",
+      "status": "HYPOTHESIS",
+      "scope": "shared",
+      "source_refs": [
+        "fixture-source-note"
+      ],
+      "source_roots": [
+        "fixture-source"
+      ],
+      "depends_on": [],
+      "expires": "2030-01-01T00:00:00Z"
+    },
+    {
+      "id": "CLM-2",
+      "revision": 1,
+      "statement": "Synthetic decision premise; not external evidence",
+      "status": "HYPOTHESIS",
+      "scope": "shared",
+      "source_refs": [
+        "fixture-source-note"
+      ],
+      "source_roots": [
+        "fixture-source"
+      ],
+      "depends_on": [
+        "CLM-1"
+      ],
+      "expires": "2030-01-01T00:00:00Z"
+    }
+  ],
+  "decision_state": "PROCEED",
+  "brief": "A material decision needs a bounded course of action. Test the causal claim behind the leading option, trace whether its evidence comes from independent sources, and integrate both into one decision with stated limits and what would change it."
+}

@@ -1,5 +1,20 @@
 # Changelog
 
+## NEXUS Overdrive: planner agent — 2026-10-11
+
+- Add `scripts/nexus-plan.py` (Phase 3). The owner writes an objective file
+  (`examples/nexus/planner-objective.example.json`); the planner agent drafts only
+  the task graph; the tool assembles the instance, feeds engine refusals back for at
+  most two repairs and lints the result. A planner that sets anything besides tasks
+  is refused. `adopt` pins the instance hash under the mandate owner and requires
+  each linter warning to be accepted by code; `verify` checks the pin.
+- Live check on claude-opus-5-5: the first call drafted five tasks, with two
+  independent pairs that assert the same keys under different agents, plus a
+  synthesis that used the whole ordinary budget. The engine refused one field type
+  and the repair passed (about $0.21). With a typed example task in the prompt, the
+  next draft was valid on its first attempt (about $0.11).
+- Add 9 tests.
+
 ## NEXUS Overdrive: reviewer kit and decision brief — 2026-10-11
 
 - Add `scripts/nexus-review.py`. `kit` turns a sealed review packet into scoring

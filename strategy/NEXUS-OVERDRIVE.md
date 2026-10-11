@@ -104,7 +104,15 @@ pack falls with fatal defects and constraint violations no worse than Phase 1.
   admitted now, flags shared models and source roots, and keeps every owner and
   reviewer event with its stated reason. It decides nothing.
 
-Still to build: the planner agent and the profile optimizer. Agents propose profile
+- **Planner agent** (`scripts/nexus-plan.py`): the owner writes the objective
+  file (runbook, mandate, objective, budget, claims, a prose brief); the planner
+  (`agents-orchestrator`) drafts only the task graph. The tool assembles the
+  instance, feeds engine refusals back for at most two repairs, and lints it.
+  `adopt` pins the instance hash under the mandate owner's name and refuses unless
+  every linter warning is accepted by code; `verify` checks the pin later. A
+  planner that returns anything besides tasks is refused.
+
+Still to build: the profile optimizer. Agents propose profile
 and runbook edits, scored on development packs and admitted only through the
 improvement gate on held-out packs. **Exit:** owner events per closed instance
 fall with no regression in judged metrics. **Kill:** the owner can no longer
