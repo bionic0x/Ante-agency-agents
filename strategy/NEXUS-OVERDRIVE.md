@@ -97,7 +97,14 @@ pack falls with fatal defects and constraint violations no worse than Phase 1.
 
 ### Phase 3 — Autonomy with human gates
 
-Planner agent, decision brief and the profile optimizer: agents propose profile
+- **Decision brief** (`scripts/nexus-brief.py`, `nexus-trial.py brief`): built
+  from the instance and its event log only. It lists what waits on the owner
+  (conflicts, dissent, holds, challenger gates, claim reviews, pending results),
+  asks the engine whether `close` and a sufficient-result termination would be
+  admitted now, flags shared models and source roots, and keeps every owner and
+  reviewer event with its stated reason. It decides nothing.
+
+Still to build: the planner agent and the profile optimizer. Agents propose profile
 and runbook edits, scored on development packs and admitted only through the
 improvement gate on held-out packs. **Exit:** owner events per closed instance
 fall with no regression in judged metrics. **Kill:** the owner can no longer

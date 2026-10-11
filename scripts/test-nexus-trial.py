@@ -231,6 +231,16 @@ class TrialTests(unittest.TestCase):
             tr.start(self.pack, 'single_agent', 'x', 'claude-test', 'p', self.policies, 'op-1', self.base / 'runs',
                      self.base / 'art', self.base / 'parallel-trials.json', tr.fake_executor)
 
+    def test_the_owner_brief_shows_a_conflict_before_synthesis(self):
+        self.run_variant('nexus_instance')
+        self.accept('A', use_proposed=True)
+        self.accept('B', asserts={'diagnosis.kpi_tracks_outcome': False})
+        text = tr.run_brief(self.run_dir('nexus_instance'))
+        self.assertIn('ASSERTION_CONFLICT', text)
+        self.assertIn('resolve_conflict', text)
+        with self.assertRaisesRegex(tr.TrialError, 'only nexus_instance'):
+            self.run_variant('single_agent'); tr.run_brief(self.run_dir('single_agent'))
+
     def test_cli_fake_run(self):
         code = tr.main(['run', '--pack', str(self.pack), '--variant', 'single_agent', '--trial-id', 'cli',
                         '--model', 'claude-test', '--policy', 'p', '--policies', str(self.policies),

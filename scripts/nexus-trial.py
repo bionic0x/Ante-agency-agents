@@ -24,6 +24,7 @@ once, up to --max-parallel). A trials file records one schedule in a
     nexus-trial.py owner-event --run DIR --event JSON   # resolve_conflict, dissent_response, decision...
     nexus-trial.py resume --run DIR
     nexus-trial.py status --run DIR
+    nexus-trial.py brief  --run DIR [--json]   # what is waiting on the owner, and why
 
 A finished run writes exactly one row to --trials, in the format evaluate-nexus.py
 accepts, and one artifact named after an opaque submission id for nexus-blind.py.
@@ -552,6 +553,16 @@ def resume(run_dir, executor=None):
     return finish_if_done(run)
 
 
+def run_brief(run_dir, as_json=False):
+    """scripts/nexus-brief.py over this run's instance and event log, as of now."""
+    run = Run(run_dir)
+    require(run.state['variant'] == 'nexus_instance', 'only nexus_instance runs have a decision brief')
+    brief = _module('brief_for_trial', ROOT / 'scripts/nexus-brief.py')
+    pack = run.pack()
+    result = brief.brief(read_json(run.pack_dir / pack['nexus_instance']), nexus_events(run), iso(now()))
+    return json.dumps(result, indent=2, ensure_ascii=False) + '\n' if as_json else brief.markdown(result)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='command', required=True)
@@ -571,11 +582,16 @@ def main(argv=None):
     o.add_argument('--executor', choices=('claude', 'fake'), default='claude')
     s = sub.add_parser('resume'); s.add_argument('--run', required=True); s.add_argument('--executor', choices=('claude', 'fake'), default='claude')
     t = sub.add_parser('status'); t.add_argument('--run', required=True)
+    b = sub.add_parser('brief', help='the owner decision brief for a nexus_instance run')
+    b.add_argument('--run', required=True); b.add_argument('--json', action='store_true')
     args = ap.parse_args(argv)
 
     def executor_for(operator):
         return fake_executor if args.executor == 'fake' else claude_executor(operator)
     try:
+        if args.command == 'brief':
+            print(run_brief(args.run, as_json=args.json), end='')
+            return 0
         if args.command == 'run':
             state = start(args.pack, args.variant, args.trial_id, args.model, args.policy, args.policies, args.operator,
                           args.runs, args.artifacts, args.trials, executor_for(args.operator),

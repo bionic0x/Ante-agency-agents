@@ -65,6 +65,8 @@ jobs:
           python3 scripts/test-nexus-improve.py
           python3 scripts/test-nexus-campaign.py
           python3 scripts/test-nexus-lint.py
+          python3 scripts/test-nexus-review.py
+          python3 scripts/test-nexus-brief.py
           python3 scripts/nexus-lint.py examples/nexus/strategic-decision.instance.json
           for pack in examples/nexus/casepacks/*/; do python3 scripts/nexus-casepack.py verify "$pack"; done
 
