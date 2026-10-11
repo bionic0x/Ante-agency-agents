@@ -114,10 +114,19 @@ def _evaluate(trials_path, judgments_path):
 
 
 def _held_out_hashes(pack_root, improvers=()):
+    # Same mechanical exposure guards as nexus-campaign.py: a proposal judged on
+    # public or copied cases has not been judged on unseen evidence.
+    located = CASEPACK.exposure(pack_root)
+    if located:
+        raise GateError(located[0])
+    published = CASEPACK.published_materials()
     hashes = {}
     for pack_json in sorted(Path(pack_root).glob('*/pack.json')):
         pack = CASEPACK.verify(pack_json.parent)
         if pack['split'] == 'held_out':
+            copied = CASEPACK.exposure(pack_root, pack_json.parent, pack, published)
+            if copied:
+                raise GateError(copied[0])
             hashes[pack['frozen']['inputs_hash']] = pack['id']
             written = {pack['author'], pack['frozen']['frozen_by']} & set(improvers)
             if written:

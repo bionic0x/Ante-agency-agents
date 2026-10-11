@@ -32,4 +32,12 @@ for opt in --tool --out --parallel --jobs; do
     || fail "convert.sh --help does not describe $opt"
 done
 
-echo "PASS: unknown options exit non-zero with usage on stderr; --help documents every convert.sh option"
+# Every converted tool in the registry must be documented: the help text is
+# hand-written and once omitted dsh.
+while IFS= read -r tool; do
+  [[ -n "$tool" ]] || continue
+  grep -q -- "^  $tool " <(bash "$SCRIPT_DIR/convert.sh" --help) \
+    || fail "convert.sh --help does not list registered tool $tool"
+done < <(python3 "$SCRIPT_DIR/registry.py" tools "$SCRIPT_DIR/../tools.json" --converted)
+
+echo "PASS: unknown options exit non-zero with usage on stderr; --help documents every convert.sh option and tool"

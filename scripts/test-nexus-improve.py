@@ -98,6 +98,9 @@ class CompareGateTests(unittest.TestCase):
             data = json.loads((target / 'pack.json').read_text()); data.pop('frozen'); data['split'] = 'held_out'
             data['author'] = 'independent-author'
             (target / 'pack.json').write_text(json.dumps(data))
+            for name in data['materials']:  # verbatim published material is refused as exposed
+                with open(target / name, 'a', encoding='utf-8') as out:
+                    out.write('\n<!-- test fixture -->\n')
             cp.freeze(target, 'independent-author', AT)
         self.policies = self.base / 'policies.json'
         self.policies.write_text(json.dumps({'schema_version': 1, 'policies': {'p': {
@@ -180,6 +183,19 @@ class CompareGateTests(unittest.TestCase):
         decision, _, _ = imp.compare('nexus_instance', self.held, {}, (b, self.judge('b', b, {'nexus_instance': 1})),
                                      (c, self.judge('c', c)), improvers=['profile-optimizer'])
         self.assertEqual('PROPOSE', decision)
+
+    def test_public_or_copied_packs_cannot_judge_a_proposal(self):
+        b = self.record('b'); c = self.record('c')
+        args = ({}, (b, self.judge('b', b, {'nexus_instance': 1})), (c, self.judge('c', c)))
+        with self.assertRaisesRegex(imp.GateError, 'public repository checkout'):
+            imp.compare('nexus_instance', PACKS, *args)
+        copied = self.base / 'copied'
+        target = copied / 'verbatim'
+        shutil.copytree(PACKS / 'harbor-pricing-intent', target)
+        data = json.loads((target / 'pack.json').read_text()); data.pop('frozen'); data['id'] = 'verbatim'
+        (target / 'pack.json').write_text(json.dumps(data)); cp.freeze(target, 'independent-author', AT)
+        with self.assertRaisesRegex(imp.GateError, 'published in this repository'):
+            imp.compare('nexus_instance', copied, *args)
 
     def test_tolerances_cannot_name_unknown_metrics(self):
         b = self.record('b'); c = self.record('c')

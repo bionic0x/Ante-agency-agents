@@ -17,7 +17,8 @@ fail() { echo "FAIL: $*" >&2; sed 's/^/    /' "$tmp/output" >&2; exit 1; }
 mkdir -p "$tmp/repo/scripts" "$tmp/repo/engineering" \
   "$tmp/repo/integrations/gemini-cli/agents" "$tmp/repo/integrations/qwen/agents" \
   "$tmp/home/project"
-cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$tmp/repo/scripts/"
+cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$tmp/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$tmp/repo/"  # runtime registries (scripts/registry.py)
 cat > "$tmp/repo/divisions.json" <<'EOF'
 {
   "divisions": {

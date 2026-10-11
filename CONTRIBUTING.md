@@ -39,10 +39,11 @@ Have an idea for a specialized agent? Great! Here's how to add one:
 
    > **Divisions are defined by `divisions.json`** (repo root) — the single source of
    > truth for the division set, validated in CI by `scripts/check-divisions.sh`.
-   > **Proposing a new division** means: create the directory, add an entry to
-   > `divisions.json` (label/icon/color), and add it to `AGENT_DIRS` in both
-   > `scripts/convert.sh` and `scripts/lint-agents.sh`. The check fails the build
-   > unless all of these agree and the directory contains at least one agent file.
+   > **Proposing a new division** means: create the directory and add an entry to
+   > `divisions.json` (label/icon/color). `convert.sh`, `lint-agents.sh` and
+   > `install.sh` read the division list through `scripts/registry.py`, so there is
+   > no second list to edit. The check fails the build unless the directories on
+   > disk match `divisions.json` and each one contains at least one agent file.
    >
    > Note: `strategy/` (NEXUS playbooks/runbooks — no agent frontmatter),
    > `integrations/` (generated per-tool output from `convert.sh`) and `relay/`
@@ -156,7 +157,7 @@ Advanced techniques and approaches the agent masters
 ```
 
 **About `color`.** A `#RRGGBB` value always works. A color *name* only works if
-`resolve_opencode_color()` in `scripts/convert.sh` knows it — anything else is
+`resolve_opencode_color()` in `scripts/convert-engine.sh` knows it — anything else is
 silently rewritten to grey in the OpenCode integration, which reads as a choice
 rather than a mistake. `scripts/lint-agents.sh` reads that list straight out of
 the converter, rejects a name that is not in it, and prints the names that are.
@@ -243,11 +244,11 @@ Want agency-agents to install into a new tool (a CLI, editor, or agent runtime)?
 **The checklist:**
 
 1. **`tools.json`** — add an entry with `id`, `label`, `kebab`, `format`, `installKind`, `dest`, plus detect/version/scope and display fields. **Reuse an existing `format`** if your tool's rendered files are byte-identical to another's (e.g. tools that consume `SKILL.md` share `"format": "skill-md"` — no new renderer needed). Set `installKind` to `per-agent`, `roster`, or `plugin`. Set `icon` to `null` unless the [app](https://github.com/msitarzewski/agency-agents-app) ships a brand SVG for it.
-2. **`scripts/convert.sh`** — add a `convert_<tool>()` (or reuse a shared `format` renderer) and wire it into the tool list + `--help`.
-3. **`scripts/install.sh`** — add an `install_<tool>()` and register it in `ALL_TOOLS` + detection/labeling + `--help`.
+2. **`scripts/convert-engine.sh`** — add a `convert_<tool>()` (or reuse a shared `format` renderer), dispatch it in `run_conversions()`, and list it in the usage block between the `USAGE-START`/`USAGE-END` sentinels. `convert.sh` reads the tool list from `tools.json`; `scripts/test-cli-usage.sh` fails if `--help` omits a registered tool.
+3. **`scripts/install.sh`** — add an `install_<tool>()` and its cases in `install_tool()` and `is_detected()`, plus its line in the usage block. `ALL_TOOLS` is read from `tools.json`; do not edit it by hand.
 4. **`.gitignore`** — add a rule for your tool's generated output under `integrations/<tool>/`. **This step is required and easy to miss.** Converted agent/skill files are generated locally by `convert.sh` and are **never committed** (see "Things we'll always close" below) — only `integrations/<tool>/README.md` is tracked. Match an existing per-tool entry.
 5. **`integrations/<tool>/README.md`** — a short doc for the integration (every tool has one; it's the only committed file in the tool's directory).
-6. **Run `./scripts/check-tools.sh`** — it must pass. It cross-checks `tools.json` against `install.sh` and `convert.sh` and flags anything missing.
+6. **Run `./scripts/check-tools.sh`** — it must pass. It cross-checks `tools.json` against the installer, detector and converter dispatch in `install.sh` and `convert-engine.sh` and flags anything missing.
 7. **Run `./scripts/test-install.sh`** — it must pass. It installs into throwaway
    sandboxes (never your real `$HOME`) and pins the installer's observable
    contract: where files land, that `--path` beats the tool's env var, that

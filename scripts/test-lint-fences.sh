@@ -117,7 +117,9 @@ fi
 #    belongs in AGENTS.md; on the old helper it stayed inside the open SOUL
 #    section and AGENTS.md lost it.
 mkdir -p "$FIXTURE/repo/scripts" "$FIXTURE/repo/engineering" "$FIXTURE/output"
-cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$FIXTURE/repo/scripts/"
+cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$SCRIPT_DIR/convert-engine.sh" "$SCRIPT_DIR/integration-state.py" "$FIXTURE/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$FIXTURE/repo/"  # runtime registries (scripts/registry.py)
+printf '{"divisions": {"engineering": {}}}\n' > "$FIXTURE/repo/divisions.json"
 cat > "$FIXTURE/repo/engineering/fence-fixture.md" <<'EOF'
 ---
 name: Fence Fixture
