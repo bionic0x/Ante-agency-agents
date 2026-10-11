@@ -509,7 +509,7 @@
       "title": "Investment Hypothesis Validation",
       "mode": "NEXUS-Sprint",
       "duration": "hypothesis-dependent",
-      "summary": "Take a macro or cross-asset investment hypothesis from a written card to an independent validation verdict, with point-in-time data, walk-forward testing net of costs, alpha-versus-beta attribution, stress, and paper tracking before it can influence capital.",
+      "summary": "Take a macro or cross-asset investment hypothesis from a written card to an independent validation verdict, with point-in-time data, walk-forward testing net of costs, alpha-versus-beta attribution, stress, and paper tracking before it can influence capital. Optional specialists add research-data integrity, on-chain market structure, token economics, catalyst analysis, independent thesis challenge and mandate-bound risk analysis.",
       "governing_object": "Give the accountable decision owner an independently validated verdict on a written investment hypothesis, stating what the evidence shows net of costs and against a beta-matched benchmark, what would retire it, and whether it may proceed to paper tracking or decision support.",
       "non_object": "Optimize an attractive backtest, rescue a failing idea with new parameters, place orders, size positions without a mandate, or treat a favourable regime call as evidence of alpha.",
       "decision_owner": "Named human owner of the capital or portfolio mandate; the only party who can override a validator REJECT, with reason, evidence and expiry",
@@ -543,7 +543,13 @@
           "agents": [
             "finance-investment-researcher",
             "strategic-red-team",
-            "support-legal-compliance-checker"
+            "support-legal-compliance-checker",
+            "finance-market-data-research-integrity",
+            "finance-portfolio-risk-allocation-architect",
+            "finance-onchain-capital-flows-market-structure",
+            "finance-protocol-fundamentals-token-value-capture",
+            "finance-catalyst-expectations-analyst",
+            "finance-investment-thesis-challenger"
           ]
         }
       ]

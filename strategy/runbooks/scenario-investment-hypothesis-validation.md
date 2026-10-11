@@ -45,7 +45,7 @@ In an instance, every proposer task needs a challenger task that depends on it a
 | Group | Agents | Activation |
 |---|---|---|
 | Proposal and Validation | Strategic Assurance Lead, Macro Regime Alpha, Quant Research and Alpha Validation | Always |
-| Decision Support | Investment Researcher, Strategic Red Team, Legal Compliance Checker | When the hypothesis needs fundamental context, an adversarial review of the mechanism, or a regulatory read on the instrument |
+| Decision Support | Investment Researcher, Market Data & Research Integrity, On-Chain Capital Flows & Market Structure, Protocol Fundamentals & Token Value Capture, Catalyst & Expectations Analyst, Investment Thesis Challenger, Portfolio Risk & Allocation Architect, Strategic Red Team, Legal Compliance Checker | Activate only for material data, chain flow, fundamentals, event, independent challenge, mandate-risk or legal dependencies. No execution. |
 
 ## Boundary
 
@@ -54,3 +54,13 @@ This roster is excluded from the HTP Gate 0 runbook (`excluded_runbooks` in the 
 ## Termination
 
 Close when every submitted hypothesis has a recorded verdict and the owner's resulting decision with falsifiers and a review date. Terminate as `REJECT` or `REDESIGN` when leakage, cost or out-of-sample results are fatal. An expired override returns the hypothesis to the validator.
+
+## Optional Alpha Research Suite handoffs
+
+The [Alpha Research Suite operating contract](../alpha-research-suite/README.md) governs versioned handoffs, as-of cutoffs, corrections, abstention and the separation of suite statuses from canonical NEXUS states.
+
+1. Market Data & Research Integrity supplies point-in-time, versioned records. `QUARANTINED` critical inputs block the affected research use.
+2. Macro frames the hypothesis; On-Chain, Fundamentals and Catalyst provide supporting evidence only when material. None can approve the hypothesis it helped create.
+3. Quant independently validates Macro and records the **mandatory P8 verdict**. Investment Thesis Challenger may separately examine causal premises, alternatives and coherence; its `PASS_TO_NEXT_REVIEW` never overrides Quant.
+4. Portfolio Risk reviews exposures only against a user-confirmed mandate; missing holdings, loss limits or leverage constraints block individualized sizing. Hypothetical scenarios must be labelled.
+5. The human owner receives evidence, alternatives (including no action), risk findings, unresolved conditions and review triggers. No agent gains transaction-signing, order placement, custody or autonomous capital authority.
