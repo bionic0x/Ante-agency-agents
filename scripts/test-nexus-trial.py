@@ -171,6 +171,13 @@ class TrialTests(unittest.TestCase):
         with self.assertRaisesRegex(tr.TrialError, 'cannot share a trials file'):
             self.run_variant('single_agent')
 
+    def test_budget_policy_must_be_finite(self):
+        for bad in (float('inf'), True, 0, -1):
+            with self.subTest(value=bad):
+                self.policy(max_cost_usd=bad)
+                with self.assertRaisesRegex(tr.TrialError, 'positive finite'):
+                    tr.load_policy(self.policies, 'p')
+
     # --- Phase 2: parallel schedule ---------------------------------------------------------
 
     def run_parallel(self, trial='p1', pack=None, trials=None, **kw):

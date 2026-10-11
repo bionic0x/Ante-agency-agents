@@ -125,6 +125,14 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(config.ConfigError, "https"):
             config.parse(raw_config(self.tmp, model={"upstream": "http://a.test", "api_key_env": "K", "cost_unit": "tokens"}), self.tmp)
 
+    def test_prices_must_be_finite_non_negative_numbers(self):
+        model = {"upstream": "https://a.test", "api_key_env": "K", "cost_unit": "usd"}
+        for bad in (float("inf"), float("nan"), True, -1, "3"):
+            with self.subTest(value=bad), self.assertRaisesRegex(config.ConfigError, "model.prices.m"):
+                config.parse(raw_config(self.tmp, model={**model, "prices": {"m": {"input": bad, "output": 15}}}), self.tmp)
+        cfg = config.parse(raw_config(self.tmp, model={**model, "prices": {"m": {"input": 3, "output": 15.5}}}), self.tmp)
+        self.assertEqual(15.5, cfg.model.prices["m"]["output"])
+
     def test_load_refuses_group_readable_files(self):
         os.chmod(self.tmp, 0o755)
         with self.assertRaisesRegex(config.ConfigError, "permissions"):

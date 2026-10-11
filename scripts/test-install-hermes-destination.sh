@@ -10,7 +10,8 @@ home="$tmp/home"
 plugin="$home/.hermes/plugins/agency-agents-router"
 mkdir -p "$repo/scripts" "$repo/engineering" \
   "$repo/integrations/hermes/agency-agents-router/data" "$plugin"
-cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$repo/scripts/"
+cp "$SCRIPT_DIR/install.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$repo/"  # runtime registries (scripts/registry.py)
 cat > "$repo/divisions.json" <<'EOF'
 {
   "divisions": {

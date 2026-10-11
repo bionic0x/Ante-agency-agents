@@ -6,9 +6,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FIXTURE="$(mktemp -d "${TMPDIR:-/tmp}/agency-convert-failure.XXXXXX")"
 trap 'rm -rf "$FIXTURE"' EXIT
 
-# An empty roster makes this fast. Hermes intentionally lacks its builder.
-mkdir -p "$FIXTURE/repo/scripts"
-cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$FIXTURE/repo/scripts/"
+# A one-division roster with no agents makes this fast. Hermes intentionally
+# lacks its builder.
+mkdir -p "$FIXTURE/repo/scripts" "$FIXTURE/repo/engineering"
+printf '{"divisions": {"engineering": {}}}\n' > "$FIXTURE/repo/divisions.json"
+cp "$SCRIPT_DIR/convert.sh" "$SCRIPT_DIR/lib.sh" "$SCRIPT_DIR/registry.py" "$SCRIPT_DIR/convert-engine.sh" "$SCRIPT_DIR/integration-state.py" "$FIXTURE/repo/scripts/"
+cp "$SCRIPT_DIR/../tools.json" "$FIXTURE/repo/"  # runtime registries (scripts/registry.py)
 
 status=0
 TMPDIR="$FIXTURE" "$FIXTURE/repo/scripts/convert.sh" \
