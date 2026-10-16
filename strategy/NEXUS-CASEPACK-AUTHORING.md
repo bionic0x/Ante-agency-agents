@@ -86,6 +86,17 @@ python3 scripts/nexus-campaign.py status --held-out examples/nexus/casepacks \
 
 `plan` prints every missing run and its spend ceiling. It spends nothing. Each
 run is started by an operator. Seal the artifacts with `scripts/nexus-blind.py`
-before review. `status` returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`
+before review, then build the reviewer's kit and collect the returned sheets:
+
+```bash
+python3 scripts/nexus-review.py kit --sealed <review dir> --trials <campaign dir>/trials.json \
+    --packs <private pack root> --out <kit dir>
+# the reviewer fills <kit dir>/sheets/*.json against the rubric, never seeing the trials file
+python3 scripts/nexus-review.py collect --kit <kit dir> --reviewer <name> \
+    --judged-at <ISO time> --out <judgments file> --trials <campaign dir>/trials.json
+```
+
+The kit gives each sheet your rubric and the case under an opaque key; nothing
+in it distinguishes the three variants of a pack. `status` returns `INCOMPLETE`, `PROCEED_TO_PHASE_2` or `REDIRECT`
 according to the exit and kill rules in the charter. Those rules are fixed in
 code before the results exist.

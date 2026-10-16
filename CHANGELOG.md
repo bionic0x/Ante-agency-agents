@@ -1,5 +1,19 @@
 # Changelog
 
+## NEXUS Overdrive: reviewer kit and decision brief — 2026-10-11
+
+- Add `scripts/nexus-review.py`. `kit` turns a sealed review packet into scoring
+  sheets built from each pack's rubric, with the case brief and materials under an
+  opaque key; nothing in the kit distinguishes the three variants of a pack.
+  `collect` refuses unfilled items or an artifact edited during review and writes
+  judgments `evaluate-nexus.py` accepts. Protected from self-improvement proposals.
+- Add `scripts/nexus-brief.py` (Phase 3) and `nexus-trial.py brief`: the owner's
+  decision brief from an instance and its event log. Lists what waits on the owner,
+  asks the engine whether closure would be admitted now through a probe event that
+  is never recorded, flags shared models and source roots, and keeps every owner and
+  reviewer event with its stated reason. It decides nothing.
+- Add 15 tests.
+
 ## Repository audit fixes — 2026-10-10
 
 - **Nine regression tests were not run anywhere** (neither CI nor the release gate) and
