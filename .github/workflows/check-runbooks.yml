@@ -67,6 +67,8 @@ jobs:
           python3 scripts/test-nexus-lint.py
           python3 scripts/test-nexus-review.py
           python3 scripts/test-nexus-brief.py
+          python3 scripts/test-nexus-plan.py
+          python3 scripts/nexus-plan.py draft --objective examples/nexus/planner-objective.example.json --out "$RUNNER_TEMP/plan" --executor fake
           python3 scripts/nexus-lint.py examples/nexus/strategic-decision.instance.json
           for pack in examples/nexus/casepacks/*/; do python3 scripts/nexus-casepack.py verify "$pack"; done
 
