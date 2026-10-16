@@ -161,9 +161,22 @@ def verify(pack_dir) -> dict:
     return pack
 
 
+def in_checkout(path) -> bool:
+    """True if `path` resolves (symlinks included) to this public checkout or below it."""
+    resolved, checkout = Path(path).resolve(), ROOT.resolve()
+    return resolved == checkout or checkout in resolved.parents
+
+
+PRIVATE_ROOT_HINT = ('a held-out pack is written and frozen in a private, evaluator-controlled directory '
+                     'outside this public checkout (strategy/NEXUS-CASEPACK-AUTHORING.md); '
+                     'use --split development for a public example')
+
+
 def freeze(pack_dir, by, at) -> dict:
     pack_dir, pack = load(pack_dir)
     require('frozen' not in pack, f"{pack['id']}: already frozen; a changed case is a new pack id")
+    require(not (pack.get('split') == 'held_out' and in_checkout(pack_dir)),
+            f"{pack['id']}: {PRIVATE_ROOT_HINT}")
     validate(pack_dir, pack)
     text(by, 'frozen_by')
     pack['frozen'] = {'inputs_hash': inputs_hash(pack_dir, pack), 'frozen_by': by, 'frozen_at': at}
@@ -181,6 +194,7 @@ def scaffold(pack_dir, author, case_ref, split='held_out', template=None) -> dic
     pack_dir = Path(pack_dir)
     require(not pack_dir.exists(), f'{pack_dir}: already exists; a new case needs a new directory')
     require(split in SPLITS, f'split must be one of {SPLITS}')
+    require(not (split == 'held_out' and in_checkout(pack_dir)), f'{pack_dir}: {PRIVATE_ROOT_HINT}')
     text(author, 'author')
     template = Path(template) if template else ROOT / 'examples/nexus/casepacks/level-inversion-northwind'
     _, source = load(template)
@@ -234,8 +248,7 @@ def exposure(root, pack_dir=None, pack=None, published=None) -> list[str]:
     control and prior exposure still need an evaluator's attestation.
     """
     reasons = []
-    resolved, checkout = Path(root).resolve(), ROOT.resolve()
-    if resolved == checkout or checkout in resolved.parents:
+    if in_checkout(root):
         reasons.append('held-out packs under the public repository checkout are exposed; use a separate '
                        'evaluator-controlled, access-restricted corpus (published sample packs cannot '
                        'establish a blind result)')

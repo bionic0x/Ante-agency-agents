@@ -1,5 +1,19 @@
 # Changelog
 
+## NEXUS Overdrive: held-out packs stay outside the repository — 2026-10-16
+
+- Fix `strategy/NEXUS-CASEPACK-AUTHORING.md`. Its steps created held-out packs
+  under `examples/nexus/casepacks/`, asked authors to submit them in a pull
+  request, and ran the campaign on that root, contradicting its own isolation
+  section and a root the campaign refuses. The steps now use a private
+  `$HELD_OUT` directory outside the checkout, add the linter and `list`, and say
+  never to commit or post a held-out pack.
+- `nexus-casepack.py new` and `freeze` now refuse a `held_out` pack whose
+  directory resolves inside the checkout (symlinks included), so the mistake
+  stops at the author's first command instead of at campaign time.
+  `--split development` is unaffected. Three regression tests, one of which keeps
+  the guide's commands out of the repository.
+
 ## Upstream synchronization and MCP advisory remediation — 2026-10-16
 
 - Merge 48 commits from `msitarzewski/agency-agents:main` with upstream ancestry preserved. Keep the fork's NEXUS, HTP, Relay, Alpha Research Suite and custom agents; apply upstream's source fixes to 26 files and regenerate the conversion manifest for the 21 changed agent profiles.
