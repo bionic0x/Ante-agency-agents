@@ -145,3 +145,7 @@ jobs:
       - name: Reject folded frontmatter fixtures
         if: steps.rules.outputs.changed == 'true'
         run: bash scripts/test-folded-frontmatter.sh
+
+      - name: Reject Qwen launch placeholders
+        if: steps.rules.outputs.changed == 'true'
+        run: bash scripts/test-lint-qwen-placeholders.sh

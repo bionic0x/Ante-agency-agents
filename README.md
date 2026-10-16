@@ -1237,6 +1237,8 @@ See [integrations/openclaw/README.md](integrations/openclaw/README.md) for detai
 
 SubAgents are installed to `.qwen/agents/` in your project root (project-scoped).
 
+> Requires Qwen Code 0.25.1 or later. Earlier releases can't launch agents whose code examples contain `${…}` placeholders ([#1081](https://github.com/msitarzewski/agency-agents/issues/1081)).
+
 ```bash
 # Convert and install (run from your project root)
 cd /your/project
