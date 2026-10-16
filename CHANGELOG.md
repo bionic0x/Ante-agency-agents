@@ -1,5 +1,10 @@
 # Changelog
 
+## Upstream synchronization and MCP advisory remediation — 2026-10-16
+
+- Merge 48 commits from `msitarzewski/agency-agents:main` with upstream ancestry preserved. Keep the fork's NEXUS, HTP, Relay, Alpha Research Suite and custom agents; apply upstream's source fixes to 26 files and regenerate the conversion manifest for the 21 changed agent profiles.
+- Update Semgrep's hash-pinned transitive `mcp` dependency from 1.29.0 to 1.30.0 (upstream-compatible minor update) in response to GHSA-84m7-p3x7-pcfv / CVE-2026-59951; artifact SHA-256 digests verified against PyPI. No scanner suppression or waived security gate.
+
 ## NEXUS Overdrive: profile optimizer — 2026-10-11
 
 - Add `scripts/nexus-optimize.py` (Phase 3, protected from self-improvement
