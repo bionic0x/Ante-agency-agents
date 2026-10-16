@@ -57,29 +57,43 @@ claim of independent superiority.
 
 ## Steps
 
+Work in a private directory outside this checkout, for example
+`~/nexus-held-out`, on storage the improver cannot read. `<case id>` is an `id`
+from `examples/nexus/evaluation-cases.json`.
+
 ```bash
-python3 scripts/nexus-casepack.py new examples/nexus/casepacks/<new-id> \
+export HELD_OUT=~/nexus-held-out    # private, outside the repository
+python3 scripts/nexus-casepack.py new "$HELD_OUT/<new-id>" \
     --author "<your name>" --case-ref <case id>
 # replace every TODO in pack.json, add materials, rewrite instance.json
-python3 scripts/nexus-casepack.py validate examples/nexus/casepacks/<new-id>
-python3 scripts/nexus-casepack.py freeze examples/nexus/casepacks/<new-id> \
+python3 scripts/nexus-lint.py "$HELD_OUT/<new-id>/instance.json"
+python3 scripts/nexus-casepack.py validate "$HELD_OUT/<new-id>"
+python3 scripts/nexus-casepack.py freeze "$HELD_OUT/<new-id>" \
     --by "<your name>" --at <ISO-8601 time with zone>
+python3 scripts/nexus-casepack.py list "$HELD_OUT"
 ```
 
-Validation refuses any field that still starts with `TODO`. Run
-`python3 scripts/nexus-lint.py examples/nexus/casepacks/<new-id>/instance.json`
-on the rewritten instance: a shared key that only one task asserts cannot
-produce the disagreement the case may be testing. Once frozen, a pack
-cannot be edited; a changed case is a new pack id. Submit held-out packs in a
-human-authored pull request, separate from any improvement proposal.
+`new` and `freeze` refuse a held-out pack whose directory resolves inside this
+checkout, symlinks included; `--split development` is for public examples only.
+Validation refuses any field that still starts with `TODO`. The linter catches a
+shared key that only one task asserts, which cannot produce the disagreement the
+case may be testing. Once frozen, a pack cannot be edited; a changed case is a
+new pack id.
+
+Never commit a held-out pack, paste it into an issue or pull request, or copy it
+into a sandbox the improver uses. Hand the directory to the evaluator by a
+private channel. The repository only ever sees the campaign verdict and redacted
+evidence references.
 
 ## Running the campaign
 
+The evaluator runs these with `HELD_OUT` pointing at the private root.
+
 ```bash
-python3 scripts/nexus-campaign.py plan --held-out examples/nexus/casepacks \
+python3 scripts/nexus-campaign.py plan --held-out "$HELD_OUT" \
     --improver <improver label> --model <model id> --policy trial-standard-v1 \
     --operator <operator> --out <campaign dir>
-python3 scripts/nexus-campaign.py status --held-out examples/nexus/casepacks \
+python3 scripts/nexus-campaign.py status --held-out "$HELD_OUT" \
     --improver <improver label> --trials <campaign dir>/trials.json \
     --judgments <judgments file>
 ```

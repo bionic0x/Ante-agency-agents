@@ -121,6 +121,39 @@ class CasePackTests(unittest.TestCase):
         with self.assertRaisesRegex(cp.PackError, 'already exists'):
             cp.scaffold(target, 'outside-author', 'level-inversion')
 
+    def test_a_held_out_pack_cannot_be_started_inside_the_public_checkout(self):
+        target = ROOT / 'examples/nexus/casepacks/never-created-held-out'
+        with self.assertRaisesRegex(cp.PackError, 'outside this public checkout'):
+            cp.scaffold(target, 'outside-author', 'level-inversion')
+        self.assertFalse(target.exists())
+        alias = Path(self.temp.name) / 'alias'
+        alias.symlink_to(ROOT / 'examples', target_is_directory=True)
+        with self.assertRaisesRegex(cp.PackError, 'outside this public checkout'):
+            cp.scaffold(alias / 'never-created-held-out', 'outside-author', 'level-inversion')
+        self.assertFalse((ROOT / 'examples/never-created-held-out').exists())
+
+    def test_a_held_out_pack_inside_the_checkout_cannot_be_frozen(self):
+        original, sandbox = cp.in_checkout, Path(self.temp.name).resolve()
+        cp.in_checkout = lambda path: sandbox in Path(path).resolve().parents  # sandbox stands in for the checkout
+        data = self.read(); data['split'] = 'held_out'; self.write(data)
+        try:
+            with self.assertRaisesRegex(cp.PackError, 'outside this public checkout'):
+                cp.freeze(self.pack, 'tester', AT)
+            data = self.read(); data['split'] = 'development'; self.write(data)
+            self.assertEqual('development', cp.freeze(self.pack, 'tester', AT)['split'])
+        finally:
+            cp.in_checkout = original
+
+    def test_the_authoring_guide_keeps_held_out_packs_out_of_the_repository(self):
+        guide = (ROOT / 'strategy/NEXUS-CASEPACK-AUTHORING.md').read_text()
+        blocks = guide.split('```bash')[1:]
+        commands = ' '.join(' '.join(block.split('```')[0] for block in blocks).replace('\\', ' ').split())
+        self.assertIn('nexus-casepack.py new', commands)
+        for public in ('casepack.py new examples/', 'casepack.py freeze examples/', '--held-out examples/'):
+            self.assertNotIn(public, commands)
+        self.assertNotIn('Submit held-out packs in a', guide)
+        self.assertIn('Never commit a held-out pack', guide)
+
 
 if __name__ == '__main__':
     unittest.main()
