@@ -96,7 +96,9 @@ class ReviewKitTests(unittest.TestCase):
 
     def test_an_artifact_edited_during_review_is_refused(self):
         self.fill()
-        artifact = next(self.kit.glob('*.md'))
+        index = json.loads((self.kit / 'index.json').read_text())
+        artifact = self.kit / index['submissions'][0]['artifact']
+        self.assertNotEqual(artifact.name, 'REVIEWER.md')
         artifact.write_text('## Decision\nRewritten by the reviewer.\n')
         with self.assertRaisesRegex(rv.ReviewError, 'edited during review'):
             self.collect()
