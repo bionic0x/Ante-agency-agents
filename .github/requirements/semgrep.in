@@ -1,3 +1,6 @@
 semgrep==1.179.0
 # Transitive (via semgrep and mcp). Floor from osv-scanner: pyjwt < 2.15.0 has published advisories.
 pyjwt>=2.15.0
+
+# OSV PYSEC-2026-4320 / GHSA-6q48-6c7w-9gw2.
+certifi>=2026.10.19
