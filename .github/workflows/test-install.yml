@@ -24,7 +24,9 @@ jobs:
       fail-fast: false
       matrix:
         # macOS ships bash 3.2, Linux ships bash 5 — the scripts must pass on both.
-        os: [ubuntu-latest, macos-latest]
+        # Use the standard Intel runner while hosted arm64 capacity is constrained.
+        # This retains macOS/Bash 3.2 coverage; it does not assert arm64 coverage.
+        os: [ubuntu-latest, macos-15-intel]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
