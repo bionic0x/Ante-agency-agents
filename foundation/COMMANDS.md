@@ -23,7 +23,8 @@ docstring is its full input specification.
 | `close` | XII, XIII F8 | frame | placeholder clauses; one clause pasted into several |
 | `cohere` | XIV | frame | FAIL not fatal; `NOT_APPLICABLE` on Epistemic or Exit; unanswered test |
 | `pathology` | XV | frame | unswept pathology; detection without false-positive check; culmination conflated with inversion or escalation |
-| `decide` | SDR | frame, cohere, pathology (+ close to activate) | verdict outside what `cohere` admits; `PROCEED` without independent review, with a detected pathology, without close or expectations |
+| `nodal` | VIII.5 | frame (+ every artefact to examine) | reports load-bearing claims; one still `ASSUMPTION` or `ATTRIBUTED_INTENT` that must be corroborated blocks `PROCEED` in `decide` |
+| `decide` | SDR | frame, cohere, pathology (+ close to activate) | verdict outside what `cohere` admits; `PROCEED` without `nodal` or with a blocking claim not accepted as a named risk, without independent review, with a detected pathology, without close or expectations |
 | `selftest` | VIII.13 | — | `PASS` without evidence or dated in the future |
 
 `ante run RUNBOOK --artifacts DIR` checks that a case directory holds the chain

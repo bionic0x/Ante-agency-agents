@@ -6,7 +6,8 @@
   "rationale": "Shared criteria protect priority work, keep the reserve and remain reversible; the causal risk is bounded by the trial.",
   "conditions": [
     "An independent operator reviews the coherence record before cycle 2",
-    "Urgency labels require a deadline document (metric substitution detected)"
+    "Urgency labels require a deadline document (metric substitution detected)",
+    "slack-20: each principal investigator confirms in writing that the deferred hours keep their deadline before the 20 hours move"
   ],
   "dissent": [
     {
@@ -55,6 +56,13 @@
           0.95
         ]
       }
+    }
+  ],
+  "accepted_risks": [
+    {
+      "claim": "a-inflates",
+      "accepted_by": "Consortium council (synthetic)",
+      "statement": "University A's inflation of urgent requests stays an attributed intention; the deadline-document rule removes the incentive whether or not it is true, so the plan does not depend on proving it."
     }
   ]
 }

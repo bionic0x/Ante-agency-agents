@@ -28,7 +28,8 @@ PLAN = [  # command, parents
     ('options', ['cause', 'frame', 'map']), ('react', ['options', 'map']), ('ach', ['frame']),
     ('watch', ['options']), ('close', ['frame']), ('cohere', ['frame', 'cause', 'map']),
     ('pathology', ['frame', 'map']),
-    ('decide', ['frame', 'cohere', 'pathology', 'close', 'cause']),
+    ('nodal', ['frame', 'map', 'cause', 'focus', 'options', 'react', 'ach', 'watch', 'close', 'cohere', 'pathology']),
+    ('decide', ['frame', 'cohere', 'pathology', 'close', 'cause', 'nodal']),
 ]
 
 
@@ -300,8 +301,8 @@ class Pathologies(Base):
 class Decision(Base):
     def setUp(self):
         super().setUp()
-        self.chain.build('pathology')
-        self.parents = ['frame', 'cohere', 'pathology', 'close', 'cause']
+        self.chain.build('nodal')
+        self.parents = ['frame', 'cohere', 'pathology', 'close', 'cause', 'nodal']
 
     def decide(self, **changes):
         doc = load('decide')
@@ -324,7 +325,7 @@ class Decision(Base):
         self.chain.run('cohere', doc, ['frame', 'cause', 'map'])
         self.rejects('decide', self.decide(), 'VERDICT_NOT_ADMISSIBLE', self.parents)
 
-    def test_independent_review_and_clean_sweep_allow_proceed(self):
+    def clean_review(self):
         cohere = load('cohere')
         cohere['independence_level'] = 'INDEPENDENT_OPERATOR'
         cohere['tests']['causal'] = {'status': 'PASS', 'reason': 'slack confirmed', 'evidence': ['slack-20'],
@@ -334,9 +335,47 @@ class Decision(Base):
         sweep['pathologies']['metric_substitution'] = {'status': 'NOT_DETECTED', 'evidence': [],
                                                        'false_positive_check': 'n/a', 'note': 'deadline documents required'}
         self.assertEqual(0, self.chain.run('pathology', sweep, ['frame', 'map'])[0])
-        code, _, err = self.chain.run('decide', self.decide(verdict='PROCEED', conditions=[]), self.parents)
+
+    def proceed(self, accepted=('a-inflates', 'slack-20')):
+        doc = self.decide(verdict='PROCEED', conditions=[])
+        doc['accepted_risks'] = [{'claim': c, 'accepted_by': 'Consortium council (synthetic)',
+                                  'statement': f'{c} accepted unverified for this cycle'} for c in accepted]
+        return doc
+
+    def test_independent_review_clean_sweep_and_named_risks_allow_proceed(self):
+        self.clean_review()
+        code, _, err = self.chain.run('decide', self.proceed(), self.parents)
         self.assertEqual(0, code, err)
-        self.assertEqual('PROCEED', self.chain.artefact('decide')['verdict'])
+        decision = self.chain.artefact('decide')
+        self.assertEqual('PROCEED', decision['verdict'])
+        self.assertEqual(['a-inflates', 'slack-20'], decision['body']['load_bearing_claims']['blocking'])
+
+    def test_proceed_needs_nodal(self):
+        self.clean_review()
+        self.rejects('decide', self.proceed(), 'NODAL_NOT_RUN', [p for p in self.parents if p != 'nodal'])
+
+    def test_a_load_bearing_assumption_blocks_proceed_until_accepted_or_corroborated(self):
+        self.clean_review()
+        err = self.rejects('decide', self.proceed(accepted=('a-inflates',)), 'LOAD_BEARING_UNVERIFIED', self.parents)
+        self.assertIn('slack-20', err)
+        corroborated = {'at': '2026-10-28T13:30:00Z', 'claims': [{
+            'id': 'slack-20', 'text': 'Twenty requested hours can move to weeks 45-46 without breaking a deadline.',
+            'status': 'EVIDENCE', 'source': {'ref': 'pi-confirmations-w44', 'origin': 'external'},
+            'date': '2026-10-28', 'limit': 'Synthetic didactic data.'}]}
+        self.assertEqual(0, self.chain.run('nodal', corroborated, dict(PLAN)['nodal'])[0])
+        self.assertNotIn('slack-20', self.chain.artefact('nodal')['body']['blocking'])
+        code, _, err = self.chain.run('decide', self.proceed(accepted=('a-inflates',)), self.parents)
+        self.assertEqual(0, code, err)
+
+    def test_nodal_of_another_frame_breaks_the_lineage(self):
+        other = load('frame')
+        other['claims'][0]['text'] += ' (re-stated)'
+        self.chain.run('frame', other, out=self.chain.dir / 'f2')
+        self.chain.run('nodal', load('nodal'), [self.chain.dir / 'f2/frame.json'], out=self.chain.dir / 'n2')
+        parents = [p for p in self.parents if p != 'nodal'] + [self.chain.dir / 'n2/nodal.json']
+        status, _, err = self.chain.run('decide', self.decide(), parents, out=self.chain.dir / 'x')
+        self.assertEqual(3, status, err)
+
 
     def test_dissent_or_its_solicitation_is_recorded(self):
         self.rejects('decide', self.decide(dissent=[], dissent_solicited_from=[]), 'DISSENT_NOT_SOLICITED',
@@ -358,6 +397,32 @@ class Decision(Base):
         with contextlib.redirect_stderr(stdio.StringIO()) as err:
             self.assertEqual(3, cli.main(argv))
         self.assertIn('another doctrine', err.getvalue())
+
+
+class Nodal(Base):
+    def test_load_counts_citing_sites_outside_the_stating_artefact(self):
+        self.chain.build('nodal')
+        body = self.chain.artefact('nodal')['body']
+        rows = {r['id']: r for r in body['load_bearing_claims']}
+        self.assertEqual('medium', body['irreversibility'])
+        self.assertEqual(3, rows['slack-20']['load'])
+        self.assertTrue(all(not site.startswith('cause:') for site in rows['slack-20']['cited_by']))
+        self.assertEqual(('corroborate', True), (rows['slack-20']['required_verification'], rows['slack-20']['blocking']))
+        self.assertFalse(rows['demand-110']['blocking'], 'evidence carries load without blocking')
+
+    def test_irreversibility_raises_the_required_verification(self):
+        from ante.strategy.commands import nodal
+        options = {'command': 'options', 'at': '2026-10-28T10:00:00Z', 'artifact_sha256': 'o', 'claims': [],
+                   'body': {'options': [{'viable': True, 'reversibility': 'high', 'assumptions': ['x']}]}}
+        stated = {'command': 'cause', 'at': '2026-10-28T09:00:00Z', 'artifact_sha256': 'c', 'body': {},
+                  'claims': [{'id': 'x', 'status': 'ASSUMPTION', 'source': {'origin': 'owner'}}]}
+        cites = {'command': 'cohere', 'at': '2026-10-28T11:00:00Z', 'artifact_sha256': 'h', 'claims': [],
+                 'body': {'tests': {'causal': {'evidence': ['x']}}}}
+        high = nodal.assess([stated, options, cites])
+        self.assertEqual(([], 'check'), (high['blocking'], high['load_bearing_claims'][0]['required_verification']))
+        options['body']['options'][0]['reversibility'] = 'low'
+        low = nodal.assess([stated, options, cites])
+        self.assertEqual(['x'], low['blocking'])
 
 
 class Lineage(Base):
