@@ -258,66 +258,86 @@ class Loop(Sandbox):
 class TuringLock(unittest.TestCase):
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp(prefix='ante-turing-'))
+        self.count = 0
 
-    def entries(self, deltas):
-        out = []
-        for index, delta in enumerate(deltas):
-            ident = f'p{index}'
-            out.append({'kind': 'proposal', 'payload': {'id': ident, 'spec': {'autonomy_delta': delta}}})
-            out.append({'kind': 'gate', 'payload': gate_entry(ident, 'PROPOSE')})
-        return out
-
-    def proposal(self, ident, delta):
-        return {'id': ident, 'spec': {'autonomy_delta': delta}}
-
-    def one(self, name, value=1):
+    def one(self, name='budget', value=1):
         return dict(ZERO, **{name: value})
 
-    def review(self, proposal_id, accepts, reviewer='Ana (independent operator)', level='INDEPENDENT_OPERATOR'):
+    def review(self, proposal_id, accepts, reviewer='Ana (independent operator)', level='INDEPENDENT_OPERATOR',
+               at=T):
         body = {'reviewer': reviewer, 'independence_level': level, 'proposal': proposal_id,
-                'accepts_cumulative': accepts, 'at': T, 'statement': 'reviewed the five budget steps together'}
-        path = self.dir / 'review.json'
+                'accepts_cumulative': accepts, 'at': at, 'statement': 'reviewed this change'}
+        self.count += 1
+        path = self.dir / f'review-{self.count}.json'
         path.write_text(json.dumps({**body, 'record_sha256': canon.digest(body)}))
         return str(path)
 
-    def test_the_fifth_of_five_innocuous_proposals_is_held(self):
+    def admit(self, entries, ident, delta, verdict, at=T):
+        entries.append({'kind': 'proposal', 'at': at, 'payload': {'id': ident, 'spec': {'autonomy_delta': delta}}})
+        payload = gate_entry(ident, 'PROPOSE' if verdict['decision'] == 'PASS' else 'HOLD')
+        payload['checks']['autonomy'] = verdict
+        entries.append({'kind': 'gate', 'at': at, 'payload': payload})
+
+    def test_any_positive_delta_needs_an_independent_review(self):
+        proposal = {'id': 'a', 'spec': {'autonomy_delta': self.one()}}
+        self.assertEqual('HOLD', lock.assess([], proposal, None, T)['decision'])
+        self.assertEqual('PASS', lock.assess([], proposal, self.review('a', 1), T)['decision'])
+        self.assertEqual('PASS', lock.assess([], {'id': 'z', 'spec': {'autonomy_delta': ZERO}}, None, T)['decision'])
+
+    def test_five_individually_reviewed_steps_are_held_on_the_fifth(self):
         names = ['budget', 'scope', 'frequency', 'permissions', 'gate_thresholds']
-        entries = []
-        verdicts = []
+        entries, decisions = [], []
         for index, name in enumerate(names):
-            proposal = self.proposal(f'p{index}', self.one(name))
-            verdict = lock.assess(entries, proposal, None, T)
-            verdicts.append(verdict['decision'])
-            entries.append({'kind': 'proposal', 'payload': {'id': proposal['id'], 'spec': proposal['spec']}})
-            entries.append({'kind': 'gate', 'payload': gate_entry(proposal['id'], 'PROPOSE')})
-        self.assertEqual(['PASS'] * 4 + ['HOLD'], verdicts)
+            ident = f'p{index}'
+            delta = self.one(name)
+            verdict = lock.assess(entries, {'id': ident, 'spec': {'autonomy_delta': delta}},
+                                  self.review(ident, 1), T)
+            decisions.append(verdict['decision'])
+            self.admit(entries, ident, delta, verdict)
+        self.assertEqual(['PASS'] * 4 + ['HOLD'], decisions)
+        self.assertIn('accumulated steps need their own review', lock.assess(
+            entries[:-2], {'id': 'p4', 'spec': {'autonomy_delta': self.one()}}, self.review('p4', 1), T)['reason'])
 
-    def test_an_independent_review_releases_and_resets_the_count(self):
-        entries = self.entries([self.one('budget')] * 4)
-        proposal = self.proposal('p4', self.one('budget'))
-        verdict = lock.assess(entries, proposal, self.review('p4', 5), T)
-        self.assertEqual('PASS', verdict['decision'])
-        entries += [{'kind': 'proposal', 'payload': {'id': 'p4', 'spec': proposal['spec']}},
-                    {'kind': 'gate', 'payload': gate_entry('p4', 'PROPOSE', review=verdict['review'])}]
-        self.assertEqual(0, lock.cumulative(entries))
+    def test_a_review_of_the_accumulation_releases_and_resets_it(self):
+        entries = []
+        for index in range(4):
+            ident = f'p{index}'
+            verdict = lock.assess(entries, {'id': ident, 'spec': {'autonomy_delta': self.one()}},
+                                  self.review(ident, 1), T)
+            self.admit(entries, ident, self.one(), verdict)
+        verdict = lock.assess(entries, {'id': 'p4', 'spec': {'autonomy_delta': self.one()}}, self.review('p4', 5), T)
+        self.assertEqual(('PASS', True), (verdict['decision'], verdict['accumulation_reviewed']))
+        self.admit(entries, 'p4', self.one(), verdict)
+        self.assertEqual(0, lock.cumulative(entries, T))
 
-    def test_reviews_by_the_loop_by_a_lower_level_or_for_less_are_refused(self):
-        entries = self.entries([self.one('budget')] * 4)
-        proposal = self.proposal('p4', self.one('budget'))
-        for path in (self.review('p4', 5, reviewer='ante develop'), self.review('p4', 5, level='SEPARATED_CONTEXT'),
-                     self.review('p4', 4), self.review('other', 5)):
-            self.assertEqual('REJECT', lock.assess(entries, proposal, path, T)['decision'])
+    def test_old_steps_leave_the_window(self):
+        entries = []
+        for index in range(4):
+            ident = f'p{index}'
+            verdict = lock.assess(entries, {'id': ident, 'spec': {'autonomy_delta': self.one()}},
+                                  self.review(ident, 1, at='2026-01-01T00:00:00Z'), '2026-01-01T00:00:00Z')
+            self.admit(entries, ident, self.one(), verdict, at='2026-01-01T00:00:00Z')
+        self.assertEqual(4, lock.cumulative(entries, '2026-01-02T00:00:00Z'))
+        self.assertEqual(0, lock.cumulative(entries, T))
 
-    def test_one_big_step_or_a_netted_step_is_still_autonomy(self):
-        self.assertEqual('HOLD', lock.assess([], self.proposal('a', self.one('budget', 2)), None, T)['decision'])
+    def test_reviews_by_the_loop_by_a_lower_level_for_another_proposal_or_forged_are_refused(self):
+        proposal = {'id': 'a', 'spec': {'autonomy_delta': self.one()}}
+        forged = self.review('a', 1)
+        record = json.loads(Path(forged).read_text())
+        record['accepts_cumulative'] = 99
+        Path(forged).write_text(json.dumps(record))
+        for path in (self.review('a', 1, reviewer='ante develop'), self.review('a', 1, level='SEPARATED_CONTEXT'),
+                     self.review('other', 1), self.review('a', 1, at='2026-12-01T00:00:00Z'), forged):
+            self.assertEqual('REJECT', lock.assess([], proposal, path, T)['decision'], path)
+
+    def test_netting_dimensions_does_not_hide_a_step(self):
         netted = dict(ZERO, budget=1, human_review_reduction=-1)
         self.assertEqual(1, lock.positive(netted))
-        entries = self.entries([self.one('budget')] * 4)
-        self.assertEqual('HOLD', lock.assess(entries, self.proposal('p4', netted), None, T)['decision'])
+        self.assertEqual('HOLD', lock.assess([], {'id': 'a', 'spec': {'autonomy_delta': netted}}, None, T)['decision'])
 
     def test_undeclared_autonomy_trips_the_wire(self):
         patch = '+++ b/x\n+max_spend_usd: 500\n'
-        verdict = lock.assess([], self.proposal('a', ZERO), None, T, patch)
+        verdict = lock.assess([], {'id': 'a', 'spec': {'autonomy_delta': ZERO}}, None, T, patch)
         self.assertEqual('HOLD', verdict['decision'])
         self.assertIn('UNDECLARED_AUTONOMY', verdict['reason'])
 

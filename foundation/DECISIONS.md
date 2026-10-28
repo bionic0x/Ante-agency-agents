@@ -261,12 +261,15 @@ touches `.github/**`.
 Each proposal declares an integer `autonomy_delta` on six dimensions
 (permissions, budget, scope, gate thresholds, frequency, human-review reduction).
 Only positive components count, so lowering one does not pay for raising another.
-A single dimension above +1, or a running total above 4 since the last
-independent review, gives HOLD until a review record by an `INDEPENDENT_OPERATOR`
-names the proposal and the cumulative total it accepts; with the defaults the
-fifth of five one-step proposals is held. A proposal that declares no change but
-adds lines about budgets, limits, approvals, permissions or thresholds trips a
-heuristic wire (`UNDECLARED_AUTONOMY`) and is held. The review record is
-self-declared like every independence label in Ante: the lock checks its form,
-coverage and that the loop did not write it, not who the reviewer is. The limits
-are constants in `ante/turing/lock.py`, a protected path, for the owner to set.
+Any positive delta is held until a review record by an `INDEPENDENT_OPERATOR`
+names the proposal. The lock also sums the positive deltas the gate let through
+in the last 90 days, since the last review of the accumulation: above 4, a review
+of the single step is not enough, and the record must accept the accumulated
+total. Five one-step proposals, each reviewed on its own, therefore pass four
+times and are held on the fifth — the erosion lives in the sum, which no
+single-step reviewer saw. A proposal that declares no change but adds lines about
+budgets, limits, approvals, permissions or thresholds trips a heuristic wire
+(`UNDECLARED_AUTONOMY`) and is held. Review records are self-declared like every
+independence label in Ante: the lock checks form, coverage, date, hash and that
+the loop did not write them, not who the reviewer is. The limit and window are
+constants in `ante/turing/lock.py`, a protected path, for the owner to set.
