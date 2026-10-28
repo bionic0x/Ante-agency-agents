@@ -25,10 +25,11 @@ CONTRACTS = str(ROOT / 'foundation/proposals/contracts-v2.json')
 DOCTRINE_COMMANDS = {'cohere', 'pathology', 'decide'}
 PLAN = [  # command, parents
     ('frame', []), ('map', ['frame']), ('cause', ['frame', 'map']), ('focus', ['map']),
-    ('options', ['cause', 'frame', 'map']), ('react', ['options', 'map']), ('ach', ['frame']),
-    ('watch', ['options']), ('close', ['frame']), ('cohere', ['frame', 'cause', 'map']),
+    ('options', ['cause', 'frame', 'map']), ('react', ['options', 'map']), ('street', ['frame', 'map']), ('ach', ['frame']),
+    ('watch', ['options']), ('close', ['frame']), ('cohere', ['frame', 'cause', 'map', 'street']),
     ('pathology', ['frame', 'map']),
-    ('nodal', ['frame', 'map', 'cause', 'focus', 'options', 'react', 'ach', 'watch', 'close', 'cohere', 'pathology']),
+    ('nodal', ['frame', 'map', 'cause', 'focus', 'options', 'react', 'street', 'ach', 'watch', 'close', 'cohere',
+               'pathology']),
     ('decide', ['frame', 'cohere', 'pathology', 'close', 'cause', 'nodal']),
 ]
 
@@ -243,7 +244,7 @@ class Coherence(Base):
         doc = load('cohere')
         doc['tests']['interactive'] = {'status': 'NOT_APPLICABLE', 'reason': 'no adaptive actor after checking',
                                        'evidence': [], 'finding': None}
-        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map'])[0])
+        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map', 'street'])[0])
 
     def test_a_failed_test_is_fatal_and_removes_proceed(self):
         doc = load('cohere')
@@ -251,13 +252,13 @@ class Coherence(Base):
                                       'finding': {'class': 'ACCEPTED_RISK', 'owner': 'x', 'reason': 'y'}}
         self.rejects('cohere', doc, 'FAIL_NOT_FATAL')
         doc['tests']['conversion']['finding'] = {'class': 'FATAL_DEFECT', 'reason': 'reserve double-counted'}
-        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map'])[0])
+        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map', 'street'])[0])
         self.assertEqual(['REDESIGN', 'REJECT'], self.chain.artefact('cohere')['body']['admissible_verdicts'])
 
     def test_pending_evidence_caps_at_hold(self):
         doc = load('cohere')
         doc['tests']['causal']['finding'] = {'class': 'PENDING_EVIDENCE', 'trigger': 'booking forecast confirmed'}
-        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map'])[0])
+        self.assertEqual(0, self.chain.run('cohere', doc, ['frame', 'cause', 'map', 'street'])[0])
         self.assertEqual('HOLD', self.chain.artefact('cohere')['body']['admissible_verdicts'][0])
 
     def test_every_test_must_be_answered(self):
@@ -322,7 +323,7 @@ class Decision(Base):
         doc = load('cohere')
         doc['tests']['conversion'] = {'status': 'FAIL', 'reason': 'reserve double-counted', 'evidence': ['cap-100'],
                                       'finding': {'class': 'FATAL_DEFECT', 'reason': 'reserve double-counted'}}
-        self.chain.run('cohere', doc, ['frame', 'cause', 'map'])
+        self.chain.run('cohere', doc, ['frame', 'cause', 'map', 'street'])
         self.rejects('decide', self.decide(), 'VERDICT_NOT_ADMISSIBLE', self.parents)
 
     def clean_review(self):
@@ -330,7 +331,7 @@ class Decision(Base):
         cohere['independence_level'] = 'INDEPENDENT_OPERATOR'
         cohere['tests']['causal'] = {'status': 'PASS', 'reason': 'slack confirmed', 'evidence': ['slack-20'],
                                      'finding': None}
-        self.assertEqual(0, self.chain.run('cohere', cohere, ['frame', 'cause', 'map'])[0])
+        self.assertEqual(0, self.chain.run('cohere', cohere, ['frame', 'cause', 'map', 'street'])[0])
         sweep = load('pathology')
         sweep['pathologies']['metric_substitution'] = {'status': 'NOT_DETECTED', 'evidence': [],
                                                        'false_positive_check': 'n/a', 'note': 'deadline documents required'}
@@ -397,6 +398,48 @@ class Decision(Base):
         with contextlib.redirect_stderr(stdio.StringIO()) as err:
             self.assertEqual(3, cli.main(argv))
         self.assertIn('another doctrine', err.getvalue())
+
+
+class Street(Base):
+    def setUp(self):
+        super().setUp()
+        self.chain.build('close')
+
+    def test_every_instrument_needs_a_misuse_scenario_with_an_external_indicator(self):
+        doc = load('street')
+        doc['instruments'][1]['misuse'] = []
+        self.rejects('street', doc, 'INSTRUMENT_WITHOUT_MISUSE')
+        doc = load('street')
+        doc['instruments'][0]['misuse'][0]['indicator'] = 'Share of hours declared urgent'
+        self.rejects('street', doc, 'CIRCULAR_INDICATOR')
+        doc = load('street')
+        doc['instruments'][0]['misuse'][0]['actor'] = 'uni-z'
+        self.rejects('street', doc, 'UNKNOWN_ACTOR')
+
+    def test_a_plan_metric_without_misuse_analysis_cannot_pass_the_interactive_test(self):
+        code, _, err = self.chain.run('cohere', load('cohere'), ['frame', 'cause', 'map'])
+        self.assertEqual(0, code, err)
+        cohere = self.chain.artefact('cohere')
+        interactive = cohere['body']['tests']['interactive']
+        self.assertEqual('CONDITIONAL', interactive['status'])
+        self.assertEqual('PENDING_EVIDENCE', interactive['finding']['class'])
+        self.assertNotIn('PROCEED_WITH_CONDITIONS', cohere['body']['admissible_verdicts'])
+        self.assertEqual(['STREET_ANALYSIS_MISSING'], [f['code'] for f in cohere['findings']])
+
+    def test_partial_analysis_still_conditions_the_test(self):
+        doc = load('street')
+        doc['instruments'] = doc['instruments'][:1]
+        self.assertEqual(0, self.chain.run('street', doc, ['frame', 'map'])[0])
+        self.assertEqual(0, self.chain.run('cohere', load('cohere'), ['frame', 'cause', 'map', 'street'])[0])
+        body = self.chain.artefact('cohere')['body']
+        self.assertEqual(['essential demand per cycle'], body['misuse_analysis']['uncovered_metrics'])
+        self.assertEqual('CONDITIONAL', body['tests']['interactive']['status'])
+
+    def test_full_analysis_leaves_the_review_as_written(self):
+        self.assertEqual(0, self.chain.run('cohere', load('cohere'), ['frame', 'cause', 'map', 'street'])[0])
+        body = self.chain.artefact('cohere')['body']
+        self.assertEqual([], body['misuse_analysis']['uncovered_metrics'])
+        self.assertEqual('PASS', body['tests']['interactive']['status'])
 
 
 class Nodal(Base):

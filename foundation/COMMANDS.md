@@ -18,6 +18,7 @@ docstring is its full input specification.
 | `focus` | XIII F4, III | map | centre without substitution or horizon; concept confusion (pathology 4) |
 | `options` | XIII F5, App. B | cause | one viable option plus decoys; no continuity baseline; same mechanism; scores |
 | `react` | XIII F6, VI, IX | options | no competent opposition, no unexpected cooperation, no third-party shift |
+| `street` | VIII.12, VI | frame (+ map) | instrument without a misuse scenario; manipulation indicator that is the instrument itself; unknown actor. `cohere` records the interactive test as `CONDITIONAL` (pending evidence) while any plan metric lacks this analysis |
 | `ach` | VIII.4 | frame | incomplete matrix; reports source groups, self-produced evidence, sensitivity |
 | `watch` | XIII F7, VI.9 | options | indicator without a response; no pause or terminate threshold |
 | `close` | XII, XIII F8 | frame | placeholder clauses; one clause pasted into several |

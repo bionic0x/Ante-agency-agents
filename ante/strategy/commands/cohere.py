@@ -23,13 +23,19 @@ Input fields::
 
     tests  {test id: {status, reason, evidence: [claim id],
                       finding: {class, owner?, reason?, due?, trigger?} | null}}
-    plan_metrics  [text]   metrics the plan relies on (checked by misuse analysis)
+    plan_metrics  [text]   metrics the plan relies on
+
+Misuse analysis (``ante street``): a plan metric that no ``street`` artefact in
+the lineage analyses keeps the interactive test from passing — a ``PASS`` is
+recorded as ``CONDITIONAL`` with pending evidence (trigger: the missing
+analysis), which leaves ``HOLD``, ``REDESIGN`` or ``REJECT``.
 """
 from __future__ import annotations
 
 from ante.core import canon, schema
 from ante.core import time as ante_time
 from ante.strategy.base import Command, Result, nonplaceholder
+from ante.strategy.commands.street import covers
 
 STATUSES = ('PASS', 'CONDITIONAL', 'FAIL', 'NOT_APPLICABLE')
 CLASSES = ('FATAL_DEFECT', 'ACCEPTED_RISK', 'PENDING_EVIDENCE')
@@ -99,10 +105,24 @@ def run(doc, ctx):
     metrics = schema.array(doc['plan_metrics'], 'plan_metrics')
     for index, metric in enumerate(metrics):
         nonplaceholder(metric, f'plan_metrics[{index}]', findings)
+    street = ctx.lineage.one('street')
+    uncovered = [m for m in metrics if isinstance(m, str) and not covers(street, m)]
+    interactive = tests.get('interactive')
+    if uncovered and isinstance(interactive, dict):
+        trigger = 'ante street misuse analysis of: ' + '; '.join(uncovered)
+        findings.warn('STREET_ANALYSIS_MISSING', 'tests.interactive',
+                      'plan metrics without misuse analysis: ' + '; '.join(uncovered))
+        if interactive.get('status') == 'PASS':
+            tests = dict(tests, interactive={
+                'status': 'CONDITIONAL', 'evidence': interactive['evidence'],
+                'reason': f"{interactive['reason']} [recorded as CONDITIONAL: no misuse analysis of the plan's metrics]",
+                'finding': {'class': 'PENDING_EVIDENCE', 'trigger': trigger}})
+            classes.add('PENDING_EVIDENCE')
 
     body = {
         'tests': tests,
         'plan_metrics': metrics,
+        'misuse_analysis': {'street': street['artifact_sha256'] if street else None, 'uncovered_metrics': uncovered},
         'doctrine_sha256': canon.digest(ctx.doctrine.raw),
         'classes': sorted(classes),
         'admissible_verdicts': admissible(classes),
