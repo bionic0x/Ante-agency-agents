@@ -32,3 +32,27 @@ one case, under the canonical doctrine. It executes nothing.
 
 `--draft-with PROVIDER --model ID` writes an unsigned `<command>.draft.json` from a
 brief; see `ante/strategy/draft.py`.
+
+## Learning
+
+| Command | What it does | What it refuses |
+|---|---|---|
+| `learn record DECIDE --ledger L --at T` | appends a sealed `decide` artefact, frozen, to a hash-chained ledger | anything but `decide`; a second record; a record dated before the decision |
+| `learn reconcile OBS --ledger L --at T` | appends observed outcomes (`CONFIRMED`, `REFUTED`, `INCONCLUSIVE`, `NOT_YET_OBSERVABLE`) as new entries | system-produced sources confirming or refuting; observations before the decision or in the future; `NOT_YET_OBSERVABLE` after the horizon |
+| `learn calibrate --ledger L --at T` | Brier score and reliability by runbook, agent and claim kind | groups below `--min-sample` (default 30) answer `INSUFFICIENT_SAMPLE`, with no number |
+| `learn patterns --ledger L --at T` | proposes differences in refutation rate that survive a permutation test with Bonferroni correction | patterns that only system-sourced evidence supports; synthetic decisions |
+| `learn verify --ledger L` | checks the chain | — (a broken chain exits 3) |
+
+## Self-development
+
+| Command | What it does |
+|---|---|
+| `develop propose SPEC --patch P --base REF` | registers one bounded change with its findings, hypothesis, pre-registered metric, kill criterion, cost ceiling, scope and autonomy delta; refuses protected or out-of-scope paths, a second open proposal, spend beyond the campaign, a stopped loop |
+| `develop gate ID --patch P [held-out evidence] [--selftest-register R] [--independent-review F]` | applies the patch at the base and runs the base evaluator: Overdrive paths, develop policy, characterization, self-test, held-out Pareto comparison, Turing lock; answers `PROPOSE`, `HOLD` or `REJECT` |
+| `develop pr ID [--execute]` | after a `PROPOSE`, prints (or with `--execute` runs) the push and `gh pr create --draft`; once per proposal |
+| `develop resume --by NAME --reason TEXT` | a named human restarts a loop stopped after two consecutive held-out regressions |
+| `develop close ID --outcome merged\|rejected\|withdrawn` | frees the open-proposal slot |
+| `develop status` | proposals, gates and committed spend |
+
+Every `develop` command takes `--state FILE` (a hash-chained log) and, except
+`status`, `--at`. Decisions D-013 and D-014 describe the policy and the lock.

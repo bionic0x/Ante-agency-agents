@@ -65,8 +65,8 @@ def read(path: Path | str) -> list[dict]:
     return entries
 
 
-def append(path: Path | str, kind: str, payload: Any, at: str) -> dict:
-    if kind not in KINDS:
+def append(path: Path | str, kind: str, payload: Any, at: str, kinds: tuple[str, ...] = KINDS) -> dict:
+    if kind not in kinds:
         raise LedgerError(f'unknown entry kind {kind}')
     at = ante_time.iso(ante_time.parse(at, 'at'))
     target = Path(path)

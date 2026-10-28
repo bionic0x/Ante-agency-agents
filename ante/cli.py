@@ -108,6 +108,8 @@ def build_parser() -> argparse.ArgumentParser:
     runner.set_defaults(handler=runcheck.main)
     from ante.learn import commands as learn_commands
     learn_commands.add_parser(sub)
+    from ante.develop import commands as develop_commands
+    develop_commands.add_parser(sub)
     return parser
 
 

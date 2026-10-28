@@ -222,3 +222,51 @@ forced to `HYPOTHESIS` with `origin: system`, the proposal sits under `input`
 beside a `draft` header with `signed: false`, and running a command on the file
 as written fails. Only Anthropic has an adapter (the existing Claude Code adapter);
 other providers in `providers.json` are refused until one is written.
+
+---
+
+## D-013 · The develop loop's own protected list lives beside Overdrive's — PROPOSED
+
+`ante develop` must never change the evaluator that judges it. Overdrive already
+protects its evaluator in `strategy/overdrive-protected.json`, and
+`nexus-improve.py paths` enforces it. The foundation adds parts that need the
+same protection (the gate, the Turing lock, ICE layers, constructs, doctrine and
+claims discipline, the ledger, characterization tests) and declares which scopes
+a proposal may edit at all.
+
+Changing `overdrive-protected.json` is itself a change to a protected path, so
+this branch does not touch it. Instead `foundation/develop-policy.json` holds the
+foundation's protected list, the editable scopes and the loop's limits (one open
+proposal, 50 USD committed per campaign, stop after two consecutive held-out
+regressions), and protects itself. The gate applies both lists, read at the base
+revision, and the stricter wins.
+
+**Proposal for the owner.** Merge the develop protected list into
+`overdrive-protected.json` in a hand-written `protected:` commit, so a single
+policy file governs every self-improvement path. Until then both lists apply.
+
+**How the gate keeps its evaluator honest.** The candidate is applied in a
+worktree at the base; `nexus-improve.py` and the characterization harness with
+its recordings run from a second worktree at the base, never from the candidate.
+A forged proposal that rewrites the evaluator is judged by the old one (tested).
+Held-out packs must be outside the checkout. Missing held-out evidence is HOLD,
+never PROPOSE. `pr` opens at most one draft per proposal, only with `--execute`,
+refuses an existing remote branch, never force-pushes, never merges and never
+touches `.github/**`.
+
+---
+
+## D-014 · The Turing lock counts autonomy cumulatively — PROPOSED
+
+Each proposal declares an integer `autonomy_delta` on six dimensions
+(permissions, budget, scope, gate thresholds, frequency, human-review reduction).
+Only positive components count, so lowering one does not pay for raising another.
+A single dimension above +1, or a running total above 4 since the last
+independent review, gives HOLD until a review record by an `INDEPENDENT_OPERATOR`
+names the proposal and the cumulative total it accepts; with the defaults the
+fifth of five one-step proposals is held. A proposal that declares no change but
+adds lines about budgets, limits, approvals, permissions or thresholds trips a
+heuristic wire (`UNDECLARED_AUTONOMY`) and is held. The review record is
+self-declared like every independence label in Ante: the lock checks its form,
+coverage and that the loop did not write it, not who the reviewer is. The limits
+are constants in `ante/turing/lock.py`, a protected path, for the owner to set.
