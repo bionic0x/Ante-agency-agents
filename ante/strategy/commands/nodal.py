@@ -32,6 +32,7 @@ from ante.core import time as ante_time
 from ante.strategy.base import Command, Result
 
 REF_KEYS = ('basis', 'evidence', 'assumptions', 'claim')
+NOT_INFERENCES = ('accepted_risks', 'load_bearing_claims', 'snapshot')   # records about claims, not uses
 WEIGHTS = {'high': 1.0, 'medium': 1.5, 'low': 2.0, 'unknown': 2.0}
 CORROBORATE, CHECK = 4.0, 2.0
 UNVERIFIED = ('ASSUMPTION', 'ATTRIBUTED_INTENT')
@@ -40,6 +41,8 @@ UNVERIFIED = ('ASSUMPTION', 'ATTRIBUTED_INTENT')
 def _sites(value, path, known, found):
     if isinstance(value, dict):
         for key, item in value.items():
+            if key in NOT_INFERENCES:
+                continue
             here = f'{path}.{key}' if path else key
             if key in REF_KEYS:
                 refs = [item] if isinstance(item, str) else item if isinstance(item, list) else []

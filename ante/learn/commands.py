@@ -275,6 +275,8 @@ def add_parser(sub) -> None:
     pat.add_argument('--min-group', type=int, default=3)
     pat.add_argument('--out')
     ver = lsub.add_parser('verify', help='verify the ledger chain')
+    from ante.learn import boxmaker
+    boxmaker.add_parser(lsub)
     rev = lsub.add_parser('review', help='record a model review (resets cumulative drift)')
     rev.add_argument('--by', required=True)
     rev.add_argument('--reason', required=True)
@@ -286,6 +288,9 @@ def add_parser(sub) -> None:
 
 
 def main(args) -> int:
+    if args.learn_command == 'box':
+        from ante.learn import boxmaker
+        return boxmaker.main(args)
     try:
         if args.learn_command == 'record':
             entry = record(args.decide, args.ledger, args.at, args.runbook, args.agent, args.synthetic)

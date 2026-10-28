@@ -15,7 +15,7 @@ from pathlib import Path
 from ante import doctrine as doctrine_mod
 from ante import registry
 from ante.core import canon
-from ante.strategy import artifact
+from ante.strategy import artifact, chain
 
 
 def check(runbook: dict, directory: Path, doctrine_hash: str | None = None) -> dict:
@@ -23,22 +23,8 @@ def check(runbook: dict, directory: Path, doctrine_hash: str | None = None) -> d
     if not isinstance(required, list) or not required:
         return {'runbook': runbook['slug'], 'complete': False,
                 'missing': ['runbook declares no strategy_commands'], 'present': []}
-    loaded = []
-    for path in sorted(directory.glob('*.json')):
-        try:
-            data = json.loads(path.read_text(encoding='utf-8'))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if isinstance(data, dict) and 'artifact_sha256' in data and 'command' in data:
-            loaded.append(artifact.verify_self(data, path.name))
+    loaded = chain.load(directory)
     cases = {a['case_id'] for a in loaded}
-    if len(cases) > 1:
-        raise artifact.LineageError(f'{directory}: artefacts of more than one case')
-    hashes = {a['artifact_sha256'] for a in loaded}
-    for art in loaded:
-        for parent in art['parents']:
-            if parent['artifact_sha256'] not in hashes:
-                raise artifact.LineageError(f'{art["command"]} names a parent {parent["command"]} that is not present')
     counts = {}
     for art in loaded:
         counts[art['command']] = counts.get(art['command'], 0) + 1

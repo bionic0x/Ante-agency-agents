@@ -70,3 +70,7 @@ Every `develop` command takes `--state FILE` (a hash-chained log) and, except
 | `stub status --log S` | counts only; recommendations stay hidden until reconciled |
 | `constructs list\|verify` | frozen reviewer profiles and their pinned hashes |
 | `ice seed PACK --registry R` / `ice scan PATH...` / `ice layers` | canaries in held-out packs; contamination scan; independence of the five defensive layers |
+| `ghosts --artifacts DIR --at T [--regimes R]` | expired claims, or claims dated before a declared regime change, that live artefacts still cite; exit 1 until renewed or withdrawn |
+| `learn box build\|recombine` | archive of discarded options, rejected hypotheses, refuted expectations and rejected proposals with their reasons; recombined items come back as `HYPOTHESIS` with `origin: system` |
+| `signals add\|export --register R --at T` | weak-signal register (first observation, where, provenance); exported as `HYPOTHESIS` claims for `frame` or `react`, without probabilities |
+| `deck --artifacts DIR [--ledger L] [--log S] [--plain]` | read-only terminal view: chain, epistemic states, nodal load, defence layers, shadow trials, drift |
