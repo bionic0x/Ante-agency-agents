@@ -14,7 +14,8 @@ sys.path.insert(0, str(ROOT))
 from ante import cli  # noqa: E402
 from ante.constructs import frozen, snapshot  # noqa: E402
 from ante.core import canon  # noqa: E402
-from ante.learn import apophenia, commands, jackpot, ledger  # noqa: E402
+from ante.learn import apophenia, commands, jackpot, ledger, stub  # noqa: E402
+from ante.strategy import artifact  # noqa: E402
 from ante.strategy.artifact import seal  # noqa: E402
 
 T0 = '2026-10-28T12:00:00Z'
@@ -297,6 +298,59 @@ class Drift(Workspace):
             self.assertEqual(0, cli.main(['learn', 'review', '--ledger', self.ledger, '--by', 'Ana', '--reason',
                                           'model revised', '--at', '2026-10-29T00:00:00Z']))
             self.assertEqual(0, cli.main(['jackpot', '--ledger', self.ledger, '--at', '2026-10-29T01:00:00Z']))
+
+
+class Shadow(Workspace):
+    def setUp(self):
+        super().setUp()
+        self.log = str(self.dir / 'shadow.jsonl')
+
+    def shadow(self, art, interval=(0.9, 0.9), candidate='router-v2', at='2026-10-29T00:00:00Z'):
+        spec = {'candidate': {'id': candidate, 'kind': 'routing', 'ref': 'strategy/vectors.json',
+                              'sha256': '0' * 64},
+                'decision': art['artifact_sha256'], 'verdict': 'PROCEED_WITH_CONDITIONS',
+                'predictions': [{'expectation': 'e1', 'interval': list(interval)}], 'rationale': 'candidate routing'}
+        return stub.record(self.write(f'shadow-{candidate}-{art["case_id"]}.json', spec), self.log, self.ledger, at)
+
+    def test_shadow_output_never_enters_a_real_lineage(self):
+        art = decide_artifact('a')
+        self.record(art)
+        entry = self.shadow(art)
+        leaked = self.write('leaked.json', entry)
+        with self.assertRaises(artifact.LineageError):
+            artifact.load_parent(leaked)                         # --from refuses it
+        with self.assertRaises(artifact.LineageError):
+            commands.record(leaked, self.ledger, '2026-10-30T00:00:00Z', None, None, False)
+        with self.assertRaisesRegex(stub.StubError, 'decision ledger'):
+            stub.record(self.write('s.json', {}), self.ledger, self.ledger, '2026-10-30T00:00:00Z')
+        with self.assertRaisesRegex(stub.StubError, 'not a shadow log'):
+            stub.status(self.ledger)
+        self.assertEqual(['decision'], [e['kind'] for e in ledger.read(self.ledger)])
+        with self.assertRaises(ledger.LedgerError):
+            ledger.append(self.ledger, 'shadow', entry['payload'], '2026-10-30T00:00:00Z')
+
+    def test_hidden_until_reconciled_and_no_hindsight(self):
+        art = decide_artifact('a')
+        self.record(art)
+        self.shadow(art)
+        self.assertEqual(0, stub.compare(self.log, self.ledger, '2026-11-01T00:00:00Z', 1)['candidates'][0][
+            'compared_predictions'])
+        self.observe(art, 'CONFIRMED')
+        with self.assertRaisesRegex(stub.StubError, 'hindsight'):
+            self.shadow(art, candidate='late')
+        result = stub.compare(self.log, self.ledger, '2026-12-31T00:00:00Z', 1)['candidates'][0]
+        self.assertEqual(('MEASURED', 1), (result['result'], result['compared_predictions']))
+        self.assertAlmostEqual(0.01, result['shadow_brier'])
+        self.assertAlmostEqual(0.09, result['real_brier'])
+        self.assertTrue(result['eligible_for_proposal'])
+
+    def test_adoption_needs_history(self):
+        art = decide_artifact('a')
+        self.record(art)
+        self.shadow(art)
+        self.observe(art, 'CONFIRMED')
+        result = stub.compare(self.log, self.ledger, '2026-12-31T00:00:00Z')['candidates'][0]
+        self.assertEqual(('INSUFFICIENT_HISTORY', False), (result['result'], result['eligible_for_proposal']))
 
 
 class Guard(unittest.TestCase):

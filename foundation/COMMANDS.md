@@ -60,3 +60,13 @@ brief; see `ante/strategy/draft.py`.
 
 Every `develop` command takes `--state FILE` (a hash-chained log) and, except
 `status`, `--at`. Decisions D-013 and D-014 describe the policy and the lock.
+
+## Shadow trials, drift and defences
+
+| Command | What it does |
+|---|---|
+| `stub record SPEC --log S --ledger L --at T` | records a candidate's recommendation for a real decision in a separate shadow log; refused once the decision has outcomes |
+| `stub compare --log S --ledger L --at T` | compares shadow and real forecasts on reconciled expectations only; `INSUFFICIENT_HISTORY` below 30; eligibility permits an `ante develop` proposal, never an adoption |
+| `stub status --log S` | counts only; recommendations stay hidden until reconciled |
+| `constructs list\|verify` | frozen reviewer profiles and their pinned hashes |
+| `ice seed PACK --registry R` / `ice scan PATH...` / `ice layers` | canaries in held-out packs; contamination scan; independence of the five defensive layers |
