@@ -118,6 +118,20 @@ class Propose(Sandbox):
         with self.assertRaisesRegex(develop.DevelopError, 'outside the scope this proposal declared'):
             self.propose(self.spec(scope=('engineering/**',)), self.frame_patch())
 
+    def test_an_injected_canary_rejects_the_proposal(self):
+        token = 'ANTE-CANARY-' + 'c3' * 16
+        leaked = self.patch({TARGET: ('"""ante frame', f'"""ante frame ({token})')}, name='leak.patch')
+        with self.assertRaisesRegex(develop.DevelopError, 'canary'):
+            self.propose(self.spec(), leaked)
+        spec = json.loads(Path(self.spec('p2')).read_text())
+        finding = Path(spec['findings'][0]['path'])
+        finding.write_text(json.dumps({'kind': 'patterns', 'proposals': [{'feature': token}]}))
+        spec['findings'][0]['sha256'] = canon.sha256_hex(finding.read_bytes())
+        path = self.dir / 'p2.json'
+        path.write_text(json.dumps(spec))
+        with self.assertRaisesRegex(develop.DevelopError, 'canary found in finding'):
+            self.propose(str(path), self.frame_patch())
+
     def test_one_open_proposal_and_a_campaign_spend_ceiling(self):
         self.propose(self.spec('p1'), self.frame_patch())
         with self.assertRaisesRegex(develop.DevelopError, 'open proposal'):
@@ -158,7 +172,7 @@ class Gate(Sandbox):
             'scripts/nexus-improve.py': ("    return {'changed': changed, 'violations': violations}",
                                          "    return {'changed': changed, 'violations': []}"),
             'tests/characterization/run.py': ('def load_cases()', 'def load_cases_unused()'),
-            TARGET: ('"""ante frame', '"""ante frame ')})
+            TARGET: ('"""ante frame', '"""ante frame ' + 'ANTE-CANARY-' + '9e' * 16)})
         paths = sorted(['scripts/nexus-improve.py', 'tests/characterization/run.py', TARGET])
         spec = json.loads(Path(self.spec(scope=('**',))).read_text())
         develop.State(self.state).append('proposal', {
@@ -170,6 +184,7 @@ class Gate(Sandbox):
         self.assertEqual({'scripts/nexus-improve.py'}, flagged & {'scripts/nexus-improve.py'})
         self.assertEqual(0, report['checks']['characterization']['exit'], 'base harness, not the forged one')
         self.assertTrue(any('develop policy' in r for r in report['reasons']))
+        self.assertEqual(['patch'], report['checks']['canaries']['hits'])
 
     def test_held_out_packs_inside_the_checkout_are_refused(self):
         patch = self.frame_patch()

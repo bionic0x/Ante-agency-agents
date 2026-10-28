@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "purpose": "Typed defensive layers over ante develop (Marco VI.7). No two layers may read the same data or rest on the same assumption: if they did, one failure would take both down.",
+  "layers": [
+    {
+      "id": "canary-scan",
+      "function": "detect",
+      "question": "Did held-out evidence reach the improver before any measurement trusts it?",
+      "mechanism": "Scan the patch, the proposal spec and every finding it cites for ANTE-CANARY strings; a hit rejects the proposal.",
+      "implemented_by": "ante.ice.canary.scan_text (called by ante develop propose and gate)",
+      "data": ["candidate-content"],
+      "assumptions": ["held-out packs were seeded with canaries before they were frozen"]
+    },
+    {
+      "id": "autonomy-and-spend-margins",
+      "function": "absorb",
+      "question": "What margin keeps a bad proposal from reaching the gate's own limits?",
+      "mechanism": "One open proposal, a campaign spend ceiling, and the Turing lock holding every positive autonomy step and the accumulation for independent review.",
+      "implemented_by": "ante.develop.commands.propose; ante.turing.lock.assess",
+      "data": ["proposal-declarations", "independent-review-records"],
+      "assumptions": ["undeclared autonomy is either declared or caught by the tripwire before it accumulates"]
+    },
+    {
+      "id": "base-revision-evaluation",
+      "function": "contain",
+      "question": "What stops a proposal from changing the rules it is judged by?",
+      "mechanism": "Protected paths and the develop policy are read at the base revision; nexus-improve.py and the characterization harness run from a base worktree against the candidate.",
+      "implemented_by": "ante.develop.policy.at_ref; ante.develop.commands.gate",
+      "data": ["base-revision"],
+      "assumptions": ["the base revision was reviewed and merged by a human"]
+    },
+    {
+      "id": "draft-only-branch",
+      "function": "recover",
+      "question": "How does the system return to an acceptable state if a proposal was wrong?",
+      "mechanism": "The candidate is one commit on a disposable branch; at most one draft pull request; nothing is merged, force-pushed or written to .github/**; close frees the slot.",
+      "implemented_by": "ante.develop.commands.pr; ante.develop.commands.gate",
+      "data": ["candidate-branch"],
+      "assumptions": ["main is merged only by a human"]
+    },
+    {
+      "id": "held-out-regression-stop",
+      "function": "learn",
+      "question": "What evidence changes the loop rather than adding another exception?",
+      "mechanism": "Pareto non-regression on held-out packs outside the checkout; two consecutive regressions stop the loop until a named human resumes it with a reason.",
+      "implemented_by": "ante.develop.commands.gate; ante.develop.commands.State.stopped",
+      "data": ["held-out-comparisons"],
+      "assumptions": ["the improver never saw the held-out packs it is measured on"]
+    }
+  ]
+}

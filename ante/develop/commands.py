@@ -150,6 +150,20 @@ def _check_findings(spec: dict) -> list[dict]:
     return checked
 
 
+def _contamination(spec: dict, patch_bytes: bytes) -> list[dict]:
+    """ICE detect layer: canary strings in anything the improver produced or cites."""
+    from ante.ice import canary
+    hits = canary.scan_text(json.dumps(spec, ensure_ascii=False), 'proposal spec', {})
+    hits += canary.scan_text(patch_bytes.decode('utf-8', 'replace'), 'patch', {})
+    for finding in spec['findings']:
+        try:
+            hits += canary.scan_text(Path(finding['path']).read_bytes().decode('utf-8', 'replace'),
+                                     f'finding {Path(finding["path"]).name}', {})
+        except OSError:
+            continue
+    return hits
+
+
 def _scope_violations(policy: policy_mod.Policy, spec: dict, paths: list[str]) -> list[dict]:
     import fnmatch
     violations = []
@@ -178,6 +192,10 @@ def propose(spec_path: str, patch: str, base: str, state_path: str, at: str, rep
     findings = _check_findings(spec)
     patch_path = Path(patch)
     patch_bytes = patch_path.read_bytes()
+    hits = _contamination(spec, patch_bytes)
+    if hits:
+        raise DevelopError('held-out canary found in ' + ', '.join(sorted({h['where'] for h in hits}))
+                           + ': contamination; investigate the leak before any proposal from this source')
     paths = policy_mod.patch_paths(repo, patch_path)
     if not paths:
         raise DevelopError('the patch changes nothing')
@@ -247,6 +265,10 @@ def gate(proposal_id: str, patch: str, state_path: str, at: str, evidence: dict 
         paths_proc = _run([sys.executable, evaluator, 'paths', '--base', proposal['base'], '--head', head,
                            '--repo', str(tree)], base_tree)
         paths = json.loads(paths_proc.stdout) if paths_proc.stdout.strip().startswith('{') else None
+        hits = _contamination(proposal['spec'], patch_bytes)
+        report['checks']['canaries'] = {'hits': [h['where'] for h in hits]}
+        if hits:
+            report['reasons'].append('held-out canary in the candidate: contamination (ICE detect)')
         report['checks']['paths'] = paths['paths'] if paths else {'error': paths_proc.stderr.strip()[:300]}
         if paths is None or paths['paths']['violations']:
             report['reasons'].append('nexus-improve paths: protected or held-out path changed (or check failed)')

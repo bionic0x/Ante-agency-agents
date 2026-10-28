@@ -273,3 +273,23 @@ budgets, limits, approvals, permissions or thresholds trips a heuristic wire
 independence label in Ante: the lock checks form, coverage, date, hash and that
 the loop did not write them, not who the reviewer is. The limit and window are
 constants in `ante/turing/lock.py`, a protected path, for the owner to set.
+
+---
+
+## D-015 · Canaries are seeded before freezing, and kept outside the checkout — ACCEPTED
+
+A canary is `ANTE-CANARY-` plus 32 hex digits, written as an HTML comment into
+each markdown or text material of a held-out pack by `ante ice seed`, before
+`nexus-casepack.py freeze` (afterwards the material is fixed by `inputs_hash`).
+The registry that maps canaries to packs lives beside the packs, outside the
+checkout; the format alone is enough to detect contamination. `ante develop`
+rejects any proposal whose spec, patch or cited findings contain a canary, at
+proposal time and again at the gate. The held-out examples already frozen in
+`examples/nexus/casepacks/` are public teaching material: they carry no canary,
+and the gate refuses any held-out root inside the checkout. A test asserts that
+the checkout contains no canary string at all.
+
+The five ICE layers (`ante/ice/layers.json`) — canary scan (detect), autonomy and
+spend margins (absorb), base-revision evaluation (contain), draft-only branch
+(recover), held-out regression stop (learn) — each declare their data and their
+assumption; `ante ice layers` fails if two share either.
