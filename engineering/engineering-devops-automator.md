@@ -90,9 +90,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: Build and Push
         run: |
-          docker build -t app:${{ github.sha }} .
+          docker build -t registry/app:${{ github.sha }} .
           docker push registry/app:${{ github.sha }}
           
   deploy:

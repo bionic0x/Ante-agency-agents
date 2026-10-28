@@ -4,6 +4,19 @@ The [ACT-LABS architectural assessment](external-marketplaces/README.md) is a
 separate, manually pinned reference review. Its original offline intake tool
 imports no upstream agents or code and is not part of the OpenClaw sync below.
 
+## Agency upstream merge — 28 October 2026
+
+Merged `msitarzewski/agency-agents:main` at
+[`b37b5bb33b78f2c1d6567d98e25ca818e3259219`](https://github.com/msitarzewski/agency-agents/commit/b37b5bb33b78f2c1d6567d98e25ca818e3259219)
+onto Ante `86addea22f6060f2c50e81c67c6dadf978ea3749` (66 upstream commits since
+common ancestor). Adds Electrical Engineer and upstream profile corrections.
+Ante's strategic/security additions, NEXUS, Relay, registries and CI controls are
+retained. Keep Ante's concise README, regenerate catalog/Hermes metadata and
+conversion fingerprints from the combined source instead of accepting upstream
+counts or generated hashes. The combined catalog contains 507 agents, 19 divisions,
+9 runbooks and 17 tool targets. This is a Git ancestry merge, not an OpenClaw
+source refresh; the OpenClaw pin below is unchanged.
+
 ## Sources and evidence
 
 The OpenClaw community capability source is

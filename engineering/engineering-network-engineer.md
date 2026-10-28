@@ -128,6 +128,12 @@ set firewall family inet filter PROTECT-RE term allow-ssh from source-address 10
 set firewall family inet filter PROTECT-RE term allow-ssh from protocol tcp
 set firewall family inet filter PROTECT-RE term allow-ssh from destination-port ssh
 set firewall family inet filter PROTECT-RE term allow-ssh then accept
+set firewall family inet filter PROTECT-RE term allow-bgp from source-address 203.0.113.1/32
+set firewall family inet filter PROTECT-RE term allow-bgp from protocol tcp
+set firewall family inet filter PROTECT-RE term allow-bgp from port bgp
+set firewall family inet filter PROTECT-RE term allow-bgp then accept
+set firewall family inet filter PROTECT-RE term allow-ospf from protocol ospf
+set firewall family inet filter PROTECT-RE term allow-ospf then accept
 set firewall family inet filter PROTECT-RE term drop-rest then discard
 set interfaces lo0 unit 0 family inet filter input PROTECT-RE
 ```

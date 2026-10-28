@@ -263,13 +263,14 @@ class DependencyScanner:
             via = vuln.get("via", [])
             advisories = [item for item in via if isinstance(item, dict)]
             fix = vuln.get("fixAvailable")
-            severity = vuln.get("severity")
-            if severity not in {item.value for item in Severity} | {"info"}:
+            # npm levels are info, low, moderate, high and critical.
+            severity = {"info": "low", "moderate": "medium"}.get(vuln.get("severity"), vuln.get("severity"))
+            if severity not in {item.value for item in Severity}:
                 raise RuntimeError(f"npm audit returned unknown severity for {package}")
             findings.append(VulnFinding(
                 package=package,
                 version=vuln.get("range", "unknown"),
-                severity=Severity.LOW if severity == "info" else Severity(severity),
+                severity=Severity(severity),
                 cve=advisories[0].get("url", "N/A") if advisories else "N/A",
                 fixed_version=(fix.get("version", "N/A") if isinstance(fix, dict)
                                else "available" if fix is True else "N/A"),

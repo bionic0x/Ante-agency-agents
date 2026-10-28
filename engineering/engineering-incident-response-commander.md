@@ -255,7 +255,7 @@ slos:
       - severity: page
         short_window: 5m
         long_window: 1h
-        burn_rate: 14.4x  # budget exhausted in 2 hours
+        burn_rate: 14.4x  # budget exhausted in ~2 days (2% of it per hour)
       - severity: ticket
         short_window: 30m
         long_window: 6h

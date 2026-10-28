@@ -1,5 +1,12 @@
 # Changelog
 
+## Agency upstream synchronization — 2026-10-28
+
+- Merge 66 upstream commits through `b37b5bb`, adding Electrical Engineer and
+  profile corrections while retaining Ante doctrine, runtime and CI controls.
+- Regenerate the 507-agent catalog, Hermes metadata and converter fingerprints
+  from the merged source; retain Ante README information architecture.
+
 ## ACT-LABS marketplace patterns and offline intake — 2026-10-28
 
 - Assess ACT-LABS-IO discovery, event processing and task lifecycle patterns at
