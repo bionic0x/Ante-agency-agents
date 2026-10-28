@@ -91,6 +91,24 @@ python3 scripts/evaluate-nexus.py \
 
 For contracts, state transitions, and replay semantics, read [NEXUS instances](strategy/NEXUS-INSTANCE.md). For live execution, start with the [Relay threat model](relay/DESIGN.md) and [operations guide](relay/README.md); do not treat the offline example as proof of runtime isolation.
 
+## Ante Foundation: strategy, learning and self-development
+
+`scripts/ante` turns the [General Theory of Strategy](strategy/GENERAL-STRATEGY-DOCTRINE.md) into commands whose outputs are sealed, chained artefacts. Three layers, each building on the one below:
+
+| Layer | Commands | What it adds | Boundary |
+|---|---|---|---|
+| **Strategy** | `frame` `map` `cause` `focus` `options` `react` `street` `ach` `watch` `close` `cohere` `pathology` `nodal` `decide` · `run` `selftest` | One artefact per step of the method, bound by hash, case and time; minimum validations refuse nominal objectives, decoy option sets, untestable expectations, a `PROCEED` without independent review or with an unverified load-bearing assumption | A decision record grants no execution authority |
+| **Learning** | `learn record` `reconcile` `calibrate` `patterns` `review` `box` · `jackpot` `stub` `signals` | A hash-chained ledger of dated predictions and observed outcomes; Brier calibration or `INSUFFICIENT_SAMPLE`; patterns only after a permutation test with multiple-comparison correction; cumulative drift that forces a model review | It updates data, never routing, thresholds or profiles by itself |
+| **Self-development** | `develop propose` `gate` `pr` `resume` `close` · `constructs` `ice` | Bounded proposals judged by the base revision's evaluator, characterization, held-out comparison, canary scan and a lock on cumulative autonomy; at most one draft pull request | Nothing merges; a human does |
+
+```bash
+bash examples/foundation/lab-consortium/run.sh      # synthetic case: frame → decide → learn reconcile → calibrate
+python3 scripts/ante deck --artifacts examples/foundation/lab-consortium/artifacts --plain
+python3 scripts/ante commands                       # the strategy commands and what each refuses
+```
+
+Every existing script keeps its interface, exit codes and output: eight of them are now thin entry points over the shared `ante/` package, and 114 recorded characterization cases prove the outputs are byte-identical. See [foundation/COMMANDS.md](foundation/COMMANDS.md), [foundation/MIGRATION.md](foundation/MIGRATION.md) and the open owner decisions in [foundation/DECISIONS.md](foundation/DECISIONS.md).
+
 ## Evidence, safety, and project status
 
 **As verified on 16 October 2026:**
@@ -131,6 +149,7 @@ To contribute: start with [CONTRIBUTING.md](CONTRIBUTING.md), use the [pull requ
 | [Operations](OPERATIONS.md) · [Tool registry](tools.json) | Install, configure, validate and troubleshoot adapters |
 | [General Strategy Doctrine](strategy/GENERAL-STRATEGY-DOCTRINE.md) | Purpose, non-object, levels, evidence and decision ownership |
 | [NEXUS contract](strategy/NEXUS-INSTANCE.md) · [Overdrive](strategy/NEXUS-OVERDRIVE.md) | Engine semantics, tests, optimizer and measured exits |
+| [Ante Foundation commands](foundation/COMMANDS.md) · [Migration](foundation/MIGRATION.md) · [Decisions](foundation/DECISIONS.md) | Strategy, learning and self-development layers; script-to-module map; owner decisions |
 | [Relay](relay/README.md) · [Threat model](relay/DESIGN.md) | Bounded local execution and residual risks |
 | [HTP Gate 0](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) · [Alpha Research](strategy/alpha-research-suite/README.md) | Domain-specific non-executing workflows |
 | [External marketplace intake](strategy/external-marketplaces/README.md) | ACT-LABS source review and offline task packets with identity, freshness and mandatory HOLD |

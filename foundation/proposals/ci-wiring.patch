@@ -1,0 +1,59 @@
+diff --git a/.github/workflows/check-runbooks.yml b/.github/workflows/check-runbooks.yml
+index 5237b8f..d8cd37d 100644
+--- a/.github/workflows/check-runbooks.yml
++++ b/.github/workflows/check-runbooks.yml
+@@ -83,3 +83,34 @@ jobs:
+         run: |
+           python3 scripts/check-htp-gate0.py
+           python3 scripts/test-htp-gate0.py
++
++  ante-foundation:
++    name: Ante Foundation contract, layers and published self-test
++    runs-on: ubuntu-latest
++    timeout-minutes: 15
++    steps:
++      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++        with:
++          persist-credentials: false
++      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
++        with:
++          python-version: '3.11'
++      - run: python3 -m pip install --require-hashes --no-deps -r .github/requirements/validation.txt
++
++      - name: Characterization recordings and mechanical moves
++        run: |
++          python3 tests/characterization/run.py
++          python3 foundation/tools/extraction.py verify
++
++      - name: Foundation tests (strategy, learning, self-development, defences)
++        run: python3 -m unittest discover -s tests/foundation -p 'test_*.py'
++
++      - name: Frozen reviewers and defence-layer independence
++        run: |
++          python3 scripts/ante constructs verify
++          python3 scripts/ante ice layers
++
++      - name: Publish the institutional self-test (reported, never certified)
++        run: |
++          python3 scripts/ante selftest foundation/selftest-register.json --at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --out "$RUNNER_TEMP/selftest"
++          cat "$RUNNER_TEMP/selftest/selftest.md" >> "$GITHUB_STEP_SUMMARY"
+diff --git a/scripts/verify-release.sh b/scripts/verify-release.sh
+index 4b0231f..b892638 100755
+--- a/scripts/verify-release.sh
++++ b/scripts/verify-release.sh
+@@ -37,6 +37,15 @@ python3 scripts/test-nexus-brief.py
+ python3 scripts/test-nexus-plan.py
+ python3 scripts/test-nexus-optimize.py
+ python3 -m unittest discover -s relay/tests
++# Ante Foundation: behavioural contract, mechanical moves, foundation tests,
++# frozen reviewers, defence-layer independence, published self-test.
++python3 tests/characterization/run.py
++python3 foundation/tools/extraction.py verify
++python3 -m unittest discover -s tests/foundation -p 'test_*.py'
++python3 scripts/ante constructs verify
++python3 scripts/ante ice layers >/dev/null
++python3 scripts/ante selftest foundation/selftest-register.json --at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
++  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("\n".join("self-test row %s: %s" % (r["row"], r["result"]) for r in d["body"]["rows"]))'
+ python3 scripts/nexus-instance.py validate examples/nexus/strategic-decision.instance.json >/dev/null
+ python3 scripts/nexus-instance.py validate examples/nexus/investment-hypothesis.instance.json >/dev/null
+ python3 scripts/check-challenger-pairs.py

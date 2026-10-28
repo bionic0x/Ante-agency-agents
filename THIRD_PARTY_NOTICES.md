@@ -1,5 +1,23 @@
 # Third-Party Notices
 
+## Ante Foundation (this fork)
+
+The `ante/` package, `scripts/ante`, `foundation/`, `tests/foundation/`,
+`tests/characterization/` and `examples/foundation/` are original work of this
+fork, `bionic0x/Ante-agency-agents`, which derives from
+[msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) under
+the MIT License in [LICENSE](LICENSE); the upstream copyright notice is retained
+there. The foundation adds no third-party code and no new runtime dependency:
+it uses the Python standard library and the hash-pinned PyYAML already declared
+in `scripts/requirements-validation.txt`. Eight modules under `ante/nexus/` are
+mechanical moves of this repository's own scripts (see `foundation/MIGRATION.md`).
+
+Some internal command and module names (nodal, street, stub, jackpot, ghosts,
+deck, constructs, ICE, Turing lock) allude to William Gibson's fiction. They are
+naming conventions only: no text from those works is reproduced, and outputs read
+by third parties use functional names. Doctrinal references (the General Theory
+of Strategy and the works it cites) are cited by section, not reproduced.
+
 ## ACT-LABS-IO architectural references
 
 The [external marketplace assessment](strategy/external-marketplaces/README.md)

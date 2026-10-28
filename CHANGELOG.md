@@ -1,5 +1,32 @@
 # Changelog
 
+## Ante Foundation: strategy, learning and self-development — 2026-10-28
+
+- Add the `ante` package and `scripts/ante`. Shared core (`ante.core`: strict JSON
+  loading, canonical JSON profiles, schema checks, UTC time), doctrine tables,
+  registry façade and sealed artefacts bound by hash, case and time.
+- Strategy layer: fourteen commands following the method of the General Theory
+  of Strategy — `frame`, `map`, `cause`, `focus`, `options`, `react`, `street`,
+  `ach`, `watch`, `close`, `cohere`, `pathology`, `nodal`, `decide` — plus
+  `selftest` and `ante run` (chain completeness per runbook). Each refuses its
+  characteristic defect; `decide` admits only what `cohere` leaves admissible and
+  refuses `PROCEED` without an independent review, a termination contract, dated
+  expectations, or with a load-bearing assumption not accepted as a named risk.
+- Learning layer: hash-chained decision ledger with frozen decision snapshots,
+  reconciliation, Brier calibration with `INSUFFICIENT_SAMPLE`, patterns guarded by
+  a permutation test with Bonferroni correction, cumulative-drift review
+  (`jackpot`), shadow trials (`stub`), weak signals and a discard archive.
+- Self-development: `ante develop` proposes bounded changes, judges them with the
+  base revision's evaluator, characterization, held-out comparison, canary scan
+  and a lock on cumulative autonomy, and opens at most one draft pull request; it
+  never merges. Frozen reviewer profiles and five independent defence layers.
+- Eight scripts become entry points over `ante/nexus/` with byte-identical
+  behaviour, proved by 114 characterization recordings taken before the move.
+  Runbooks declare `strategy_commands` and `material`.
+- Synthetic end-to-end example in `examples/foundation/`; 152 foundation tests
+  and 114 characterization cases. Owner
+  decisions pending: D-001, D-003, D-004, D-010, D-013, D-014 (`foundation/DECISIONS.md`).
+
 ## ACT-LABS marketplace patterns and offline intake — 2026-10-28
 
 - Assess ACT-LABS-IO discovery, event processing and task lifecycle patterns at

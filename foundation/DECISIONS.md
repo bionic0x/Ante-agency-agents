@@ -308,3 +308,18 @@ party reads uses functional names: `load_bearing_claims`, `misuse_analysis`,
 the owner to decide: an artefact's `command` field records the command that
 produced it, so a decision's lineage lists `nodal` and `street`. Renaming those
 two commands (for example `load` and `misuse`) would remove it.
+
+---
+
+## D-017 · CI wiring is delivered as a patch for a protected commit — PROPOSED
+
+The prompt asks for the new checks in `verify-release.sh` and the runbook
+workflow. Both `scripts/verify-release.sh` and `.github/**` are protected paths,
+and adding steps is not a mechanical extraction, so this branch does not edit
+them (§11). `foundation/proposals/ci-wiring.patch` adds, for the owner to apply
+in a hand-written `protected:` commit: the characterization recordings, the
+extraction check, the foundation tests, the frozen-reviewer and defence-layer
+checks, and the institutional self-test run on `foundation/selftest-register.json`
+and published to the job summary (reported, never failing the build, as the
+self-test doctrine requires). The patch applies cleanly to this branch and the
+release gate was run with it applied.
