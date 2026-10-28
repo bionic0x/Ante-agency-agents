@@ -1,0 +1,38 @@
+{
+  "artifact_sha256": "b5437d8d4c3692706913991c729d868c65a977e90bd6898cb8ae673e52489b8f",
+  "at": "2026-10-28T12:30:00Z",
+  "body": {
+    "termination_contract": {
+      "accountable": "The consortium council answers for the rule; the laboratory director runs it with ordinary staff.",
+      "achieved": "Priority hours are protected each week and deferrals land in confirmed later slots under a rule all three members adopted.",
+      "conservation_resources": "Half a day of coordinator time per week and the booking system's existing audit log.",
+      "on_breach": "A member that books outside the rule loses priority for that slot; repeated breaches go to the council, which may suspend the trial.",
+      "outstanding": "The external-capacity option remains unverified and is kept as a contingency with an owner and a trigger.",
+      "revision_conditions": "Review after three cycles, or earlier if essential demand exceeds 90 hours twice in a row.",
+      "type": "conservation"
+    },
+    "transition": [
+      {
+        "exposure": "members defer hours before seeing others comply",
+        "guarantee": "deferrals are recorded and reversible after cycle 1",
+        "step": "Council adopts the criteria and the appeal path",
+        "verification": "booking log reconciled against the rule each week"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "close",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "a4fe2a4c950bbbf2fff47931b7548a15e7289954b0b75a0c3bd6e3cd172927be",
+  "next_decision": "Run the seven coherence tests on the whole plan (ante cohere).",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

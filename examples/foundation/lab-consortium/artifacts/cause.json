@@ -1,0 +1,71 @@
+{
+  "artifact_sha256": "2456016bc2caa97e0e59231577425b55f42c6179fa30b1bd2760e18cd339e927",
+  "at": "2026-10-28T10:00:00Z",
+  "body": {
+    "basis": [
+      "demand-110",
+      "slack-20"
+    ],
+    "chain": {
+      "because": "members stop over-reserving defensively once the criteria are predictable and appealable",
+      "final_result": "priority projects completed on time and members still value the consortium",
+      "if": "we adopt shared priority criteria applied by each university and coordinate only the conflicts",
+      "immediate_effect": "fewer conflicting reservations per week",
+      "provided_that": [
+        "essential demand stays within 90 ordinary hours",
+        "deferred hours fit the confirmed slack"
+      ],
+      "then": "conflicting bookings fall and priority projects get their hours"
+    },
+    "refutations": [
+      {
+        "horizon": "end of cycle 2",
+        "observation": "conflicts do not fall after two cycles of applied criteria",
+        "observed_by": "technical staff booking report"
+      }
+    ],
+    "rivals": [
+      {
+        "discriminating_evidence": "essential demand above 90 hours in consecutive cycles despite applied criteria",
+        "explanation": "Demand that cannot be deferred exceeds capacity, so no rule removes the conflict.",
+        "id": "structural-scarcity"
+      },
+      {
+        "discriminating_evidence": "reconciliation of active requests against projects shows duplicates",
+        "explanation": "Duplicate or stale reservations inflate the apparent demand.",
+        "id": "bad-records"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [
+    {
+      "date": "2026-10-27",
+      "id": "slack-20",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "owner",
+        "ref": "booking forecast for weeks 45-46"
+      },
+      "status": "ASSUMPTION",
+      "text": "20 hours can move to the following weeks, where slack is confirmed."
+    }
+  ],
+  "command": "cause",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "7891f77ff0020031feaf02546a5d2a66e317eb3484d97c4bf1c827a2f5884ec7",
+  "next_decision": "Locate the decisive dependency and the main effort (ante focus).",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    },
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

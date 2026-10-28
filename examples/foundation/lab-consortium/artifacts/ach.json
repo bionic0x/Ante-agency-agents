@@ -1,0 +1,211 @@
+{
+  "artifact_sha256": "6cdf6215377003bf082dfbc621f288f5572a21f7ba096449b5afcec140894287",
+  "at": "2026-10-28T10:15:00Z",
+  "body": {
+    "analysis": {
+      "counted_evidence": [
+        "e-demand",
+        "e-dups",
+        "e-tech",
+        "e-minutes"
+      ],
+      "excluded_self_produced": [
+        "e-summary"
+      ],
+      "inconsistency_by_source_group": {
+        "bad-records": 1,
+        "structural-scarcity": 0,
+        "unresolved-priorities": 1
+      },
+      "inconsistency_raw": {
+        "bad-records": 2,
+        "structural-scarcity": 0,
+        "unresolved-priorities": 2
+      },
+      "interpretation": "Ratings are judgements, not probabilities. The least-inconsistent set is conditional on the matrix; corroborate the sensitive evidence first.",
+      "least_inconsistent": [
+        "structural-scarcity"
+      ],
+      "non_diagnostic": [
+        "e-demand"
+      ],
+      "sensitive_evidence": [],
+      "source_groups": [
+        [
+          "e-minutes",
+          "e-tech"
+        ]
+      ]
+    },
+    "confidence": {
+      "interval": [
+        0.4,
+        0.65
+      ],
+      "verbal": "moderate"
+    },
+    "evidence": [
+      {
+        "claim": "demand-110",
+        "depends_on": [],
+        "description": "110 hours requested against 90 ordinary",
+        "id": "e-demand",
+        "source_id": "reservation-export"
+      },
+      {
+        "claim": "dup-check",
+        "depends_on": [],
+        "description": "4 duplicates in 61 reservations",
+        "id": "e-dups",
+        "source_id": "reconciliation"
+      },
+      {
+        "claim": "tech-report",
+        "depends_on": [],
+        "description": "technical note on near-capacity demand",
+        "id": "e-tech",
+        "source_id": "technical-staff"
+      },
+      {
+        "claim": "tech-report-echo",
+        "depends_on": [
+          "e-tech"
+        ],
+        "description": "council minutes on near-capacity demand",
+        "id": "e-minutes",
+        "source_id": "council-minutes"
+      },
+      {
+        "claim": "model-summary",
+        "depends_on": [],
+        "description": "assistant summary blaming priorities",
+        "id": "e-summary",
+        "source_id": "ante-draft"
+      }
+    ],
+    "future_indicators": [
+      {
+        "hypothesis": "structural-scarcity",
+        "indicator": "essential demand above 90 hours with criteria applied"
+      },
+      {
+        "hypothesis": "bad-records",
+        "indicator": "demand falls after weekly reconciliation"
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "structural-scarcity",
+        "statement": "Essential demand exceeds capacity."
+      },
+      {
+        "id": "unresolved-priorities",
+        "statement": "Conflicts come from the absence of shared priorities."
+      },
+      {
+        "id": "bad-records",
+        "statement": "Duplicate or stale reservations inflate demand."
+      }
+    ],
+    "matrix": {
+      "e-demand": {
+        "bad-records": "C",
+        "structural-scarcity": "C",
+        "unresolved-priorities": "C"
+      },
+      "e-dups": {
+        "bad-records": "C",
+        "structural-scarcity": "N",
+        "unresolved-priorities": "N"
+      },
+      "e-minutes": {
+        "bad-records": "I",
+        "structural-scarcity": "C",
+        "unresolved-priorities": "I"
+      },
+      "e-summary": {
+        "bad-records": "N",
+        "structural-scarcity": "I",
+        "unresolved-priorities": "C"
+      },
+      "e-tech": {
+        "bad-records": "I",
+        "structural-scarcity": "C",
+        "unresolved-priorities": "I"
+      }
+    }
+  },
+  "case_id": "lab-consortium",
+  "claims": [
+    {
+      "date": "2026-10-26",
+      "id": "dup-check",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "external",
+        "ref": "reservation-reconciliation-2026-10-26"
+      },
+      "status": "EVIDENCE",
+      "text": "Reconciliation found 4 duplicate reservations out of 61."
+    },
+    {
+      "date": "2026-10-25",
+      "id": "tech-report",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "external",
+        "ref": "technical-staff-note-2026-10-25"
+      },
+      "status": "EVIDENCE",
+      "text": "Technical staff report that essential demand is close to capacity."
+    },
+    {
+      "date": "2026-10-27",
+      "id": "tech-report-echo",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "external",
+        "ref": "council-minutes-2026-10-27"
+      },
+      "status": "EVIDENCE",
+      "text": "The council minutes repeat the technical note on near-capacity demand."
+    },
+    {
+      "date": "2026-10-27",
+      "id": "model-summary",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "system",
+        "ref": "ante draft of 2026-10-27"
+      },
+      "status": "HYPOTHESIS",
+      "text": "An assistant summary concluded that priorities are the main problem."
+    }
+  ],
+  "command": "ach",
+  "findings": [
+    {
+      "code": "SELF_CORROBORATION",
+      "message": "rests on a system-produced claim; listed but not counted",
+      "path": "evidence[4].claim",
+      "severity": "WARN"
+    },
+    {
+      "code": "SHARED_SOURCE",
+      "message": "e-minutes, e-tech share a source or depend on each other; counted once",
+      "path": "evidence",
+      "severity": "WARN"
+    }
+  ],
+  "independence_level": "SELF",
+  "input_sha256": "65a595bdfd969e45d23400025273624731257a3dfc21d069ab214e0e12dc8d67",
+  "next_decision": "Record the leading hypothesis with its confidence and indicators.",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

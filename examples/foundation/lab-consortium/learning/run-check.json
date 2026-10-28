@@ -1,0 +1,40 @@
+{
+  "case_id": "lab-consortium",
+  "complete": true,
+  "missing": [],
+  "non_canonical_doctrine": [],
+  "note": "A complete chain is a record, not an authorisation to act.",
+  "present": [
+    "ach",
+    "cause",
+    "close",
+    "cohere",
+    "decide",
+    "focus",
+    "frame",
+    "map",
+    "nodal",
+    "options",
+    "pathology",
+    "react",
+    "street",
+    "watch"
+  ],
+  "repeated": [],
+  "required": [
+    "frame",
+    "map",
+    "cause",
+    "focus",
+    "options",
+    "react",
+    "ach",
+    "watch",
+    "close",
+    "cohere",
+    "pathology",
+    "decide"
+  ],
+  "runbook": "strategic-decision",
+  "verdict": "PROCEED_WITH_CONDITIONS"
+}

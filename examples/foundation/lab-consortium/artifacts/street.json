@@ -1,0 +1,83 @@
+{
+  "artifact_sha256": "e7879bed3397c340448220a0a1851e49049be05d42b66da87769570ef967ffe7",
+  "at": "2026-10-28T11:45:00Z",
+  "body": {
+    "covered_metrics": [
+      "essential demand per cycle",
+      "share of hours declared urgent"
+    ],
+    "misuse_analysis": [
+      {
+        "id": "urgent-share",
+        "kind": "metric",
+        "misuse": [
+          {
+            "actor": "uni-a",
+            "countermeasure": "an urgency label counts only with the funder's deadline letter",
+            "effect_on_purpose": "urgent hours crowd out the requests the label was meant to protect",
+            "indicator": "urgent requests without a deadline document attached",
+            "reuse": "relabel ordinary requests as urgent so they jump the queue"
+          },
+          {
+            "actor": "council",
+            "countermeasure": "report missed deadlines beside the share every cycle",
+            "effect_on_purpose": "real deadlines are missed while the indicator looks healthy",
+            "indicator": "missed external deadlines on requests that were refused the urgent label",
+            "reuse": "push the share down by refusing urgent labels to show the metric improving"
+          }
+        ],
+        "purpose": "protect hours with a real external deadline",
+        "statement": "share of hours declared urgent"
+      },
+      {
+        "id": "essential-demand",
+        "kind": "metric",
+        "misuse": [
+          {
+            "actor": "research-teams",
+            "countermeasure": "aggregate essential demand by project, not by booking",
+            "effect_on_purpose": "the capacity trigger fires late because demand looks fragmented",
+            "indicator": "bookings by one team within the same week whose sum exceeds its declared need",
+            "reuse": "split one essential booking into several smaller ones to look less dominant"
+          }
+        ],
+        "purpose": "trigger a capacity decision before coordination stops helping",
+        "statement": "essential demand per cycle"
+      },
+      {
+        "id": "deadline-document-rule",
+        "kind": "rule",
+        "misuse": [
+          {
+            "actor": "uni-a",
+            "countermeasure": "letters name the project and the date; the coordinator samples them each cycle",
+            "effect_on_purpose": "the document becomes a formality and inflation resumes",
+            "indicator": "deadline letters reused across unrelated projects",
+            "reuse": "obtain generic deadline letters that cover every request"
+          }
+        ],
+        "purpose": "remove the incentive to inflate urgency",
+        "statement": "urgency labels require a deadline document"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "street",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "971efd81e5cfa6f25f14e5944e21c86c482864888797226b09de3c262715cf3b",
+  "next_decision": "Carry each manipulation indicator into watch; cohere checks coverage.",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    },
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

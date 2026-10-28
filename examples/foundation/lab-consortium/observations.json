@@ -1,0 +1,20 @@
+{
+  "observations": [
+    {
+      "decision": "@DECISION@",
+      "expectation": "conflicts-fall",
+      "outcome": "CONFIRMED",
+      "observed": "Conflicting bookings fell from 9 to 3 per week over cycles 1 and 2 (synthetic).",
+      "source": {"ref": "booking-system-export-cycle-2", "origin": "external"},
+      "observed_at": "2026-12-14T00:00:00Z"
+    },
+    {
+      "decision": "@DECISION@",
+      "expectation": "priority-delivered",
+      "outcome": "NOT_YET_OBSERVABLE",
+      "observed": "Two of five deadline-bound projects have reached their deadline; the horizon is 2027-01-15.",
+      "source": {"ref": "funder-deadline-tracker", "origin": "owner"},
+      "observed_at": "2026-12-14T00:00:00Z"
+    }
+  ]
+}

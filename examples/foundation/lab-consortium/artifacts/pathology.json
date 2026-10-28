@@ -1,0 +1,124 @@
+{
+  "artifact_sha256": "666b8f3af454d8f5cde4441fe5993042330f9c0c3fe9d91c3daf13f9ef71718f",
+  "at": "2026-10-28T13:15:00Z",
+  "body": {
+    "detected": [
+      {
+        "correction": "Review the relation between measure, mechanism and result.",
+        "id": "metric_substitution",
+        "mechanism": "Incentives change the record or the conduct to improve the number."
+      }
+    ],
+    "doctrine_sha256": "36a1bfe3db41383471e3541b8d3f2acdcea13afe7a23e415db6694a663595f63",
+    "not_assessed": [
+      "chronic_personalization"
+    ],
+    "pathologies": {
+      "chronic_personalization": {
+        "evidence": [],
+        "false_positive_check": "n/a",
+        "note": "requires observing how exceptions are granted over more than one cycle",
+        "status": "NOT_ASSESSED"
+      },
+      "concept_confusion": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "denied_culmination": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "disoriented_speed": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "dispersion": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "escalation_of_commitment": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "frictionless_plan": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "illegitimate_victory": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "imaginary_centre": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "intent_attribution": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "level_inversion": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "metric_substitution": {
+        "evidence": [
+          "a-inflates"
+        ],
+        "false_positive_check": "urgency labels could rise for real deadlines; the watch threshold checks for new deadline letters",
+        "note": "the urgency label can be gamed to win hours",
+        "status": "DETECTED"
+      },
+      "nominal_objective": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      },
+      "reflex_symmetry": {
+        "evidence": [],
+        "false_positive_check": "not applicable when not detected",
+        "note": "examined against the frame, options and watch artefacts; no mechanism present",
+        "status": "NOT_DETECTED"
+      }
+    }
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "pathology",
+  "findings": [],
+  "independence_level": "SEPARATED_CONTEXT",
+  "input_sha256": "47c3ed00a869e9522e287a6784496a0e00dd474af579f01545060ccd31951262",
+  "next_decision": "Address metric_substitution in the decision conditions (ante decide).",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    },
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

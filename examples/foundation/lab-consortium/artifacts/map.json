@@ -1,0 +1,100 @@
+{
+  "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+  "at": "2026-10-28T09:30:00Z",
+  "body": {
+    "actors": [
+      {
+        "affected_by": "Loses legitimacy if criteria favour the strongest member.",
+        "basis": [],
+        "commitment_capacity": "Can adopt allocation criteria; cannot add capacity without member budgets.",
+        "id": "council",
+        "kind": "decider",
+        "preference": "Keep the consortium intact with minimal conflict.",
+        "representation": "Acts for the three member universities under the consortium agreement."
+      },
+      {
+        "affected_by": "Bears most deferred hours under a priority rule.",
+        "basis": [
+          "a-inflates"
+        ],
+        "commitment_capacity": "Can commit its teams to the criteria; cannot commit funders.",
+        "id": "uni-a",
+        "kind": "resource_holder",
+        "preference": "Maximise hours for its own projects.",
+        "representation": "Its research office represents A's teams."
+      },
+      {
+        "affected_by": "Absorbs coordination workload.",
+        "basis": [
+          "cap-100"
+        ],
+        "commitment_capacity": "Commits hours actually usable; cannot decide priorities.",
+        "id": "technical-staff",
+        "kind": "executor",
+        "preference": "Predictable schedules and protected maintenance windows.",
+        "representation": "Represents the laboratory's operating capacity."
+      },
+      {
+        "affected_by": "Delays fall on them directly.",
+        "basis": [
+          "demand-110"
+        ],
+        "commitment_capacity": "Can accept a slot; cannot reallocate others.",
+        "id": "research-teams",
+        "kind": "affected",
+        "preference": "Access when their experiments need it.",
+        "representation": "Each team speaks for its own project only."
+      }
+    ],
+    "dependencies": [
+      {
+        "actor": "technical-staff",
+        "criticality": "critical",
+        "id": "usable-hours",
+        "resource": "usable instrument hours",
+        "substitutes": [
+          "compatible external laboratory"
+        ],
+        "substitution_time": "four to six weeks to qualify an external lab"
+      }
+    ],
+    "formal_vs_effective": "Formally the council decides; in practice informal bookings by senior teams pre-empt the calendar.",
+    "third_parties": [
+      {
+        "actor": "council",
+        "role": "arbiter"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [
+    {
+      "date": "2026-09-30",
+      "id": "a-inflates",
+      "intent": {
+        "capability": "A can file requests unilaterally in the booking system.",
+        "will": "Inferred from one past cycle in which A's requests rose before a cut; not observed as a decision."
+      },
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "external",
+        "ref": "council-minutes-2026-09"
+      },
+      "status": "ATTRIBUTED_INTENT",
+      "text": "University A will inflate requests if it anticipates cuts."
+    }
+  ],
+  "command": "map",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "8e9359fdf49309a71a052f7685a7547b1ac9f67684ad9ef8cfec232a1d1e968d",
+  "next_decision": "State the causal hypothesis and its rival (ante cause).",
+  "parents": [
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

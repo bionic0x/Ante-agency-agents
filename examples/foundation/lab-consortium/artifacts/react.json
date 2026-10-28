@@ -1,0 +1,66 @@
+{
+  "artifact_sha256": "9844e5d9294464d2c9b7ff1236b48d2c159dbbf34b3d5663fbb3c20d31676df0",
+  "at": "2026-10-28T11:30:00Z",
+  "body": {
+    "reactions": [
+      {
+        "activation_signal": "urgent hours rise without new deadline letters",
+        "actor": "uni-a",
+        "against_option": "shared-criteria",
+        "capacity_required": "evidence check of deadlines by the coordinator",
+        "changes_choice": false,
+        "contingent_decision": "adjust",
+        "description": "A classifies more requests as urgent to keep its hours.",
+        "id": "a-overbooks",
+        "incentive": "A bears most deferrals under the rule",
+        "information_revealed": "urgent share rising without new external deadlines",
+        "kind": "opposition"
+      },
+      {
+        "activation_signal": "coordinator receives fewer than two conflicts a week",
+        "actor": "research-teams",
+        "against_option": "shared-criteria",
+        "capacity_required": "a swap log the council can audit",
+        "changes_choice": true,
+        "contingent_decision": "adjust",
+        "description": "Teams of B and C swap slots directly, making most coordination unnecessary.",
+        "id": "b-swaps",
+        "incentive": "faster access than waiting for coordination",
+        "information_revealed": "conflicts resolved before they reach the coordinator",
+        "kind": "cooperation"
+      },
+      {
+        "activation_signal": "essential demand above 90 hours for one cycle",
+        "actor": "council",
+        "against_option": "shared-criteria",
+        "capacity_required": "activate the external-capacity evaluation",
+        "changes_choice": true,
+        "contingent_decision": "pause",
+        "description": "A funder advances a deadline, raising essential demand above 90 hours.",
+        "id": "funder-deadline",
+        "incentive": "external reporting calendar",
+        "information_revealed": "essential demand exceeding ordinary capacity",
+        "kind": "third_party_shift"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "react",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "b93c068f911c0ae1c3c5a13defd622a1206f65a8a9b8092b9f146a803164f3d6",
+  "next_decision": "Tie each indicator to a response before acting (ante watch).",
+  "parents": [
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    },
+    {
+      "artifact_sha256": "9e9841d3467008035df11b3b98bc8de06047e87464fef85ed1bd75054acb7530",
+      "command": "options"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

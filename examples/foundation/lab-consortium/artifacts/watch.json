@@ -1,0 +1,60 @@
+{
+  "artifact_sha256": "fef0d6e6e31dd61bfd09c336adbe4fa35088f052228011df20186529eda8c617",
+  "at": "2026-10-28T12:00:00Z",
+  "body": {
+    "culmination": {
+      "review_question": "Is more coordination still reducing conflicts, or has the problem become capacity?",
+      "signal": "coordination meetings grow while conflicts no longer fall"
+    },
+    "reserve": {
+      "contingency": "equipment failure or a proven emergency",
+      "cost_of_not_using": "10 hours of deferrable demand wait one more week",
+      "time_to_engage": "same day",
+      "what": "10 instrument hours per week"
+    },
+    "thresholds": [
+      {
+        "effect_lag": "one cycle",
+        "id": "urgent-share",
+        "indicator": "share of hours declared urgent without a new deadline",
+        "kind": "leading",
+        "owner": "consortium coordinator",
+        "response": "adjust",
+        "threshold": "above 10% in a cycle"
+      },
+      {
+        "effect_lag": "immediate",
+        "id": "essential-over-capacity",
+        "indicator": "essential demand",
+        "kind": "leading",
+        "owner": "consortium council",
+        "response": "pause",
+        "threshold": "above 90 hours in two consecutive cycles"
+      },
+      {
+        "effect_lag": "one week",
+        "id": "reserve-consumed",
+        "indicator": "incident reserve used for ordinary work",
+        "kind": "lagging",
+        "owner": "technical staff lead",
+        "response": "terminate",
+        "threshold": "reserve fully consumed twice in a cycle"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "watch",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "afd9ec964fd3ab54c9657d9ed4ee09e31d18ee0bd0bb7e663305ec778bc28f52",
+  "next_decision": "Write the termination contract before committing (ante close).",
+  "parents": [
+    {
+      "artifact_sha256": "9e9841d3467008035df11b3b98bc8de06047e87464fef85ed1bd75054acb7530",
+      "command": "options"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

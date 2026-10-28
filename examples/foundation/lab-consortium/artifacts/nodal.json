@@ -1,0 +1,188 @@
+{
+  "artifact_sha256": "c8a966827d82d262c3fc774dcf48d2799be0387c1355e97fdf86358d57e73756",
+  "at": "2026-10-28T13:30:00Z",
+  "body": {
+    "artefacts_examined": [
+      "ach:6cdf62153770",
+      "cause:2456016bc2ca",
+      "close:b5437d8d4c36",
+      "cohere:5599a450119c",
+      "focus:f93ef843113c",
+      "frame:f3f11099665d",
+      "map:b21637d1efc7",
+      "options:9e9841d34670",
+      "pathology:666b8f3af454",
+      "react:9844e5d92944",
+      "street:e7879bed3397",
+      "watch:fef0d6e6e31d"
+    ],
+    "blocking": [
+      "a-inflates",
+      "slack-20"
+    ],
+    "irreversibility": "medium",
+    "load_bearing_claims": [
+      {
+        "blocking": false,
+        "cited_by": [
+          "map:actors[3].basis",
+          "cause:basis",
+          "ach:evidence[0].claim",
+          "options:options[0].assumptions",
+          "cohere:tests.legitimacy.evidence"
+        ],
+        "id": "demand-110",
+        "load": 5,
+        "origin": "external",
+        "required_verification": "corroborate",
+        "score": 7.5,
+        "stated_in": "frame",
+        "status": "EVIDENCE"
+      },
+      {
+        "blocking": false,
+        "cited_by": [
+          "map:actors[2].basis",
+          "options:options[1].assumptions",
+          "cohere:tests.conversion.evidence",
+          "cohere:tests.exit.evidence"
+        ],
+        "id": "cap-100",
+        "load": 4,
+        "origin": "external",
+        "required_verification": "corroborate",
+        "score": 6.0,
+        "stated_in": "frame",
+        "status": "EVIDENCE"
+      },
+      {
+        "blocking": true,
+        "cited_by": [
+          "cohere:tests.epistemic.evidence",
+          "cohere:tests.interactive.evidence",
+          "pathology:pathologies.metric_substitution.evidence"
+        ],
+        "id": "a-inflates",
+        "load": 3,
+        "origin": "external",
+        "required_verification": "corroborate",
+        "score": 4.5,
+        "stated_in": "map",
+        "status": "ATTRIBUTED_INTENT"
+      },
+      {
+        "blocking": true,
+        "cited_by": [
+          "options:options[2].assumptions",
+          "cohere:tests.causal.evidence",
+          "cohere:tests.epistemic.evidence"
+        ],
+        "id": "slack-20",
+        "load": 3,
+        "origin": "owner",
+        "required_verification": "corroborate",
+        "score": 4.5,
+        "stated_in": "cause",
+        "status": "ASSUMPTION"
+      },
+      {
+        "blocking": false,
+        "cited_by": [
+          "cohere:tests.conversion.evidence",
+          "cohere:tests.purpose.evidence"
+        ],
+        "id": "priority-50",
+        "load": 2,
+        "origin": "external",
+        "required_verification": "check",
+        "score": 3.0,
+        "stated_in": "frame",
+        "status": "EVIDENCE"
+      }
+    ],
+    "routine_claims": [
+      "cohesion-hypothesis",
+      "dup-check",
+      "model-summary",
+      "tech-report",
+      "tech-report-echo"
+    ],
+    "thresholds": {
+      "check": 2.0,
+      "corroborate": 4.0
+    },
+    "weight": 1.5
+  },
+  "case_id": "lab-consortium",
+  "claims": [],
+  "command": "nodal",
+  "findings": [
+    {
+      "code": "LOAD_BEARING_UNVERIFIED",
+      "message": "carries the plan unverified: corroborate it or accept it as a named risk in decide",
+      "path": "a-inflates",
+      "severity": "WARN"
+    },
+    {
+      "code": "LOAD_BEARING_UNVERIFIED",
+      "message": "carries the plan unverified: corroborate it or accept it as a named risk in decide",
+      "path": "slack-20",
+      "severity": "WARN"
+    }
+  ],
+  "independence_level": null,
+  "input_sha256": "9ab10f0f885c9c17b9bb160e685330f8e0891ef8f13bba2ae0d86091e62bb844",
+  "next_decision": "Corroborate a-inflates, slack-20 and re-run nodal, or accept them as named risks in decide; PROCEED is refused until then.",
+  "parents": [
+    {
+      "artifact_sha256": "6cdf6215377003bf082dfbc621f288f5572a21f7ba096449b5afcec140894287",
+      "command": "ach"
+    },
+    {
+      "artifact_sha256": "2456016bc2caa97e0e59231577425b55f42c6179fa30b1bd2760e18cd339e927",
+      "command": "cause"
+    },
+    {
+      "artifact_sha256": "b5437d8d4c3692706913991c729d868c65a977e90bd6898cb8ae673e52489b8f",
+      "command": "close"
+    },
+    {
+      "artifact_sha256": "5599a450119c14fcc49771fb679cb478ba739e6ce96cbd01bf50d18b660bebf9",
+      "command": "cohere"
+    },
+    {
+      "artifact_sha256": "f93ef843113c69d4824768b05a8d38b40879a6b01c8b7f150a19139f1a7f03cf",
+      "command": "focus"
+    },
+    {
+      "artifact_sha256": "f3f11099665d17b689e605f8d9cf131a04e864ece52a0137d9187b5df392b28b",
+      "command": "frame"
+    },
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    },
+    {
+      "artifact_sha256": "9e9841d3467008035df11b3b98bc8de06047e87464fef85ed1bd75054acb7530",
+      "command": "options"
+    },
+    {
+      "artifact_sha256": "666b8f3af454d8f5cde4441fe5993042330f9c0c3fe9d91c3daf13f9ef71718f",
+      "command": "pathology"
+    },
+    {
+      "artifact_sha256": "9844e5d9294464d2c9b7ff1236b48d2c159dbbf34b3d5663fbb3c20d31676df0",
+      "command": "react"
+    },
+    {
+      "artifact_sha256": "e7879bed3397c340448220a0a1851e49049be05d42b66da87769570ef967ffe7",
+      "command": "street"
+    },
+    {
+      "artifact_sha256": "fef0d6e6e31dd61bfd09c336adbe4fa35088f052228011df20186529eda8c617",
+      "command": "watch"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}

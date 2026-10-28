@@ -1,0 +1,100 @@
+{
+  "artifact_sha256": "f93ef843113c69d4824768b05a8d38b40879a6b01c8b7f150a19139f1a7f03cf",
+  "at": "2026-10-28T10:30:00Z",
+  "body": {
+    "basis": [
+      "cohesion-hypothesis"
+    ],
+    "candidate": {
+      "description": "The members' acceptance of one allocation criterion that holds the cooperation together.",
+      "id": "shared-criteria",
+      "kind": "cohesion"
+    },
+    "capabilities": [
+      {
+        "description": "turn requests into a usable weekly schedule",
+        "id": "allocate",
+        "verb": "allocate"
+      }
+    ],
+    "decisive_point": {
+      "enables": "members can plan against a known rule",
+      "statement": "Council adoption of an appealable priority rule before cycle 1."
+    },
+    "matrix": {
+      "conversion": "accepted criteria convert existing hours into predictable access",
+      "dependency": "without accepted criteria every week reopens the dispute",
+      "revision": "if conflicts persist with criteria applied, the dependency is capacity, not cohesion",
+      "scope": "allocation inside the consortium for three cycles",
+      "substitution": {
+        "alternatives": [
+          "central weekly allocation by the council"
+        ],
+        "time": "one cycle to switch, at a legitimacy cost"
+      },
+      "transmission": "each bypass reduces trust and invites defensive over-booking"
+    },
+    "own_dependencies": [
+      "technical staff time for coordination",
+      "council willingness to enforce the rule on its senior members"
+    ],
+    "requirements": [
+      {
+        "capability": "allocate",
+        "description": "a priority rule every member accepts as fair",
+        "id": "accepted-priority"
+      }
+    ],
+    "schwerpunkt": {
+      "focus": "Protect the 50 deadline-bound hours every week.",
+      "minimums": [
+        "10-hour incident reserve kept",
+        "every deferral has a confirmed later slot"
+      ],
+      "renunciations": [
+        "no 100% occupancy target",
+        "no guarantee for deferrable hours in the week requested"
+      ]
+    },
+    "system": {
+      "horizon": "three allocation cycles",
+      "name": "consortium laboratory access",
+      "scope": "weekly allocation of instrument hours among A, B and C"
+    },
+    "vulnerabilities": [
+      {
+        "compensable_within_horizon": false,
+        "feasible_path": "senior teams bypass the calendar through informal bookings",
+        "id": "informal-bookings",
+        "requirement": "accepted-priority"
+      }
+    ]
+  },
+  "case_id": "lab-consortium",
+  "claims": [
+    {
+      "date": "2026-10-27",
+      "id": "cohesion-hypothesis",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "source": {
+        "origin": "owner",
+        "ref": "council discussion 2026-10-27"
+      },
+      "status": "HYPOTHESIS",
+      "text": "Acceptance of one allocation criterion is what keeps the three members cooperating."
+    }
+  ],
+  "command": "focus",
+  "findings": [],
+  "independence_level": null,
+  "input_sha256": "0e72f693ab92635ee5729d00ffec22927fd3c542ec473c9c6fe58311181aeb20",
+  "next_decision": "Design options that differ in mechanism (ante options).",
+  "parents": [
+    {
+      "artifact_sha256": "b21637d1efc77e244c2aab62bb67b04183105985e47b0c513b5b0d3aaaed2f14",
+      "command": "map"
+    }
+  ],
+  "schema_version": 1,
+  "verdict": null
+}
