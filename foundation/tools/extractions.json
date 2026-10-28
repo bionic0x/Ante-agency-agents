@@ -1,6 +1,7 @@
 {
   "base": "86addea",
   "moves": {
-    "nexus-options.py": "ante.nexus.options"
+    "nexus-options.py": "ante.nexus.options",
+    "nexus-routing.py": "ante.nexus.routing"
   }
 }
