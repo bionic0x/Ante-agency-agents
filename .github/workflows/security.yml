@@ -77,6 +77,8 @@ jobs:
         env:
           SEMGREP_SEND_METRICS: 'off'
           SEMGREP_ENABLE_VERSION_CHECK: '0'
+          OTEL_SDK_DISABLED: 'true'
+          OTEL_PROPAGATORS: 'none'
         # Suppressions are inline `nosemgrep: <rule> -- reason` comments, each justified.
         run: >
           semgrep scan --metrics=off --error --disable-version-check
