@@ -7,6 +7,7 @@
     "nexus-lint.py": "ante.nexus.lint",
     "nexus-options.py": "ante.nexus.options",
     "nexus-pilot.py": "ante.nexus.pilot",
+    "nexus-plan.py": "ante.nexus.plan",
     "nexus-routing.py": "ante.nexus.routing"
   }
 }
