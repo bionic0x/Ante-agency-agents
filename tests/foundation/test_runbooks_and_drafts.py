@@ -91,10 +91,15 @@ class RunCheck(unittest.TestCase):
         self.assertEqual(['cohere', 'pathology'], json.loads(out)['non_canonical_doctrine'])
 
     def test_incomplete_chain(self):
-        (self.chain.out / 'react.json').unlink()
+        for name in ('react', 'nodal', 'decide'):   # nodal names react as a parent, decide names nodal
+            (self.chain.out / f'{name}.json').unlink()
         code, out, _ = self.run_cli('run', 'strategic-decision', '--artifacts', str(self.chain.out))
         self.assertEqual(1, code)
-        self.assertEqual(['react'], json.loads(out)['missing'])
+        self.assertEqual(['react', 'decide'], json.loads(out)['missing'])
+
+    def test_a_missing_parent_breaks_the_run(self):
+        (self.chain.out / 'react.json').unlink()
+        self.assertEqual(3, self.run_cli('run', 'strategic-decision', '--artifacts', str(self.chain.out))[0])
 
     def test_tampered_artefact_breaks_the_run(self):
         art = json.loads((self.chain.out / 'watch.json').read_text())
