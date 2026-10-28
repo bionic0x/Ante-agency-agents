@@ -1,0 +1,7 @@
+{
+  "case": "instance--validate-missing",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR [Errno 2] No such file or directory: '<TMP>/nope.json'\n",
+  "stdout": ""
+}

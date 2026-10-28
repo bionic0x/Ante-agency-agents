@@ -1,0 +1,7 @@
+{
+  "case": "casepack--verify-shared-source-market",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"FROZEN_OK\",\n  \"id\": \"shared-source-market\",\n  \"inputs_hash\": \"sha256:9eb57bb1434cdf2640431ed1374f7fb56071d49040739043c4c73d8780e0f770\"\n}\n"
+}

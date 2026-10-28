@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-instance",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-instance.py [-h] [--events EVENTS] [--checkpoint CHECKPOINT]\n                         [--output OUTPUT] [--at AT]\n                         {validate,plan,replay} instance\nnexus-instance.py: error: the following arguments are required: command, instance\n",
+  "stdout": ""
+}

@@ -1,0 +1,7 @@
+{
+  "case": "casepack--validate-freight-exclusivity-lapse",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"VALID\",\n  \"id\": \"freight-exclusivity-lapse\"\n}\n"
+}

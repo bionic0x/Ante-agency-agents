@@ -1,0 +1,7 @@
+{
+  "case": "help--nexus-options",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: nexus-options.py [-h] input\n\nCompare declared factors without weighted scores or compensating fatal\ndefects.\n\npositional arguments:\n  input\n\noptions:\n  -h, --help  show this help message and exit\n"
+}

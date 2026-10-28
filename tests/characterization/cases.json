@@ -1,0 +1,885 @@
+{
+  "schema_version": 1,
+  "base_commit": "86addea",
+  "note": "Recorded at the base commit before any extraction. Recordings are never overwritten by the harness.",
+  "cases": [
+    {
+      "id": "help--agent-capabilities",
+      "script": "agent-capabilities.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--benchmark-conversion",
+      "script": "benchmark-conversion.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--build-catalog",
+      "script": "build-catalog.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--build-hermes-plugin",
+      "script": "build-hermes-plugin.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--check-agent-privileges",
+      "script": "check-agent-privileges.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--check-security-engagement",
+      "script": "check-security-engagement.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--evaluate-nexus",
+      "script": "evaluate-nexus.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--host-acceptance",
+      "script": "host-acceptance.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--import-openclaw-community",
+      "script": "import-openclaw-community.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--integration-state",
+      "script": "integration-state.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--list-changed-agent-files",
+      "script": "list-changed-agent-files.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--marketplace-intake",
+      "script": "marketplace-intake.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-anthropic",
+      "script": "nexus-anthropic.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-blind",
+      "script": "nexus-blind.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-brief",
+      "script": "nexus-brief.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-campaign",
+      "script": "nexus-campaign.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-casepack",
+      "script": "nexus-casepack.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-improve",
+      "script": "nexus-improve.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-instance",
+      "script": "nexus-instance.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-lint",
+      "script": "nexus-lint.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-optimize",
+      "script": "nexus-optimize.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-options",
+      "script": "nexus-options.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-pilot",
+      "script": "nexus-pilot.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-plan",
+      "script": "nexus-plan.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-relay",
+      "script": "nexus-relay.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-review",
+      "script": "nexus-review.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-routing",
+      "script": "nexus-routing.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--nexus-trial",
+      "script": "nexus-trial.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--probe-host-claude-code",
+      "script": "probe-host-claude-code.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--registry",
+      "script": "registry.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "help--resolve-agents",
+      "script": "resolve-agents.py",
+      "args": [
+        "--help"
+      ]
+    },
+    {
+      "id": "noargs--agent-capabilities",
+      "script": "agent-capabilities.py",
+      "args": []
+    },
+    {
+      "id": "noargs--evaluate-nexus",
+      "script": "evaluate-nexus.py",
+      "args": []
+    },
+    {
+      "id": "noargs--marketplace-intake",
+      "script": "marketplace-intake.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-anthropic",
+      "script": "nexus-anthropic.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-blind",
+      "script": "nexus-blind.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-brief",
+      "script": "nexus-brief.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-campaign",
+      "script": "nexus-campaign.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-casepack",
+      "script": "nexus-casepack.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-improve",
+      "script": "nexus-improve.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-instance",
+      "script": "nexus-instance.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-lint",
+      "script": "nexus-lint.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-optimize",
+      "script": "nexus-optimize.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-options",
+      "script": "nexus-options.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-pilot",
+      "script": "nexus-pilot.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-plan",
+      "script": "nexus-plan.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-review",
+      "script": "nexus-review.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-routing",
+      "script": "nexus-routing.py",
+      "args": []
+    },
+    {
+      "id": "noargs--nexus-trial",
+      "script": "nexus-trial.py",
+      "args": []
+    },
+    {
+      "id": "noargs--registry",
+      "script": "registry.py",
+      "args": []
+    },
+    {
+      "id": "noargs--integration-state",
+      "script": "integration-state.py",
+      "args": []
+    },
+    {
+      "id": "instance--validate-strategic",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json"
+      ]
+    },
+    {
+      "id": "instance--validate-investment",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json"
+      ]
+    },
+    {
+      "id": "instance--plan-strategic",
+      "script": "nexus-instance.py",
+      "args": [
+        "plan",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "instance--plan-without-at",
+      "script": "nexus-instance.py",
+      "args": [
+        "plan",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json"
+      ]
+    },
+    {
+      "id": "instance--plan-output",
+      "script": "nexus-instance.py",
+      "args": [
+        "plan",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--at",
+        "2026-09-20T12:00:00Z",
+        "--output",
+        "{TMP}/plan.json"
+      ],
+      "capture": [
+        "plan.json"
+      ]
+    },
+    {
+      "id": "instance--replay-strategic",
+      "script": "nexus-instance.py",
+      "args": [
+        "replay",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/strategic-decision.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "instance--replay-investment",
+      "script": "nexus-instance.py",
+      "args": [
+        "replay",
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/investment-hypothesis.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "instance--replay-checkpoint-missing",
+      "script": "nexus-instance.py",
+      "args": [
+        "replay",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/strategic-decision.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z",
+        "--checkpoint",
+        "{TMP}/ck.json"
+      ],
+      "capture": [
+        "ck.json"
+      ]
+    },
+    {
+      "id": "instance--validate-missing",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{TMP}/nope.json"
+      ]
+    },
+    {
+      "id": "instance--validate-duplicate-keys",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{FIX}/duplicate-keys.json"
+      ]
+    },
+    {
+      "id": "instance--validate-truncated",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{FIX}/truncated.json"
+      ]
+    },
+    {
+      "id": "instance--validate-array",
+      "script": "nexus-instance.py",
+      "args": [
+        "validate",
+        "{FIX}/array.json"
+      ]
+    },
+    {
+      "id": "instance--bad-action",
+      "script": "nexus-instance.py",
+      "args": [
+        "explode",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json"
+      ]
+    },
+    {
+      "id": "routing--coverage-strategic",
+      "script": "nexus-routing.py",
+      "args": [
+        "coverage",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json"
+      ]
+    },
+    {
+      "id": "routing--coverage-investment",
+      "script": "nexus-routing.py",
+      "args": [
+        "coverage",
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json"
+      ]
+    },
+    {
+      "id": "routing--route-strategic",
+      "script": "nexus-routing.py",
+      "args": [
+        "route",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "routing--route-duplicate",
+      "script": "nexus-routing.py",
+      "args": [
+        "route",
+        "{FIX}/duplicate-keys.json",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "marketplace--intake",
+      "script": "marketplace-intake.py",
+      "args": [
+        "{ROOT}/examples/marketplace/act-task.snapshot.json",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "marketplace--intake-late",
+      "script": "marketplace-intake.py",
+      "args": [
+        "{ROOT}/examples/marketplace/act-task.snapshot.json",
+        "--at",
+        "2027-01-01T00:00:00Z"
+      ]
+    },
+    {
+      "id": "marketplace--intake-confirmations",
+      "script": "marketplace-intake.py",
+      "args": [
+        "{ROOT}/examples/marketplace/act-task.snapshot.json",
+        "--at",
+        "2026-09-20T12:00:00Z",
+        "--min-confirmations",
+        "1000"
+      ]
+    },
+    {
+      "id": "marketplace--intake-naive-time",
+      "script": "marketplace-intake.py",
+      "args": [
+        "{ROOT}/examples/marketplace/act-task.snapshot.json",
+        "--at",
+        "2026-09-20T12:00:00"
+      ]
+    },
+    {
+      "id": "marketplace--intake-duplicate",
+      "script": "marketplace-intake.py",
+      "args": [
+        "{FIX}/duplicate-keys.json",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "brief--strategic",
+      "script": "nexus-brief.py",
+      "args": [
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/strategic-decision.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "brief--strategic-json",
+      "script": "nexus-brief.py",
+      "args": [
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/strategic-decision.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z",
+        "--json"
+      ]
+    },
+    {
+      "id": "brief--investment",
+      "script": "nexus-brief.py",
+      "args": [
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/investment-hypothesis.events.jsonl",
+        "--at",
+        "2026-09-20T12:00:00Z"
+      ]
+    },
+    {
+      "id": "lint--strategic",
+      "script": "nexus-lint.py",
+      "args": [
+        "{ROOT}/examples/nexus/strategic-decision.instance.json"
+      ]
+    },
+    {
+      "id": "lint--strategic-strict",
+      "script": "nexus-lint.py",
+      "args": [
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--strict"
+      ]
+    },
+    {
+      "id": "lint--investment",
+      "script": "nexus-lint.py",
+      "args": [
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json"
+      ]
+    },
+    {
+      "id": "lint--duplicate",
+      "script": "nexus-lint.py",
+      "args": [
+        "{FIX}/duplicate-keys.json"
+      ]
+    },
+    {
+      "id": "options--example",
+      "script": "nexus-options.py",
+      "args": [
+        "{ROOT}/examples/nexus/options.json"
+      ]
+    },
+    {
+      "id": "options--duplicate",
+      "script": "nexus-options.py",
+      "args": [
+        "{FIX}/duplicate-keys.json"
+      ]
+    },
+    {
+      "id": "pilot--replay-strategic",
+      "script": "nexus-pilot.py",
+      "args": [
+        "replay",
+        "{ROOT}/examples/nexus/strategic-decision.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/strategic-decision.events.jsonl"
+      ]
+    },
+    {
+      "id": "pilot--replay-investment",
+      "script": "nexus-pilot.py",
+      "args": [
+        "replay",
+        "{ROOT}/examples/nexus/investment-hypothesis.instance.json",
+        "--events",
+        "{ROOT}/examples/nexus/investment-hypothesis.events.jsonl"
+      ]
+    },
+    {
+      "id": "evaluate--runs-only",
+      "script": "evaluate-nexus.py",
+      "args": [
+        "--runs",
+        "{ROOT}/examples/nexus/host-trials.json"
+      ]
+    },
+    {
+      "id": "evaluate--runs-judgments",
+      "script": "evaluate-nexus.py",
+      "args": [
+        "--runs",
+        "{ROOT}/examples/nexus/host-trials.json",
+        "--judgments",
+        "{ROOT}/examples/nexus/host-judgments.json"
+      ]
+    },
+    {
+      "id": "evaluate--require-paired",
+      "script": "evaluate-nexus.py",
+      "args": [
+        "--runs",
+        "{ROOT}/examples/nexus/host-trials.json",
+        "--judgments",
+        "{ROOT}/examples/nexus/host-judgments.json",
+        "--require-paired"
+      ]
+    },
+    {
+      "id": "blind--submission-id",
+      "script": "nexus-blind.py",
+      "args": [
+        "submission-id",
+        "--case",
+        "level-inversion-northwind",
+        "--trial",
+        "1",
+        "--variant",
+        "fixed_team",
+        "--salt",
+        "characterization"
+      ]
+    },
+    {
+      "id": "casepack--validate-clinic-reminder-release",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/casepacks/clinic-reminder-release"
+      ]
+    },
+    {
+      "id": "casepack--verify-clinic-reminder-release",
+      "script": "nexus-casepack.py",
+      "args": [
+        "verify",
+        "{ROOT}/examples/nexus/casepacks/clinic-reminder-release"
+      ]
+    },
+    {
+      "id": "casepack--validate-freight-exclusivity-lapse",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/casepacks/freight-exclusivity-lapse"
+      ]
+    },
+    {
+      "id": "casepack--verify-freight-exclusivity-lapse",
+      "script": "nexus-casepack.py",
+      "args": [
+        "verify",
+        "{ROOT}/examples/nexus/casepacks/freight-exclusivity-lapse"
+      ]
+    },
+    {
+      "id": "casepack--validate-harbor-pricing-intent",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/casepacks/harbor-pricing-intent"
+      ]
+    },
+    {
+      "id": "casepack--verify-harbor-pricing-intent",
+      "script": "nexus-casepack.py",
+      "args": [
+        "verify",
+        "{ROOT}/examples/nexus/casepacks/harbor-pricing-intent"
+      ]
+    },
+    {
+      "id": "casepack--validate-level-inversion-northwind",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/casepacks/level-inversion-northwind"
+      ]
+    },
+    {
+      "id": "casepack--verify-level-inversion-northwind",
+      "script": "nexus-casepack.py",
+      "args": [
+        "verify",
+        "{ROOT}/examples/nexus/casepacks/level-inversion-northwind"
+      ]
+    },
+    {
+      "id": "casepack--validate-shared-source-market",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{ROOT}/examples/nexus/casepacks/shared-source-market"
+      ]
+    },
+    {
+      "id": "casepack--verify-shared-source-market",
+      "script": "nexus-casepack.py",
+      "args": [
+        "verify",
+        "{ROOT}/examples/nexus/casepacks/shared-source-market"
+      ]
+    },
+    {
+      "id": "casepack--list",
+      "script": "nexus-casepack.py",
+      "args": [
+        "list",
+        "{ROOT}/examples/nexus/casepacks"
+      ]
+    },
+    {
+      "id": "casepack--validate-missing",
+      "script": "nexus-casepack.py",
+      "args": [
+        "validate",
+        "{TMP}/nope"
+      ]
+    },
+    {
+      "id": "campaign--status-in-checkout",
+      "script": "nexus-campaign.py",
+      "args": [
+        "status",
+        "--held-out",
+        "{ROOT}/examples/nexus/casepacks",
+        "--improver",
+        "characterization",
+        "--trials",
+        "{ROOT}/examples/nexus/host-trials.json"
+      ]
+    },
+    {
+      "id": "campaign--status-copied",
+      "script": "nexus-campaign.py",
+      "args": [
+        "status",
+        "--held-out",
+        "{TMP}/packs",
+        "--improver",
+        "characterization",
+        "--trials",
+        "{ROOT}/examples/nexus/host-trials.json",
+        "--judgments",
+        "{ROOT}/examples/nexus/host-judgments.json"
+      ],
+      "setup_copy": {
+        "packs": "{ROOT}/examples/nexus/casepacks"
+      }
+    },
+    {
+      "id": "improve--paths-head",
+      "script": "nexus-improve.py",
+      "args": [
+        "paths",
+        "--base",
+        "HEAD",
+        "--head",
+        "HEAD"
+      ]
+    },
+    {
+      "id": "registry--divisions",
+      "script": "registry.py",
+      "args": [
+        "divisions"
+      ]
+    },
+    {
+      "id": "registry--tools",
+      "script": "registry.py",
+      "args": [
+        "tools"
+      ]
+    },
+    {
+      "id": "resolve--list-runbooks",
+      "script": "resolve-agents.py",
+      "args": [
+        "--list-runbooks"
+      ]
+    },
+    {
+      "id": "resolve--runbook-first",
+      "script": "resolve-agents.py",
+      "args": [
+        "--runbook",
+        "strategic-decision"
+      ]
+    },
+    {
+      "id": "resolve--unknown-agent",
+      "script": "resolve-agents.py",
+      "args": [
+        "--agent",
+        "no-such-agent-xyz"
+      ]
+    },
+    {
+      "id": "catalog--check",
+      "script": "build-catalog.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "check--check-challenger-pairs",
+      "script": "check-challenger-pairs.py",
+      "args": []
+    },
+    {
+      "id": "check--check-htp-gate0",
+      "script": "check-htp-gate0.py",
+      "args": []
+    },
+    {
+      "id": "check--check-strategy-vocabulary",
+      "script": "check-strategy-vocabulary.py",
+      "args": []
+    },
+    {
+      "id": "check--check-security-engagement",
+      "script": "check-security-engagement.py",
+      "args": []
+    },
+    {
+      "id": "check--check-agent-privileges",
+      "script": "check-agent-privileges.py",
+      "args": []
+    }
+  ]
+}

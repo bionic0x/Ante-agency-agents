@@ -1,0 +1,7 @@
+{
+  "case": "casepack--list",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "[\n  {\n    \"id\": \"clinic-reminder-release\",\n    \"case_ref\": \"qa-versus-purpose\",\n    \"split\": \"held_out\",\n    \"author\": \"claude-session-pack-author\",\n    \"frozen\": true\n  },\n  {\n    \"id\": \"freight-exclusivity-lapse\",\n    \"case_ref\": \"expired-premise\",\n    \"split\": \"held_out\",\n    \"author\": \"claude-session-pack-author\",\n    \"frozen\": true\n  },\n  {\n    \"id\": \"harbor-pricing-intent\",\n    \"case_ref\": \"attributed-intent\",\n    \"split\": \"held_out\",\n    \"author\": \"claude-session-pack-author\",\n    \"frozen\": true\n  },\n  {\n    \"id\": \"level-inversion-northwind\",\n    \"case_ref\": \"level-inversion\",\n    \"split\": \"development\",\n    \"author\": \"overdrive-maintainers (synthetic example)\",\n    \"frozen\": true\n  },\n  {\n    \"id\": \"shared-source-market\",\n    \"case_ref\": \"shared-source\",\n    \"split\": \"development\",\n    \"author\": \"overdrive-maintainers (synthetic example)\",\n    \"frozen\": true\n  }\n]\n"
+}

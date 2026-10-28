@@ -1,0 +1,7 @@
+{
+  "case": "noargs--marketplace-intake",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: marketplace-intake.py [-h] --at AT [--max-age-seconds MAX_AGE_SECONDS]\n                             [--min-confirmations MIN_CONFIRMATIONS]\n                             snapshot\nmarketplace-intake.py: error: the following arguments are required: snapshot, --at\n",
+  "stdout": ""
+}

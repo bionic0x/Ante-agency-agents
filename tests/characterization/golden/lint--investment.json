@@ -1,0 +1,7 @@
+{
+  "case": "lint--investment",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"instance_id\": \"SYNTHETIC-INVESTMENT-HYPOTHESIS-001\",\n  \"status\": \"WARNINGS\",\n  \"shape\": {\n    \"tasks\": 3,\n    \"depth\": 3,\n    \"critical_path\": [\n      \"H1\",\n      \"V1\",\n      \"A1\"\n    ],\n    \"levels\": {\n      \"1\": [\n        \"H1\"\n      ],\n      \"2\": [\n        \"V1\"\n      ],\n      \"3\": [\n        \"A1\"\n      ]\n    },\n    \"widest_level\": 1,\n    \"sinks\": [\n      \"A1\"\n    ]\n  },\n  \"findings\": [\n    {\n      \"severity\": \"WARN\",\n      \"code\": \"BUDGET_HEADROOM\",\n      \"tasks\": [\n        \"A1\",\n        \"H1\",\n        \"V1\"\n      ],\n      \"message\": \"task cost limits sum to 9, above the ordinary budget of 8 (10 minus reserve 2); retries can only be paid by an owner releasing reserve\"\n    },\n    {\n      \"severity\": \"WARN\",\n      \"code\": \"SINGLE_SOURCE_KEY\",\n      \"tasks\": [\n        \"V1\"\n      ],\n      \"message\": \"only V1 asserts 'verdict:H1'; no independent result can contradict it\"\n    }\n  ]\n}\n"
+}

@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-anthropic",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-anthropic.py [-h] {observe} ...\nnexus-anthropic.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

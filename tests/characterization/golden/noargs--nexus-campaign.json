@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-campaign",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-campaign.py [-h] {plan,status,throughput} ...\nnexus-campaign.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

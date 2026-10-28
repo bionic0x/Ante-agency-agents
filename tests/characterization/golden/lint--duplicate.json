@@ -1,0 +1,7 @@
+{
+  "case": "lint--duplicate",
+  "exit": 1,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"instance_id\": null,\n  \"status\": \"ERRORS\",\n  \"findings\": [\n    {\n      \"severity\": \"ERROR\",\n      \"code\": \"INVALID_INSTANCE\",\n      \"tasks\": [],\n      \"message\": \"id: non-empty text required\"\n    }\n  ]\n}\n"
+}

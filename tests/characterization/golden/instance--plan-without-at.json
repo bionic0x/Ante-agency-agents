@@ -1,0 +1,7 @@
+{
+  "case": "instance--plan-without-at",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR plan requires --at for reproducible expiry checks\n",
+  "stdout": ""
+}

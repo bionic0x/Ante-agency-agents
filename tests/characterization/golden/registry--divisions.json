@@ -1,0 +1,7 @@
+{
+  "case": "registry--divisions",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "academic\ndesign\nengineering\nfinance\ngame-development\ngis\nhealthcare\nmarketing\nmispriced-cmo\npaid-media\nproduct\nproject-management\nresearch\nsales\nsecurity\nspatial-computing\nspecialized\nsupport\ntesting\n"
+}

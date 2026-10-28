@@ -1,0 +1,7 @@
+{
+  "case": "help--list-changed-agent-files",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: list-changed-agent-files.py [-h] [--divisions DIVISIONS]\n\nRead newline-delimited changed paths on stdin and emit canonical agent\nMarkdown paths.\n\noptions:\n  -h, --help            show this help message and exit\n  --divisions DIVISIONS\n"
+}

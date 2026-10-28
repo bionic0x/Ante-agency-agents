@@ -1,0 +1,7 @@
+{
+  "case": "check--check-strategy-vocabulary",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "PASSED: claim register, security finding register and standard handoff preserve all epistemic states\n"
+}

@@ -1,0 +1,7 @@
+{
+  "case": "casepack--verify-harbor-pricing-intent",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"FROZEN_OK\",\n  \"id\": \"harbor-pricing-intent\",\n  \"inputs_hash\": \"sha256:ed8ed4e9bc8841628f74eb0dc2463430c4dee0d43bcec6b1b725065a97d57d4a\"\n}\n"
+}

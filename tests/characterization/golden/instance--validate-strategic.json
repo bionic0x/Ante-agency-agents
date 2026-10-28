@@ -1,0 +1,7 @@
+{
+  "case": "instance--validate-strategic",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"VALID\",\n  \"instance_hash\": \"1c982da0f0d9fe9f7309a9b4e067aa1df3b41a2a659bec497b0c34e4b6d4798d\",\n  \"execution_authority\": false\n}\n"
+}

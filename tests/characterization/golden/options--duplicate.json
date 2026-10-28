@@ -1,0 +1,7 @@
+{
+  "case": "options--duplicate",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR 'factors'\n",
+  "stdout": ""
+}

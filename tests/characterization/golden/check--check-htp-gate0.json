@@ -1,0 +1,7 @@
+{
+  "case": "check--check-htp-gate0",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "PASSED: HTP Gate 0 handoffs stay single-network, bounded and roster-bound\n"
+}

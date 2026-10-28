@@ -1,0 +1,7 @@
+{
+  "case": "help--integration-state",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: integration-state.py [-h] [--force] {check,record,sync,explain} tool\n\nVerify and synchronize generated adapters with granular per-agent state. State\nv2 records each source hash and the concrete output hashes it owns. Per-agent\ntools can then rebuild only changed/new/corrupted agents, while roster and\nplugin tools deliberately fall back to a clean full rebuild. ``check`` is\nstrictly read-only; ``sync`` is the only mode that mutates generated outputs.\n\npositional arguments:\n  {check,record,sync,explain}\n  tool\n\noptions:\n  -h, --help            show this help message and exit\n  --force               force sync to perform a clean full rebuild\n"
+}

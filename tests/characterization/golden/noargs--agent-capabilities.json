@@ -1,0 +1,7 @@
+{
+  "case": "noargs--agent-capabilities",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: agent-capabilities.py [-h] --agent AGENT [--observation OBSERVATION]\n                             [--policy POLICY] [--output OUTPUT]\n                             {inspect,render}\nagent-capabilities.py: error: the following arguments are required: command, --agent\n",
+  "stdout": ""
+}

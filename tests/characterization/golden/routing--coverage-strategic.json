@@ -1,0 +1,7 @@
+{
+  "case": "routing--coverage-strategic",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"present\": [\n    \"assurance\",\n    \"causal\",\n    \"evidence\"\n  ],\n  \"unknown_vectors\": [],\n  \"required\": [\n    \"assurance\",\n    \"causal\",\n    \"evidence\",\n    \"resource\",\n    \"termination\"\n  ],\n  \"missing\": [\n    \"resource\",\n    \"termination\"\n  ],\n  \"kinds\": {\n    \"assurance\": \"sequential\",\n    \"causal\": \"sequential\",\n    \"evidence\": \"cumulative\"\n  },\n  \"note\": \"A missing vector is a gap in the instance, never a satisfied requirement.\"\n}\n"
+}

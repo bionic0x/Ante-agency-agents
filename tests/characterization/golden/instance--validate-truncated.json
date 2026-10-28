@@ -1,0 +1,7 @@
+{
+  "case": "instance--validate-truncated",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR Expecting property name enclosed in double quotes: line 2 column 1 (char 22)\n",
+  "stdout": ""
+}

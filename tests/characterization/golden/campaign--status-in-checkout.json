@@ -1,0 +1,7 @@
+{
+  "case": "campaign--status-in-checkout",
+  "exit": 1,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"decision\": \"INCOMPLETE\",\n  \"held_out_packs\": 0,\n  \"authors\": [],\n  \"trial_rows\": 0,\n  \"missing\": [\n    \"held-out packs under the public repository checkout are exposed; use a separate evaluator-controlled, access-restricted corpus (published sample packs cannot establish a blind result)\",\n    \"0 independent held-out packs; the exit needs 6\"\n  ]\n}\n"
+}

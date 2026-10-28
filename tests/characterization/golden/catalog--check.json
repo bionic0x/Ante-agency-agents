@@ -1,0 +1,7 @@
+{
+  "case": "catalog--check",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "PASSED: CATALOG.md is current (506 agents, 9 runbooks).\n"
+}

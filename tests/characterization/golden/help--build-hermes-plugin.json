@@ -1,0 +1,7 @@
+{
+  "case": "help--build-hermes-plugin",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: build-hermes-plugin.py [-h] [--repo-root REPO_ROOT] [--out OUT]\n\nBuild the Hermes lazy-router plugin for The Agency agents. The generated\nplugin exposes a small fixed tool surface to Hermes and keeps the large agent\nroster in an on-disk JSON data file. That avoids using skills.external_dirs,\nwhich advertises every Agency agent in Hermes' initial skill catalog.\n\noptions:\n  -h, --help            show this help message and exit\n  --repo-root REPO_ROOT\n  --out OUT             Output directory, default integrations/hermes\n"
+}

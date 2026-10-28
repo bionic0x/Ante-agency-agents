@@ -1,0 +1,7 @@
+{
+  "case": "instance--validate-investment",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"VALID\",\n  \"instance_hash\": \"9600d07e6bcc5d01b82fdb21cda6ebe7b3947ed892b842294d132bf9f3d8e684\",\n  \"execution_authority\": false\n}\n"
+}

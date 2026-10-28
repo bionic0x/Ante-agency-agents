@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-lint",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-lint.py [-h] [--strict] instance\nnexus-lint.py: error: the following arguments are required: instance\n",
+  "stdout": ""
+}

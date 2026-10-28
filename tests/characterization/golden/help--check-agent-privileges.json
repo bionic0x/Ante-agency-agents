@@ -1,0 +1,7 @@
+{
+  "case": "help--check-agent-privileges",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: check-agent-privileges.py [-h] [--root ROOT] [--inventory]\n\noptions:\n  -h, --help   show this help message and exit\n  --root ROOT\n  --inventory\n"
+}

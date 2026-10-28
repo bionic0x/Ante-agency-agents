@@ -1,0 +1,7 @@
+{
+  "case": "help--nexus-anthropic",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: nexus-anthropic.py [-h] {observe} ...\n\nAnthropic/Claude Code execution adapter for NEXUS. This module is deliberately\nnarrow. It does not decide whether a NEXUS task is ready, which provider/model\nis admissible, or whether the operator has authority. Those decisions belong\nto nexus-instance.py, nexus-routing.py and the caller. The adapter does two\nthings only: 1. observe a real Claude Code model call and emit a model-\nobservation record; 2. execute one already-authorized task packet against one\nalready-selected model. No checked-in model catalog is implied. Observations\nexpire. An execution record proves only that a host call completed and reports\nthe host/session counters it could observe; it does not establish the\ncorrectness of the model output.\n\npositional arguments:\n  {observe}\n    observe   make one live host call and emit a model observation\n\noptions:\n  -h, --help  show this help message and exit\n"
+}

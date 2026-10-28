@@ -1,0 +1,7 @@
+{
+  "case": "casepack--verify-clinic-reminder-release",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"FROZEN_OK\",\n  \"id\": \"clinic-reminder-release\",\n  \"inputs_hash\": \"sha256:9df665ab14c5c3c343f27eaa756ca8b51e89eba9c66c32811e323705cdb517da\"\n}\n"
+}

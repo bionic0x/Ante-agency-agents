@@ -1,0 +1,7 @@
+{
+  "case": "help--resolve-agents",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: resolve-agents.py [-h] [--agent AGENT] [--division DIVISION]\n                         [--agents-file AGENTS_FILE] [--runbook RUNBOOK]\n                         [--list-runbooks]\n\nResolve catalog IDs, display names and runbooks to adapter slugs (stdlib\nonly).\n\noptions:\n  -h, --help            show this help message and exit\n  --agent AGENT\n  --division DIVISION\n  --agents-file AGENTS_FILE\n  --runbook RUNBOOK\n  --list-runbooks\n"
+}

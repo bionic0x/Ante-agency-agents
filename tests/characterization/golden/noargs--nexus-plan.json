@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-plan",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-plan.py [-h] {draft,adopt,verify} ...\nnexus-plan.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

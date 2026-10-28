@@ -1,0 +1,7 @@
+{
+  "case": "casepack--validate-missing",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR <TMP>/nope/pack.json: missing pack.json\n",
+  "stdout": ""
+}

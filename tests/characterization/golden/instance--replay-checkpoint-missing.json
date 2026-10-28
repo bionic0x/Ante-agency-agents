@@ -1,0 +1,9 @@
+{
+  "case": "instance--replay-checkpoint-missing",
+  "exit": 1,
+  "files": {
+    "ck.json": null
+  },
+  "stderr": "ERROR [Errno 2] No such file or directory: '<TMP>/ck.json'\n",
+  "stdout": ""
+}

@@ -1,0 +1,7 @@
+{
+  "case": "help--nexus-relay",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: nexus-relay [-h] [--data-dir DATA_DIR]\n                   {init,invite,serve,verify,anchor,reconcile} ...\n\nContract-admitted, container-isolated agent runs.\n\npositional arguments:\n  {init,invite,serve,verify,anchor,reconcile}\n    init                create the data directory, config and owner sign-in\n                        link\n    invite              print a new single-use sign-in link for an existing\n                        member\n    serve               run the relay\n    verify              check the log chain and replay the NEXUS events\n    anchor              print the current log head to record outside this\n                        machine\n    reconcile           repair runs interrupted between NEXUS and the room\n                        database (dry run by default)\n\noptions:\n  -h, --help            show this help message and exit\n  --data-dir DATA_DIR\n"
+}

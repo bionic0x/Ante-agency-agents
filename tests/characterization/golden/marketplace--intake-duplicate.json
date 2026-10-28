@@ -1,0 +1,7 @@
+{
+  "case": "marketplace--intake-duplicate",
+  "exit": 2,
+  "files": {},
+  "stderr": "marketplace intake rejected: invalid, unreadable or conflicting snapshot; see contract\n",
+  "stdout": ""
+}

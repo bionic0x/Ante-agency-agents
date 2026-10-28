@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-brief",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-brief.py [-h] --events EVENTS --at AT [--json] instance\nnexus-brief.py: error: the following arguments are required: instance, --events, --at\n",
+  "stdout": ""
+}

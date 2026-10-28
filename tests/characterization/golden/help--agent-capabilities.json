@@ -1,0 +1,7 @@
+{
+  "case": "help--agent-capabilities",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: agent-capabilities.py [-h] --agent AGENT [--observation OBSERVATION]\n                             [--policy POLICY] [--output OUTPUT]\n                             {inspect,render}\n\nInspect declared/observed capability boundaries; render a scoped Claude\nprofile. This tool does not observe a live host or grant authority.\nObservations and scope policies are explicit, externally supplied records,\nnever inferred from prompts.\n\npositional arguments:\n  {inspect,render}\n\noptions:\n  -h, --help            show this help message and exit\n  --agent AGENT\n  --observation OBSERVATION\n  --policy POLICY\n  --output OUTPUT\n"
+}

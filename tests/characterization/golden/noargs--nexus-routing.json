@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-routing",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-routing.py [-h] [--observations OBSERVATIONS] [--at AT]\n                        {route,coverage} instance\nnexus-routing.py: error: the following arguments are required: command, instance\n",
+  "stdout": ""
+}

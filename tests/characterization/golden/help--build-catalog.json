@@ -1,0 +1,7 @@
+{
+  "case": "help--build-catalog",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: build-catalog.py [-h] [--check] [--json OUT]\n\nbuild-catalog.py — generate the complete agent roster from source frontmatter.\n\nWhy: README.md curates highlight tables by hand, and by construction it cannot keep\nup with the catalog (the unified import added 186 agents that no README table\nlists). CATALOG.md is the complete, generated roster: every frontmatter agent in\nevery division from divisions.json, plus the NEXUS runbooks from\nstrategy/runbooks.json. It never drifts because it is never edited by hand.\n\nUsage:\n  python3 scripts/build-catalog.py            # write CATALOG.md\n  python3 scripts/build-catalog.py --check    # exit 1 if CATALOG.md is stale (CI)\n  python3 scripts/build-catalog.py --json OUT # also write a machine-readable catalog\n                                              # (includes each agent's body) for apps\n\nOnly the Python standard library is used; frontmatter is parsed with the same\nfirst-`---`-block contract as scripts/lint-agents.sh.\n\noptions:\n  -h, --help  show this help message and exit\n  --check     fail if CATALOG.md is out of date\n  --json OUT  also write a machine-readable catalog to OUT\n"
+}

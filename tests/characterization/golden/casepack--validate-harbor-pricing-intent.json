@@ -1,0 +1,7 @@
+{
+  "case": "casepack--validate-harbor-pricing-intent",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"VALID\",\n  \"id\": \"harbor-pricing-intent\"\n}\n"
+}

@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-options",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-options.py [-h] input\nnexus-options.py: error: the following arguments are required: input\n",
+  "stdout": ""
+}

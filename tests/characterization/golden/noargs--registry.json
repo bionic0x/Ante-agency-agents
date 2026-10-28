@@ -1,0 +1,7 @@
+{
+  "case": "noargs--registry",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: registry.py [-h] {divisions,tools,tool-field} ...\nregistry.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

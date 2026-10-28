@@ -1,0 +1,7 @@
+{
+  "case": "resolve--unknown-agent",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: resolve-agents.py [-h] [--agent AGENT] [--division DIVISION]\n                         [--agents-file AGENTS_FILE] [--runbook RUNBOOK]\n                         [--list-runbooks]\nresolve-agents.py: error: Unknown agent 'no-such-agent-xyz' in --agent\n",
+  "stdout": ""
+}

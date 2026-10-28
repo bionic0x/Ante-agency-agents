@@ -1,0 +1,7 @@
+{
+  "case": "check--check-security-engagement",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "\nResults: 22/22 security agents pass the language checks for their declared engagement class (0 findings)\n"
+}

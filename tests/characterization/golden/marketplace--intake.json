@@ -1,0 +1,7 @@
+{
+  "case": "marketplace--intake",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"at\": \"2026-09-20T12:00:00+00:00\",\n  \"duplicate_count\": 0,\n  \"input_sha256\": \"66eaebf4e9024514d4db7afe774328a5abfc780a5119eb6bf1b3231f951e20fd\",\n  \"mode\": \"offline-review-only\",\n  \"packets\": [\n    {\n      \"claim_status\": \"ASSUMPTION\",\n      \"decision_state\": \"HOLD\",\n      \"event_key\": \"eip155:42161:0x1111111111111111111111111111111111111111:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0\",\n      \"execution_authorized\": false,\n      \"external_meaning\": \"assignment_reported\",\n      \"external_state\": \"ASSIGNED\",\n      \"hold_reasons\": [\n        \"OWNER_MANDATE_REQUIRED\",\n        \"INDEPENDENT_SOURCE_VERIFICATION_REQUIRED\",\n        \"FUTURE_OBSERVATION\"\n      ],\n      \"observation_sha256\": \"cab02635e90d57bc21343dc7dedc365444cdb0a28de3ed1dc88d3d301b71ecf7\",\n      \"payload_sha256\": \"78f5d96fda26e32bca16212ba3fa567a210f0c09714dd00a202c8def2f828c4d\",\n      \"payment_authorized\": false,\n      \"payment_state\": \"NOT_OBSERVED\",\n      \"review_runbook\": \"strategic-decision\",\n      \"task_key\": \"eip155:42161:0x1111111111111111111111111111111111111111:42\"\n    }\n  ],\n  \"policy\": {\n    \"max_age_seconds\": 86400,\n    \"min_confirmations\": 12\n  },\n  \"schema_version\": 1\n}\n"
+}

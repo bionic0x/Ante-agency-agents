@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-pilot",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-pilot.py [-h] {step,accept,replay} ...\nnexus-pilot.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

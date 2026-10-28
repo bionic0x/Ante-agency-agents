@@ -1,0 +1,7 @@
+{
+  "case": "options--example",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"base\": {\n    \"undominated\": [\n      \"bounded-pilot\"\n    ],\n    \"dominance\": [\n      {\n        \"preferred\": \"bounded-pilot\",\n        \"dominated\": \"large-team\",\n        \"evidence_basis\": [\n          \"HYPOTHESIS\"\n        ],\n        \"measured_only\": false\n      }\n    ],\n    \"excluded\": [\n      {\n        \"id\": \"inadmissible-fast\",\n        \"admissibility\": \"INADMISSIBLE\",\n        \"fatal_defect\": true\n      }\n    ],\n    \"unknown_factors\": []\n  },\n  \"scenarios\": [\n    {\n      \"id\": \"team-delivers-earlier\",\n      \"comparison\": {\n        \"undominated\": [\n          \"bounded-pilot\",\n          \"large-team\"\n        ],\n        \"dominance\": [],\n        \"excluded\": [\n          {\n            \"id\": \"inadmissible-fast\",\n            \"admissibility\": \"INADMISSIBLE\",\n            \"fatal_defect\": true\n          }\n        ],\n        \"unknown_factors\": []\n      },\n      \"frontier_changed\": true\n    }\n  ],\n  \"decision\": \"HUMAN_COMPARISON_REQUIRED\",\n  \"interpretation\": \"Dominance is conditional on supplied values and the selected factors. Edges whose evidence_basis includes TARGET, ESTIMATE or HYPOTHESIS are not measured superiority. No causal proof or weighted score.\"\n}\n"
+}

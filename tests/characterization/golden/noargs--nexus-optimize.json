@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-optimize",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-optimize.py [-h] {propose} ...\nnexus-optimize.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

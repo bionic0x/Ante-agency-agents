@@ -1,0 +1,7 @@
+{
+  "case": "help--nexus-instance",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: nexus-instance.py [-h] [--events EVENTS] [--checkpoint CHECKPOINT]\n                         [--output OUTPUT] [--at AT]\n                         {validate,plan,replay} instance\n\nDeterministic NEXUS planner and event replay. Never executes a tool or agent.\nAll authority/evidence records are supplied assertions. The host must\nauthenticate and enforce them before live action. Replay validates contracts,\nnot truth.\n\npositional arguments:\n  {validate,plan,replay}\n  instance\n\noptions:\n  -h, --help            show this help message and exit\n  --events EVENTS\n  --checkpoint CHECKPOINT\n  --output OUTPUT\n  --at AT\n"
+}

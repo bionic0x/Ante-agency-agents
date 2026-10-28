@@ -1,0 +1,7 @@
+{
+  "case": "evaluate--require-paired",
+  "exit": 1,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"NOT_MEASURED\",\n  \"reason\": \"No recorded host trials supplied. An empty trial set is not a neutral result; nothing about the variants has been measured.\",\n  \"comparisons\": [],\n  \"missing_cases\": [\n    \"attributed-intent\",\n    \"budget\",\n    \"competent-reaction\",\n    \"conservation\",\n    \"cooperation\",\n    \"expired-premise\",\n    \"level-inversion\",\n    \"network-scope\",\n    \"qa-versus-purpose\",\n    \"recovery\",\n    \"selective-hold\",\n    \"shared-source\"\n  ]\n}\n"
+}

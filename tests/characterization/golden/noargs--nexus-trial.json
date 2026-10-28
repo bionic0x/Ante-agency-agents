@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-trial",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-trial.py [-h] {run,accept,owner-event,resume,status,brief} ...\nnexus-trial.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

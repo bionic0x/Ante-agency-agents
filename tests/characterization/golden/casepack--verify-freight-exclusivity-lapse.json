@@ -1,0 +1,7 @@
+{
+  "case": "casepack--verify-freight-exclusivity-lapse",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"FROZEN_OK\",\n  \"id\": \"freight-exclusivity-lapse\",\n  \"inputs_hash\": \"sha256:5ffa1bd67901db7eabdc44f1caf67743e34995b890605f7dbe8d0994dc7ff2e0\"\n}\n"
+}

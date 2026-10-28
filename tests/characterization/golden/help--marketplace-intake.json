@@ -1,0 +1,7 @@
+{
+  "case": "help--marketplace-intake",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: marketplace-intake.py [-h] --at AT [--max-age-seconds MAX_AGE_SECONDS]\n                             [--min-confirmations MIN_CONFIRMATIONS]\n                             snapshot\n\nTurn normalized external marketplace observations into offline HOLD packets.\nNo API client, signer, model invocation or NEXUS replay event is emitted here.\nThe format is Ante's review envelope, not an assertion about ACT's API schema.\n\npositional arguments:\n  snapshot\n\noptions:\n  -h, --help            show this help message and exit\n  --at AT               explicit ISO timestamp with timezone\n  --max-age-seconds MAX_AGE_SECONDS\n  --min-confirmations MIN_CONFIRMATIONS\n"
+}

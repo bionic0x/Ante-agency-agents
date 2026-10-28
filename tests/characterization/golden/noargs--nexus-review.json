@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-review",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-review.py [-h] {kit,collect} ...\nnexus-review.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

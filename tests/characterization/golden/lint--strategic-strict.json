@@ -1,0 +1,7 @@
+{
+  "case": "lint--strategic-strict",
+  "exit": 1,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"instance_id\": \"SYNTHETIC-STRATEGIC-DECISION-001\",\n  \"status\": \"WARNINGS\",\n  \"shape\": {\n    \"tasks\": 3,\n    \"depth\": 2,\n    \"critical_path\": [\n      \"B\",\n      \"C\"\n    ],\n    \"levels\": {\n      \"1\": [\n        \"A\",\n        \"B\"\n      ],\n      \"2\": [\n        \"C\"\n      ]\n    },\n    \"widest_level\": 2,\n    \"sinks\": [\n      \"C\"\n    ]\n  },\n  \"findings\": [\n    {\n      \"severity\": \"WARN\",\n      \"code\": \"BUDGET_HEADROOM\",\n      \"tasks\": [\n        \"A\",\n        \"B\",\n        \"C\"\n      ],\n      \"message\": \"task cost limits sum to 9, above the ordinary budget of 8 (10 minus reserve 2); retries can only be paid by an owner releasing reserve\"\n    }\n  ]\n}\n"
+}

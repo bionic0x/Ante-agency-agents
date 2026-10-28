@@ -1,0 +1,7 @@
+{
+  "case": "improve--paths-head",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"paths\": {\n    \"changed\": [],\n    \"violations\": []\n  },\n  \"decision\": \"PROPOSE\",\n  \"note\": \"PROPOSE permits a pull request for human review; this gate never merges.\"\n}\n"
+}

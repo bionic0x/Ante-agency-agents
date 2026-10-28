@@ -1,0 +1,7 @@
+{
+  "case": "routing--route-duplicate",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"MODELS_NOT_OBSERVED\",\n  \"coverage\": {\n    \"present\": [],\n    \"unknown_vectors\": [],\n    \"required\": [\n      \"causal\",\n      \"evidence\",\n      \"termination\"\n    ],\n    \"missing\": [\n      \"causal\",\n      \"evidence\",\n      \"termination\"\n    ],\n    \"kinds\": {},\n    \"note\": \"A missing vector is a gap in the instance, never a satisfied requirement.\"\n  },\n  \"tasks\": [],\n  \"observation_notes\": [\n    \"no observation file supplied\"\n  ],\n  \"limitations\": [\n    \"Admissibility only. No ranking, no weighted score, no claim that one provider performs better.\",\n    \"Dominance uses declared cost and context from the operator's own observations; it is not measured performance.\",\n    \"Provider diversity is not a benefit in itself: justify it by a requirement no single observed target meets, or by a measured difference.\",\n    \"An unobserved or expired model is not selectable; that is a gap to close, not a reason to fall back to a guess.\"\n  ]\n}\n"
+}

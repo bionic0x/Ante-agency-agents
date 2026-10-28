@@ -1,0 +1,7 @@
+{
+  "case": "casepack--validate-level-inversion-northwind",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"VALID\",\n  \"id\": \"level-inversion-northwind\"\n}\n"
+}

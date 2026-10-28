@@ -1,0 +1,7 @@
+{
+  "case": "registry--tools",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "claude-code\ncodex\ngemini-cli\ncopilot\nqwen\ncursor\nopencode\nosaurus\naider\nantigravity\nkimi\nopenclaw\nwindsurf\nhermes\nvibe\nzcode\ndsh\n"
+}

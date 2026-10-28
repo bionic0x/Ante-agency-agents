@@ -1,0 +1,7 @@
+{
+  "case": "resolve--list-runbooks",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "strategic-decision\tStrategic Decision & Transition\nstartup-mvp\tStartup MVP Build\nenterprise-feature\tEnterprise Feature Development\nmarketing-campaign\tStrategy-Led Marketing Campaign\nincident-response\tIncident Response\nhtp-gate0-solana-arbitrum\tHTP Gate 0 — Solana + Arbitrum\nmarketing-mispricing-diagnostic\tThe Marketing Mispricing Diagnostic\nboring-wins-manuscript\tBORING WINS Chapter Production\ninvestment-hypothesis-validation\tInvestment Hypothesis Validation\n"
+}

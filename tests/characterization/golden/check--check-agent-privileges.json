@@ -1,0 +1,7 @@
+{
+  "case": "check--check-agent-privileges",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "Privilege schema: 506 agents scanned; 37 tools declarations; 6 observed/6 registered tokens; 0 error(s).\n"
+}

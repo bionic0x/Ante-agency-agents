@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-casepack",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-casepack.py [-h] {validate,verify,freeze,list,new} ...\nnexus-casepack.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

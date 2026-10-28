@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-improve",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-improve.py [-h] {paths,compare,gate} ...\nnexus-improve.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}

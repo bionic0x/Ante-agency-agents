@@ -1,0 +1,7 @@
+{
+  "case": "noargs--evaluate-nexus",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: evaluate-nexus.py [-h] [--cases CASES] --runs RUNS\n                         [--judgments JUDGMENTS] [--require-paired]\nevaluate-nexus.py: error: the following arguments are required: --runs\n",
+  "stdout": ""
+}

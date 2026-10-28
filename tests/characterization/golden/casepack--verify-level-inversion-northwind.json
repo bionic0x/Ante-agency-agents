@@ -1,0 +1,7 @@
+{
+  "case": "casepack--verify-level-inversion-northwind",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "{\n  \"status\": \"FROZEN_OK\",\n  \"id\": \"level-inversion-northwind\",\n  \"inputs_hash\": \"sha256:5decad51b5f086d4c5dc2f78bafa017d02e22a912af94eeaa4dafd515ff51fe2\"\n}\n"
+}

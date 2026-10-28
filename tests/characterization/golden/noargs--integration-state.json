@@ -1,0 +1,7 @@
+{
+  "case": "noargs--integration-state",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: integration-state.py [-h] [--force] {check,record,sync,explain} tool\nintegration-state.py: error: the following arguments are required: mode, tool\n",
+  "stdout": ""
+}

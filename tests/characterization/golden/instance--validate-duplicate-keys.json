@@ -1,0 +1,7 @@
+{
+  "case": "instance--validate-duplicate-keys",
+  "exit": 1,
+  "files": {},
+  "stderr": "ERROR id: non-empty text required\n",
+  "stdout": ""
+}

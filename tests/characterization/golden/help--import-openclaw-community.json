@@ -1,0 +1,7 @@
+{
+  "case": "help--import-openclaw-community",
+  "exit": 0,
+  "files": {},
+  "stderr": "",
+  "stdout": "usage: import-openclaw-community.py [-h] [--source-ref SOURCE_REF]\n                                    [--root ROOT] [--workers WORKERS]\n                                    [--dry-run]\n\noptions:\n  -h, --help            show this help message and exit\n  --source-ref SOURCE_REF\n  --root ROOT\n  --workers WORKERS     parallel raw-file fetches (default: 8; use 1 for\n                        sequential)\n  --dry-run\n"
+}

@@ -1,0 +1,7 @@
+{
+  "case": "noargs--nexus-blind",
+  "exit": 2,
+  "files": {},
+  "stderr": "usage: nexus-blind.py [-h] [--trials TRIALS] [--artifacts ARTIFACTS]\n                      [--cases CASES] [--out OUT] [--allow-tells]\n                      [--seed SEED] [--case CASE] [--trial TRIAL]\n                      [--variant VARIANT] [--salt SALT]\n                      {seal,submission-id}\nnexus-blind.py: error: the following arguments are required: command\n",
+  "stdout": ""
+}
