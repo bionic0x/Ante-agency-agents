@@ -323,3 +323,21 @@ checks, and the institutional self-test run on `foundation/selftest-register.jso
 and published to the job summary (reported, never failing the build, as the
 self-test doctrine requires). The patch applies cleanly to this branch and the
 release gate was run with it applied.
+
+---
+
+## D-018 · Bringing main's newer commits in needs a reviewed rebaseline of two recordings — PROPOSED
+
+`main` has moved past the base commit `86addea` to `9c54ba2` (upstream sync with
+one new agent, held-out packs moved outside the checkout). A trial merge of
+`origin/main` into this branch conflicts only in `CHANGELOG.md` (both entries are
+kept). In the merged tree all foundation tests pass and 112 of 114
+characterization cases match; the two that differ — `catalog--check` and
+`check--check-agent-privileges` — print "507 agents" where the recording says
+506. `main` itself prints exactly those lines, so the difference is upstream
+data, not behaviour introduced here.
+
+**Proposal.** Merge `main`, then in a separate commit move the characterization
+base to the merge base and re-record those two cases from `main`'s own scripts
+(delete the two golden files, `run.py record`, state why), as the
+characterization contract requires for any rebaseline.
