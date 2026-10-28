@@ -23,7 +23,8 @@ Input fields::
     dissent: [{by, objection, evidence: [claim id], response}], dissent_solicited_from: [text],
     residual_risk: {statement, accepted_by}, expires,
     expectations: [{id, what_should_change, in_whom, horizon, refuted_by,
-                    probability: {verbal, interval: [low, high]}}]
+                    probability: {verbal, interval: [low, high]}, kind?}]
+                  ``kind`` labels the type of claim for calibration (``ante learn calibrate``)
 """
 from __future__ import annotations
 
@@ -43,7 +44,10 @@ def _expectations(value, ctx):
     schema.unique_ids(items, 'expectations')
     for index, item in enumerate(items):
         path = f'expectations[{index}]'
-        schema.exact_keys(item, ('id', 'what_should_change', 'in_whom', 'horizon', 'refuted_by', 'probability'), path)
+        schema.exact_keys(item, ('id', 'what_should_change', 'in_whom', 'horizon', 'refuted_by', 'probability'), path,
+                          ('kind',))
+        if 'kind' in item:
+            nonplaceholder(item['kind'], f'{path}.kind', findings)
         for key in ('what_should_change', 'in_whom', 'refuted_by'):
             nonplaceholder(item[key], f'{path}.{key}', findings, 'UNTESTABLE_EXPECTATION')
         ante_time.parse(item['horizon'], f'{path}.horizon')

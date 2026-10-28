@@ -106,6 +106,8 @@ def build_parser() -> argparse.ArgumentParser:
     runner.add_argument('--artifacts', required=True, help='directory holding the case artefacts')
     runner.add_argument('--contracts', help=argparse.SUPPRESS)
     runner.set_defaults(handler=runcheck.main)
+    from ante.learn import commands as learn_commands
+    learn_commands.add_parser(sub)
     return parser
 
 
