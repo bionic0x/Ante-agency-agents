@@ -1,5 +1,16 @@
 # Third-Party Notices
 
+## ACT-LABS-IO architectural references
+
+The [external marketplace assessment](strategy/external-marketplaces/README.md)
+references ACT-LABS-IO's marketplace MCP server, Eliza plugin and contracts at
+the commits recorded in [sources.json](strategy/external-marketplaces/sources.json).
+The intake tool, contract, tests and synthetic fixture are original Ante work;
+no ACT source code, credentials, SDK or contract artifact is redistributed.
+Package license declarations and source-file SPDX markers are recorded as
+observations in the source receipt; they are not a resolved licensing opinion
+or permission to import additional material.
+
 This repository includes or derives portions of third-party open-source material. The canonical source registry records source paths and commits for imported agents.
 
 ## awesome-openclaw-agents

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-28",
+  "review_method": "Static source review; no upstream code executed or API/chain connected",
+  "adaptation": "Original Ante offline review envelope; no upstream source copied",
+  "sources": [
+    {
+      "repository": "ACT-LABS-IO/act-marketplace-module",
+      "commit": "f155aad72005ce44ea36645ca5ef0f73f72bec53",
+      "package_declared_license": "ISC",
+      "readme_declared_license": null,
+      "solidity_spdx_observation": null,
+      "files": [
+        {
+          "path": "README.md",
+          "git_blob_sha1": "5c6085018ca39a3ac4d5be260f341ef703abc8f0",
+          "sha256": "111202b2ad17d2859d78799abbe10a735f3a905043bfce2853600c78b511fff1",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/README.md"
+        },
+        {
+          "path": "package.json",
+          "git_blob_sha1": "15b4d561e5b4d7fb8ec607320aa67a93a9091d62",
+          "sha256": "cf0aae920a1489312dbddf5f55fd8172d3de98ffee4133e7717b0af0ea49a56a",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/package.json"
+        },
+        {
+          "path": "src/index.ts",
+          "git_blob_sha1": "3a23eb997bb3a6a627e0caf80fb7f0663dd8c028",
+          "sha256": "891998653df6a4b0098f17d5daca49a7b4aea1d3e04ac3c597ed0fec4410f899",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/src/index.ts"
+        },
+        {
+          "path": "src/mcp-server.ts",
+          "git_blob_sha1": "b228f729d9e1cfe55ab67c4c278168f45b29c3a2",
+          "sha256": "f06ab1e27274bc0997b7d6ec134b033881b91a9a9dadc9ccaba55187b401e55e",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/src/mcp-server.ts"
+        },
+        {
+          "path": "src/api-client.ts",
+          "git_blob_sha1": "9dc45f563cfeb9fbc9f95ba28def48999c7bf392",
+          "sha256": "1af66b81279c19835633eb6e551dfc85d4205bd30688c45a460363bed7acfb1c",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/src/api-client.ts"
+        },
+        {
+          "path": "src/base/base.api.client.ts",
+          "git_blob_sha1": "47f3ba498e569e182901aacadaa773d6de4bb360",
+          "sha256": "8e16c4bdce2253eceaba13314a9a2ff45c2d729da33a2113484bcb6e6af8a0d4",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/src/base/base.api.client.ts"
+        },
+        {
+          "path": "src/base/token.manager.ts",
+          "git_blob_sha1": "2be56273a19ad9dbf9fd61c93681344d6c2f9385",
+          "sha256": "07a5c649048561df77baaa9ab4fb376a83cfef337f1cab4b29083aeb54025b1f",
+          "url": "https://github.com/ACT-LABS-IO/act-marketplace-module/blob/f155aad72005ce44ea36645ca5ef0f73f72bec53/src/base/token.manager.ts"
+        }
+      ],
+      "root_license_file_confirmed": false,
+      "disposition": "reference-only; no source code copied or derived"
+    },
+    {
+      "repository": "ACT-LABS-IO/eliza-act-plugin",
+      "commit": "d9c896b4c69ceb642a92a9751be7cafa8cb8fb28",
+      "package_declared_license": null,
+      "readme_declared_license": "MIT",
+      "solidity_spdx_observation": null,
+      "files": [
+        {
+          "path": "README.md",
+          "git_blob_sha1": "92fa2138816f8ad45e92dc169efa7d9861c62839",
+          "sha256": "e9953069b873f957be0ba1a99b74366446e0e17ad3e7d3290ace0f9789993d3e",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/README.md"
+        },
+        {
+          "path": "package.json",
+          "git_blob_sha1": "f58e233754a48bc423661b135dfde16c1ea2c55c",
+          "sha256": "8b098c5c774249355e9de1135b32ac3b28b5b1d783c689aa1027dcd42cdb3d3a",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/package.json"
+        },
+        {
+          "path": "src/common/tasks/jobs/task-retry.job.ts",
+          "git_blob_sha1": "8a10d72277cda946c92403f2b7f03daff3ac8106",
+          "sha256": "35b2f230cb90c37681d645331e1b9be804aa516eb0fc55a5f32a7a5b3407f162",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/tasks/jobs/task-retry.job.ts"
+        },
+        {
+          "path": "src/common/tasks/jobs/task-submission.job.ts",
+          "git_blob_sha1": "438a300665dc92157ee985772e541cd82d1b6cf4",
+          "sha256": "1fbe48cab8720e51f0d0bc76b1d29bfbc70615083a164bc021b8fc048c13036b",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/tasks/jobs/task-submission.job.ts"
+        },
+        {
+          "path": "src/common/tasks/services/task-processing.service.ts",
+          "git_blob_sha1": "040767e301299573275b2320170ee41e04243787",
+          "sha256": "514823a50a18aeb9e331583cb16968ef34bda6cc35a47f90603a202a4201286b",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/tasks/services/task-processing.service.ts"
+        },
+        {
+          "path": "src/common/storage/stores/task-store.ts",
+          "git_blob_sha1": "1e20febb5b490459a3e8a61af8c70a5f1821b3bd",
+          "sha256": "b0a8be3a7b16a278497b6aeab4c396d31744ae589f257b5077fa54f6bf743ef5",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/storage/stores/task-store.ts"
+        },
+        {
+          "path": "src/common/storage/stores/event-store.ts",
+          "git_blob_sha1": "9394b0b5e49f1b875b61bc6595022378a6eb6c47",
+          "sha256": "b24d677159739bec6d53581c709d689575a1ddb5f7f96e784a34ffa9028490b7",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/storage/stores/event-store.ts"
+        },
+        {
+          "path": "src/common/blockchain/processors/block-processor.service.ts",
+          "git_blob_sha1": "801d91af63596a84b5fbff14c491850b64ea33fc",
+          "sha256": "2767c0c9ddceb8fb2e00b887a215b507ff90c852567cac027204a92a7ebda435",
+          "url": "https://github.com/ACT-LABS-IO/eliza-act-plugin/blob/d9c896b4c69ceb642a92a9751be7cafa8cb8fb28/src/common/blockchain/processors/block-processor.service.ts"
+        }
+      ],
+      "root_license_file_confirmed": false,
+      "disposition": "reference-only; no source code copied or derived"
+    },
+    {
+      "repository": "ACT-LABS-IO/act-contracts",
+      "commit": "f3663de6da4633a9c3bcb4416044596bf99aae27",
+      "package_declared_license": "ISC",
+      "readme_declared_license": null,
+      "solidity_spdx_observation": "MIT in reviewed Solidity files",
+      "files": [
+        {
+          "path": "Readme.md",
+          "git_blob_sha1": "d892b852e0b0328b030703d79fea533fd3ec7318",
+          "sha256": "2c55a549eb952993da5580c833829a8559adbf29d36da111958b3c8be3831d1f",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/Readme.md"
+        },
+        {
+          "path": "package.json",
+          "git_blob_sha1": "f507ec015180795dd36e2d73aee52b1bb2186b48",
+          "sha256": "68d410a94e2d27285324540b8d4b3b06e3ce37a4d8bee1fa5f55b54e55b511a2",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/package.json"
+        },
+        {
+          "path": "contracts/ACTLib.sol",
+          "git_blob_sha1": "c5e03d933d780f7a07a136e1678624cbf9261cf6",
+          "sha256": "0bc2e73ecf4a5d0cea56032a35b85d12c5dfd0d6485288a36a250800ed7bc8dd",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/contracts/ACTLib.sol"
+        },
+        {
+          "path": "contracts/ActMarketplace.sol",
+          "git_blob_sha1": "2ed23299e9a7d4b2041a9bd26d2ab9d05fbdd7e1",
+          "sha256": "2e5b3eca16c9e8198f0d319a84dfa72e565684e77fae8a580d907d1a69788e8b",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/contracts/ActMarketplace.sol"
+        },
+        {
+          "path": "contracts/ActMarketplaceEVM.sol",
+          "git_blob_sha1": "176e4a7edf423dc50bbb97b287a7e96abc78745f",
+          "sha256": "7056c7db9aa7fac4a748d0f513da833ad8502cc928f6395af2180199b006dfaf",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/contracts/ActMarketplaceEVM.sol"
+        },
+        {
+          "path": "contracts/ActStory.sol",
+          "git_blob_sha1": "9ffeeff823d5ddafcb714ee7297ab7cf3d5d4895",
+          "sha256": "ae1ca2ebcfc76dde1a1a620fc8f9d458e606b9c99138e30c408b90e045872cd8",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/contracts/ActStory.sol"
+        },
+        {
+          "path": "scripts/deploy_bsc.js",
+          "git_blob_sha1": "3d200217c79b6f4b3fc02530e979c4af72af1b82",
+          "sha256": "6ef61c951df0f0ed7c86d24d25a4094332422201b6e757cf8e0ec47606b0ac26",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/scripts/deploy_bsc.js"
+        },
+        {
+          "path": "scripts/deploy_story.js",
+          "git_blob_sha1": "d134f8282cbb5528c219a0dbb020ec6576876a0f",
+          "sha256": "4ac268f297afc169e1092947387933579d1a2167dc274460242d9872aa5ccee0",
+          "url": "https://github.com/ACT-LABS-IO/act-contracts/blob/f3663de6da4633a9c3bcb4416044596bf99aae27/scripts/deploy_story.js"
+        }
+      ],
+      "root_license_file_confirmed": false,
+      "disposition": "reference-only; no source code copied or derived"
+    }
+  ],
+  "source_code_imported": false,
+  "source_code_derived": false
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## ACT-LABS marketplace patterns and offline intake — 2026-10-28
+
+- Assess ACT-LABS-IO discovery, event processing and task lifecycle patterns at
+  pinned commits; record 23 source blob identities and SHA-256 fingerprints.
+- Add an original, standard-library offline review envelope and CLI with
+  chain/contract/log identity, duplicate/conflict detection, freshness/deadline
+  flags and payload hashing. Every packet remains HOLD without execution authority.
+- Document source limitations, existing-role handoffs and requirements for a
+  future MCP/live adapter; no ACT code, credentials, signer or SDK is imported.
+- Add 15 boundary tests to local release validation and Runbook CI.
+
 ## Upstream synchronization and MCP advisory remediation — 2026-10-16
 
 - Merge 48 commits from `msitarzewski/agency-agents:main` with upstream ancestry preserved. Keep the fork's NEXUS, HTP, Relay, Alpha Research Suite and custom agents; apply upstream's source fixes to 26 files and regenerate the conversion manifest for the 21 changed agent profiles.

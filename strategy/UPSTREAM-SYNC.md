@@ -1,5 +1,9 @@
 # Upstream provenance and synchronization
 
+The [ACT-LABS architectural assessment](external-marketplaces/README.md) is a
+separate, manually pinned reference review. Its original offline intake tool
+imports no upstream agents or code and is not part of the OpenClaw sync below.
+
 ## Sources and evidence
 
 The OpenClaw community capability source is
