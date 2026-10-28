@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-28T10:00:00Z",
+  "claims": [
+    {
+      "id": "slack-20",
+      "text": "20 hours can move to the following weeks, where slack is confirmed.",
+      "status": "ASSUMPTION",
+      "source": {
+        "ref": "booking forecast for weeks 45-46",
+        "origin": "owner"
+      },
+      "date": "2026-10-27",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    }
+  ],
+  "chain": {
+    "if": "we adopt shared priority criteria applied by each university and coordinate only the conflicts",
+    "then": "conflicting bookings fall and priority projects get their hours",
+    "because": "members stop over-reserving defensively once the criteria are predictable and appealable",
+    "provided_that": [
+      "essential demand stays within 90 ordinary hours",
+      "deferred hours fit the confirmed slack"
+    ],
+    "immediate_effect": "fewer conflicting reservations per week",
+    "final_result": "priority projects completed on time and members still value the consortium"
+  },
+  "rivals": [
+    {
+      "id": "structural-scarcity",
+      "explanation": "Demand that cannot be deferred exceeds capacity, so no rule removes the conflict.",
+      "discriminating_evidence": "essential demand above 90 hours in consecutive cycles despite applied criteria"
+    },
+    {
+      "id": "bad-records",
+      "explanation": "Duplicate or stale reservations inflate the apparent demand.",
+      "discriminating_evidence": "reconciliation of active requests against projects shows duplicates"
+    }
+  ],
+  "refutations": [
+    {
+      "observation": "conflicts do not fall after two cycles of applied criteria",
+      "horizon": "end of cycle 2",
+      "observed_by": "technical staff booking report"
+    }
+  ],
+  "basis": [
+    "demand-110",
+    "slack-20"
+  ]
+}

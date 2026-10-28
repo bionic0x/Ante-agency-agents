@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "runbook_modes": [
+    "NEXUS-Micro",
+    "NEXUS-Sprint",
+    "NEXUS-Full"
+  ],
+  "epistemic_states": [
+    "EVIDENCE",
+    "HYPOTHESIS",
+    "ASSUMPTION",
+    "ATTRIBUTED_INTENT",
+    "UNKNOWN"
+  ],
+  "decision_states": [
+    "PROCEED",
+    "PROCEED_WITH_CONDITIONS",
+    "HOLD",
+    "REDESIGN",
+    "REJECT"
+  ],
+  "levels": [
+    "purpose",
+    "strategic",
+    "operational",
+    "tactical",
+    "technical"
+  ],
+  "test_statuses": [
+    "PASS",
+    "CONDITIONAL",
+    "FAIL",
+    "NOT_APPLICABLE"
+  ],
+  "finding_classes": [
+    "FATAL_DEFECT",
+    "ACCEPTED_RISK",
+    "PENDING_EVIDENCE"
+  ],
+  "coherence_tests": [
+    {"id": "purpose", "names": ["Governing-object", "Political/purpose"], "question": "Does the immediate result serve the superior purpose?", "not_applicable_allowed": true},
+    {"id": "causal", "names": ["Causal"], "question": "Is there an explicit explanation of how the action produces the effect?", "not_applicable_allowed": true},
+    {"id": "interactive", "names": ["Interactive"], "question": "Does the design survive a competent reaction or adaptation?", "not_applicable_allowed": true},
+    {"id": "conversion", "names": ["Conversion"], "question": "Do the available resources convert into the required control or capacity?", "not_applicable_allowed": true},
+    {"id": "legitimacy", "names": ["Legitimacy"], "question": "Does the method preserve the cooperation and authority needed to hold the result?", "not_applicable_allowed": true},
+    {"id": "epistemic", "names": ["Epistemic"], "question": "Are evidence, hypotheses, assumptions, attributed intentions and unknowns separated, and does the separation survive the summary?", "not_applicable_allowed": false},
+    {"id": "exit", "names": ["Exit"], "question": "Are there criteria to stop, adapt, transfer, terminate and conserve?", "not_applicable_allowed": false}
+  ],
+  "pathologies": [
+    {"id": "level_inversion", "names": ["Level inversion"], "definition": "A tactical or local metric replaces the superior result.", "mechanism": "Executors are rewarded for local results and adapt the purpose to their metrics.", "correction": "Evaluate each success by its contribution to the end state."},
+    {"id": "nominal_objective", "names": ["Nominal objective"], "definition": "An end is declared without an observable success condition.", "mechanism": "An abstract word lets each actor understand something different.", "correction": "Write an observable and sufficient condition."},
+    {"id": "imaginary_centre", "names": ["Imaginary Centre of Gravity", "Imaginary center"], "definition": "The visible target is mistaken for the systemic dependency.", "mechanism": "Importance is inferred from visibility, rank or familiarity.", "correction": "State a counterfactual dependency and look for substitutes."},
+    {"id": "concept_confusion", "names": ["Concept confusion", "Concept collapse"], "definition": "Centre of gravity, Schwerpunkt, decisive point and vulnerability are used as synonyms.", "mechanism": "One word names the source of power, the own focus and the accessible target.", "correction": "Declare the convention and give each term its own question."},
+    {"id": "dispersion", "names": ["Dispersion"], "definition": "Every priority is funded and none receives decisive concentration.", "mechanism": "Each demand obtains priority without reducing another.", "correction": "Fix the main effort, the minimums and the renunciations."},
+    {"id": "frictionless_plan", "names": ["Frictionless plan", "Friction denial"], "definition": "Success requires perfect coordination, data and timing.", "mechanism": "The schedule assumes perfect data, means and decisions.", "correction": "Test coordination failures and preserve margins."},
+    {"id": "disoriented_speed", "names": ["Disoriented speed"], "definition": "Faster action on a false or unrevised model.", "mechanism": "The organisation rewards immediate response and penalises revising assumptions.", "correction": "Separate detection, interpretation, authorisation and effect times."},
+    {"id": "denied_culmination", "names": ["Denied culmination"], "definition": "Early success justifies continuing after the marginal sign has changed.", "mechanism": "Past success is used to justify the next commitment.", "correction": "Compare the marginal benefit of continuing with consolidating."},
+    {"id": "reflex_symmetry", "names": ["Reflex symmetry", "Mirrored symmetry"], "definition": "Competing in the domain where the other actor converts resources better.", "mechanism": "Each move of the other actor fixes our response.", "correction": "Recover the purpose and compare domains of action."},
+    {"id": "illegitimate_victory", "names": ["Illegitimate victory"], "definition": "The method destroys the authority or cooperation needed to consolidate the result.", "mechanism": "The immediate effect hides damage to later cooperation.", "correction": "Examine procedure, distribution and capacity for repair."},
+    {"id": "intent_attribution", "names": ["Intent attribution", "Attributed intention as fact"], "definition": "A psychological inference is treated as fact.", "mechanism": "Every ambiguity confirms a hostile explanation.", "correction": "Separate observation, attribution and alternatives."},
+    {"id": "metric_substitution", "names": ["Metric substitution"], "definition": "The indicator is optimised at the expense of the end.", "mechanism": "Incentives change the record or the conduct to improve the number.", "correction": "Review the relation between measure, mechanism and result."},
+    {"id": "escalation_of_commitment", "names": ["Escalation of commitment"], "definition": "Past cost becomes an argument for more future cost.", "mechanism": "Withdrawing threatens the identity of whoever decided before.", "correction": "Compare options from the present, excluding unrecoverable costs."},
+    {"id": "chronic_personalization", "names": ["Chronic personalization"], "definition": "Recurrent conflicts are renegotiated from zero because no institution absorbs them.", "mechanism": "Gaps in procedure are resolved through relationships and selective precedent.", "correction": "Define rule, authority, exception and appeal."}
+  ]
+}

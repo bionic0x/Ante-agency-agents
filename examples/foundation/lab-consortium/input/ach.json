@@ -1,0 +1,147 @@
+{
+  "at": "2026-10-28T10:15:00Z",
+  "independence_level": "SELF",
+  "claims": [
+    {
+      "id": "dup-check",
+      "text": "Reconciliation found 4 duplicate reservations out of 61.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "reservation-reconciliation-2026-10-26",
+        "origin": "external"
+      },
+      "date": "2026-10-26",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    },
+    {
+      "id": "tech-report",
+      "text": "Technical staff report that essential demand is close to capacity.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "technical-staff-note-2026-10-25",
+        "origin": "external"
+      },
+      "date": "2026-10-25",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    },
+    {
+      "id": "tech-report-echo",
+      "text": "The council minutes repeat the technical note on near-capacity demand.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "council-minutes-2026-10-27",
+        "origin": "external"
+      },
+      "date": "2026-10-27",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    },
+    {
+      "id": "model-summary",
+      "text": "An assistant summary concluded that priorities are the main problem.",
+      "status": "HYPOTHESIS",
+      "source": {
+        "ref": "ante draft of 2026-10-27",
+        "origin": "system"
+      },
+      "date": "2026-10-27",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "structural-scarcity",
+      "statement": "Essential demand exceeds capacity."
+    },
+    {
+      "id": "unresolved-priorities",
+      "statement": "Conflicts come from the absence of shared priorities."
+    },
+    {
+      "id": "bad-records",
+      "statement": "Duplicate or stale reservations inflate demand."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e-demand",
+      "description": "110 hours requested against 90 ordinary",
+      "claim": "demand-110",
+      "source_id": "reservation-export",
+      "depends_on": []
+    },
+    {
+      "id": "e-dups",
+      "description": "4 duplicates in 61 reservations",
+      "claim": "dup-check",
+      "source_id": "reconciliation",
+      "depends_on": []
+    },
+    {
+      "id": "e-tech",
+      "description": "technical note on near-capacity demand",
+      "claim": "tech-report",
+      "source_id": "technical-staff",
+      "depends_on": []
+    },
+    {
+      "id": "e-minutes",
+      "description": "council minutes on near-capacity demand",
+      "claim": "tech-report-echo",
+      "source_id": "council-minutes",
+      "depends_on": [
+        "e-tech"
+      ]
+    },
+    {
+      "id": "e-summary",
+      "description": "assistant summary blaming priorities",
+      "claim": "model-summary",
+      "source_id": "ante-draft",
+      "depends_on": []
+    }
+  ],
+  "matrix": {
+    "e-demand": {
+      "structural-scarcity": "C",
+      "unresolved-priorities": "C",
+      "bad-records": "C"
+    },
+    "e-dups": {
+      "structural-scarcity": "N",
+      "unresolved-priorities": "N",
+      "bad-records": "C"
+    },
+    "e-tech": {
+      "structural-scarcity": "C",
+      "unresolved-priorities": "I",
+      "bad-records": "I"
+    },
+    "e-minutes": {
+      "structural-scarcity": "C",
+      "unresolved-priorities": "I",
+      "bad-records": "I"
+    },
+    "e-summary": {
+      "structural-scarcity": "I",
+      "unresolved-priorities": "C",
+      "bad-records": "N"
+    }
+  },
+  "future_indicators": [
+    {
+      "hypothesis": "structural-scarcity",
+      "indicator": "essential demand above 90 hours with criteria applied"
+    },
+    {
+      "hypothesis": "bad-records",
+      "indicator": "demand falls after weekly reconciliation"
+    }
+  ],
+  "confidence": {
+    "verbal": "moderate",
+    "interval": [
+      0.4,
+      0.65
+    ]
+  }
+}

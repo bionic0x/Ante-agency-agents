@@ -1,0 +1,73 @@
+{
+  "at": "2026-10-28T13:00:00Z",
+  "independence_level": "SEPARATED_CONTEXT",
+  "claims": [],
+  "tests": {
+    "purpose": {
+      "status": "PASS",
+      "reason": "priority hours serve the purpose of a shared infrastructure members value",
+      "evidence": [
+        "priority-50"
+      ],
+      "finding": null
+    },
+    "causal": {
+      "status": "CONDITIONAL",
+      "reason": "the mechanism depends on deferrable hours fitting confirmed slack",
+      "evidence": [
+        "slack-20"
+      ],
+      "finding": {
+        "class": "ACCEPTED_RISK",
+        "owner": "consortium council",
+        "reason": "bounded three-cycle trial with a pause threshold"
+      }
+    },
+    "interactive": {
+      "status": "PASS",
+      "reason": "opposition, cooperation and a funder shift are each tied to a decision",
+      "evidence": [
+        "a-inflates"
+      ],
+      "finding": null
+    },
+    "conversion": {
+      "status": "PASS",
+      "reason": "90 ordinary hours cover the 50 priority hours",
+      "evidence": [
+        "cap-100",
+        "priority-50"
+      ],
+      "finding": null
+    },
+    "legitimacy": {
+      "status": "PASS",
+      "reason": "criteria apply to every member with an appeal path",
+      "evidence": [
+        "demand-110"
+      ],
+      "finding": null
+    },
+    "epistemic": {
+      "status": "PASS",
+      "reason": "the inflation risk stays an attributed intent; slack stays an assumption",
+      "evidence": [
+        "a-inflates",
+        "slack-20"
+      ],
+      "finding": null
+    },
+    "exit": {
+      "status": "PASS",
+      "reason": "pause and terminate thresholds and a conservation contract exist",
+      "evidence": [
+        "cap-100"
+      ],
+      "finding": null
+    }
+  },
+  "plan_metrics": [
+    "share of hours declared urgent",
+    "essential demand per cycle"
+  ]
+}

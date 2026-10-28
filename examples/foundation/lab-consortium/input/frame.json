@@ -1,0 +1,86 @@
+{
+  "at": "2026-10-28T09:00:00Z",
+  "claims": [
+    {
+      "id": "cap-100",
+      "text": "Effective weekly capacity after maintenance is 100 hours.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "lab-maintenance-log-w43",
+        "origin": "external"
+      },
+      "date": "2026-10-20",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    },
+    {
+      "id": "demand-110",
+      "text": "Universities A, B and C request 50, 40 and 20 hours: 110 in total.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "reservation-export-2026-10-21",
+        "origin": "external"
+      },
+      "date": "2026-10-21",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    },
+    {
+      "id": "priority-50",
+      "text": "50 requested hours carry a confirmed external deadline.",
+      "status": "EVIDENCE",
+      "source": {
+        "ref": "funder-deadline-letters",
+        "origin": "external"
+      },
+      "date": "2026-10-22",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution."
+    }
+  ],
+  "case": {
+    "id": "lab-consortium",
+    "title": "Shared laboratory access across universities A, B and C"
+  },
+  "end_state": {
+    "statement": "A shared infrastructure the three members still consider worth sustaining, with priority projects completed on time.",
+    "observable_condition": {
+      "indicator": "priority projects completed within their external deadline",
+      "threshold": "all projects with a confirmed deadline in the trial period",
+      "observed_by": "consortium council minutes and funder confirmations"
+    },
+    "horizon": "three allocation cycles"
+  },
+  "minimum_acceptable": {
+    "statement": "Priority hours protected and deferred hours rescheduled where confirmed slack exists.",
+    "observable_condition": {
+      "indicator": "priority hours delivered per week",
+      "threshold": "50 of 50",
+      "observed_by": "laboratory booking record"
+    }
+  },
+  "beneficiaries": [
+    "research teams of A, B and C",
+    "funders relying on deadlines"
+  ],
+  "cost_bearers": [
+    "teams whose deferrable hours move to later weeks",
+    "technical staff running coordination"
+  ],
+  "limits": [
+    {
+      "kind": "ethical",
+      "statement": "No allocation by bargaining power; criteria apply equally to all members."
+    },
+    {
+      "kind": "cost",
+      "statement": "No consumption of the 10-hour incident reserve for ordinary allocation."
+    }
+  ],
+  "termination_criteria": [
+    "Allocation works with ordinary means for three cycles without extraordinary meetings",
+    "Escalate to capacity expansion if essential demand exceeds 90 hours in two consecutive cycles"
+  ],
+  "basis": [
+    "cap-100",
+    "demand-110",
+    "priority-50"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "at": "2026-10-28T09:30:00Z",
+  "claims": [
+    {
+      "id": "a-inflates",
+      "text": "University A will inflate requests if it anticipates cuts.",
+      "status": "ATTRIBUTED_INTENT",
+      "source": {
+        "ref": "council-minutes-2026-09",
+        "origin": "external"
+      },
+      "date": "2026-09-30",
+      "limit": "Synthetic didactic data (Marco, Appendix E); not an observation of any real institution.",
+      "intent": {
+        "capability": "A can file requests unilaterally in the booking system.",
+        "will": "Inferred from one past cycle in which A's requests rose before a cut; not observed as a decision."
+      }
+    }
+  ],
+  "actors": [
+    {
+      "id": "council",
+      "kind": "decider",
+      "preference": "Keep the consortium intact with minimal conflict.",
+      "representation": "Acts for the three member universities under the consortium agreement.",
+      "commitment_capacity": "Can adopt allocation criteria; cannot add capacity without member budgets.",
+      "affected_by": "Loses legitimacy if criteria favour the strongest member.",
+      "basis": []
+    },
+    {
+      "id": "uni-a",
+      "kind": "resource_holder",
+      "preference": "Maximise hours for its own projects.",
+      "representation": "Its research office represents A's teams.",
+      "commitment_capacity": "Can commit its teams to the criteria; cannot commit funders.",
+      "affected_by": "Bears most deferred hours under a priority rule.",
+      "basis": [
+        "a-inflates"
+      ]
+    },
+    {
+      "id": "technical-staff",
+      "kind": "executor",
+      "preference": "Predictable schedules and protected maintenance windows.",
+      "representation": "Represents the laboratory's operating capacity.",
+      "commitment_capacity": "Commits hours actually usable; cannot decide priorities.",
+      "affected_by": "Absorbs coordination workload.",
+      "basis": [
+        "cap-100"
+      ]
+    },
+    {
+      "id": "research-teams",
+      "kind": "affected",
+      "preference": "Access when their experiments need it.",
+      "representation": "Each team speaks for its own project only.",
+      "commitment_capacity": "Can accept a slot; cannot reallocate others.",
+      "affected_by": "Delays fall on them directly.",
+      "basis": [
+        "demand-110"
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "usable-hours",
+      "actor": "technical-staff",
+      "resource": "usable instrument hours",
+      "criticality": "critical",
+      "substitutes": [
+        "compatible external laboratory"
+      ],
+      "substitution_time": "four to six weeks to qualify an external lab"
+    }
+  ],
+  "third_parties": [
+    {
+      "actor": "council",
+      "role": "arbiter"
+    }
+  ],
+  "formal_vs_effective": "Formally the council decides; in practice informal bookings by senior teams pre-empt the calendar."
+}

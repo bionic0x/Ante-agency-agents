@@ -97,9 +97,19 @@ move that fixes our response.
    better) as its description and the mirrored-response mechanism as its
    `mechanism` field.
 
+The SDR template (`strategy/templates/strategic-decision-record.md` §8) already
+separates *result* (`PASS` / `CONDITIONAL` / `FAIL` / `NOT_APPLICABLE`) from
+*classification* and uses *Governing-object*: points 1 and 2 follow it.
+
+The complete proposed file is `foundation/proposals/contracts-v2.json`; the
+strategy tests run against it.
+
 **Consequences.** Until the owner decides, `ante/doctrine` loads only what
-`contracts.json` already contains, and the commands that need the tests or the
-pathologies (`cohere`, `pathology`, `decide`) are not merged.
+`contracts.json` already contains: `cohere`, `pathology` and `decide` exit 2 with
+a pointer to this entry unless they are given the proposal explicitly
+(`--contracts`, a hidden option kept for tests). Every `cohere` and `pathology`
+artefact records the hash of the doctrine it used, and `decide` refuses parents
+produced under another one, so a proposal file cannot be mixed into a real chain.
 
 ---
 
@@ -155,3 +165,60 @@ contract the protected test encodes); duplicate the catalog code in the package
 **Consequences.** The prompt's "every old script is a wrapper" holds for the
 NEXUS programs; for the installer runtime the rule is inverted on purpose, and
 the inventory says so.
+
+---
+
+## D-009 · Runbooks declare their command chain — ACCEPTED
+
+**Context.** `ante run <runbook>` must know which artefacts a runbook expects;
+the prompt makes `cohere`, `pathology`, `close` and `decide` mandatory for
+material runbooks.
+
+**Decision.** Each runbook in `strategy/runbooks.json` gains `strategy_commands`.
+Sprint and Full runbooks use the whole method
+(`frame map cause focus options react ach watch close cohere pathology decide`);
+Micro runbooks use `frame cause options close cohere pathology decide`. A runbook is
+material unless it sets `material` to a stated reason. `check-runbooks.sh`
+enforces the four controls and that the chain ends in `decide`; it stays
+self-contained because the protected `test-runbook-contracts.py` runs it from a
+copy without `ante/`. `scripts/convert-outputs.sha256` records the new
+`runbooks.json` hash (a contract line, reviewed here).
+
+**Alternatives.** Infer chains from the mode at run time (invisible to the app
+that reads `runbooks.json`).
+
+---
+
+## D-010 · `PROCEED` requires an independent coherence review — PROPOSED
+
+**Context.** Invariant 10 says a review by the same operator, model and context
+is a coherence function, not a barrier; VIII.9 is satisfied only by
+`INDEPENDENT_OPERATOR`.
+
+**Decision.** `ante decide` accepts `PROCEED` only when the `cohere` parent was
+produced at `INDEPENDENT_OPERATOR`. With `SELF` or `SEPARATED_CONTEXT` the owner
+can still decide `PROCEED_WITH_CONDITIONS` and name the independent review as a
+condition. This is a design choice of the foundation, made explicit for the owner
+to confirm or relax.
+
+---
+
+## D-011 · Lineage is the set of artefacts supplied, bound by case and time — ACCEPTED
+
+Each artefact names its parents by hash, carries the `case_id` set by `frame`,
+and is sealed by `artifact_sha256`. A command verifies every parent's seal,
+refuses parents of two cases, parents dated after its own decision time, and the
+absence of the parents its step needs (exit 3). Claims are visible downstream
+only through the parents actually supplied, so a reference to an upstream claim
+proves that artefact was present.
+
+---
+
+## D-012 · Model drafting is opt-in and never signed — ACCEPTED
+
+`--draft-with PROVIDER --model ID` asks a declared provider's adapter to draft a
+command input from a brief. The output is `<command>.draft.json`: every claim is
+forced to `HYPOTHESIS` with `origin: system`, the proposal sits under `input`
+beside a `draft` header with `signed: false`, and running a command on the file
+as written fails. Only Anthropic has an adapter (the existing Claude Code adapter);
+other providers in `providers.json` are refused until one is written.
