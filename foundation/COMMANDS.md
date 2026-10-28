@@ -44,6 +44,8 @@ brief; see `ante/strategy/draft.py`.
 | `learn calibrate --ledger L --at T` | Brier score and reliability by runbook, agent and claim kind | groups below `--min-sample` (default 30) answer `INSUFFICIENT_SAMPLE`, with no number |
 | `learn patterns --ledger L --at T` | proposes differences in refutation rate that survive a permutation test with Bonferroni correction | patterns that only system-sourced evidence supports; synthetic decisions |
 | `learn verify --ledger L` | checks the chain | — (a broken chain exits 3) |
+| `learn review --ledger L --by NAME --reason TEXT --at T` | records a model review; resets cumulative drift | — |
+| `jackpot --ledger L --at T [--state S] [--events E]` | cumulative drift: refutations, inconclusive outcomes, accepted risks, decide warnings, gate holds and rejects, release events; exit 1 when a model review is due | while a review is due, `learn record` refuses decisions that add accepted risks |
 
 ## Self-development
 

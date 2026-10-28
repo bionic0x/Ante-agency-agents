@@ -14,14 +14,14 @@ sys.path.insert(0, str(ROOT))
 from ante import cli  # noqa: E402
 from ante.constructs import frozen, snapshot  # noqa: E402
 from ante.core import canon  # noqa: E402
-from ante.learn import apophenia, commands, ledger  # noqa: E402
+from ante.learn import apophenia, commands, jackpot, ledger  # noqa: E402
 from ante.strategy.artifact import seal  # noqa: E402
 
 T0 = '2026-10-28T12:00:00Z'
 
 
 def decide_artifact(case, verdict='PROCEED_WITH_CONDITIONS', pathologies=(), review='SEPARATED_CONTEXT',
-                    expectations=None, at=T0):
+                    expectations=None, at=T0, risks=()):
     expectations = expectations or [{'id': 'e1', 'what_should_change': 'x', 'in_whom': 'y',
                                      'horizon': '2026-12-01T00:00:00Z', 'refuted_by': 'z',
                                      'probability': {'verbal': 'likely', 'interval': [0.6, 0.8]}}]
@@ -29,7 +29,9 @@ def decide_artifact(case, verdict='PROCEED_WITH_CONDITIONS', pathologies=(), rev
                  'input_sha256': canon.digest(case), 'parents': [], 'independence_level': None, 'claims': [],
                  'body': {'verdict': verdict, 'review_independence': review,
                           'detected_pathologies': list(pathologies), 'expectations': expectations,
-                          'snapshot': snapshot.build(at, [], [], expectations, verdict)},
+                          'snapshot': snapshot.build(at, [], [], expectations, verdict),
+                          'load_bearing_claims': {'blocking': list(risks), 'accepted_risks': [
+                              {'claim': r, 'accepted_by': 'owner', 'statement': 'accepted'} for r in risks]}},
                  'findings': [], 'verdict': verdict, 'next_decision': 'n'})
 
 
@@ -247,6 +249,54 @@ class Constructs(Workspace):
         groups = commands.calibrate(self.ledger, '2026-12-31T00:00:00Z', min_sample=1)['groups']
         agent = next(g for g in groups if g['dimension'] == 'agent')
         self.assertTrue(agent['frozen_reviewer'])
+
+
+class Drift(Workspace):
+    def test_minor_deviations_cross_the_cumulative_threshold_without_any_crossing_alone(self):
+        # three decisions with one accepted risk each (1 + 1 + 1), then two refutations (2 + 2): 7
+        arts = [decide_artifact(f'd{i}', risks=[f'r{i}']) for i in range(3)]
+        for i, art in enumerate(arts):
+            self.record(art, at=f'2026-10-28T13:0{i}:00Z')
+        self.observe(arts[0], 'REFUTED', at='2026-12-02T00:00:00Z')
+        self.observe(arts[1], 'REFUTED', at='2026-12-03T00:00:00Z')
+        before = jackpot.assess(ledger.read(self.ledger), '2026-12-04T00:00:00Z')
+        self.assertEqual(('WITHIN_LIMITS', 7), (before['status'], before['total']))
+        self.assertTrue(all(a['weight'] < jackpot.INDIVIDUAL_THRESHOLD for a in before['counted']))
+        self.observe(arts[2], 'INCONCLUSIVE', at='2026-12-04T00:00:00Z')   # + 1
+        after = jackpot.assess(ledger.read(self.ledger), '2026-12-05T00:00:00Z')
+        self.assertEqual(('REVIEW_REQUIRED', 8), (after['status'], after['total']))
+        self.assertIn('review the model', after['reason'])
+
+    def test_while_review_is_due_no_new_exception_is_recorded(self):
+        arts = [decide_artifact(f'd{i}', risks=[f'r{i}']) for i in range(8)]
+        for i, art in enumerate(arts):
+            self.record(art, at=f'2026-10-28T13:0{i}:00Z')
+        with self.assertRaisesRegex(commands.LearnError, 'model review'):
+            self.record(decide_artifact('next', risks=['r9']), at='2026-10-29T00:00:00Z')
+        self.record(decide_artifact('clean'), at='2026-10-29T00:00:00Z')   # no new exception: allowed
+        jackpot.review(self.ledger, 'Ana (owner)', 'urgency assumptions revised', '2026-10-30T00:00:00Z')
+        self.assertEqual(0, jackpot.assess(ledger.read(self.ledger), '2026-10-31T00:00:00Z')['total'])
+        self.record(decide_artifact('next', risks=['r9']), at='2026-10-31T00:00:00Z')
+
+    def test_one_heavy_release_event_is_enough_and_synthetic_and_old_events_do_not_count(self):
+        events = self.write('events.json', {'events': [
+            {'at': '2026-10-28T10:00:00Z', 'source': 'v2.1', 'kind': 'characterization_rebaseline', 'weight': 3,
+             'note': 'golden outputs re-recorded'}]})
+        result = jackpot.assess([], '2026-10-29T00:00:00Z', events=jackpot._events(events))
+        self.assertEqual('REVIEW_REQUIRED', result['status'])
+        for i in range(8):
+            self.record(decide_artifact(f's{i}', risks=['x']), synthetic=True, at=f'2026-10-28T13:0{i}:00Z')
+        self.assertEqual(0, jackpot.assess(ledger.read(self.ledger), '2026-10-29T00:00:00Z')['total'])
+        self.assertEqual(0, jackpot.assess([], '2027-12-01T00:00:00Z', events=jackpot._events(events))['total'])
+
+    def test_cli_exits_1_when_review_is_required(self):
+        for i in range(8):
+            self.record(decide_artifact(f'd{i}', risks=[f'r{i}']), at=f'2026-10-28T13:0{i}:00Z')
+        with contextlib.redirect_stdout(stdio.StringIO()):
+            self.assertEqual(1, cli.main(['jackpot', '--ledger', self.ledger, '--at', '2026-10-29T00:00:00Z']))
+            self.assertEqual(0, cli.main(['learn', 'review', '--ledger', self.ledger, '--by', 'Ana', '--reason',
+                                          'model revised', '--at', '2026-10-29T00:00:00Z']))
+            self.assertEqual(0, cli.main(['jackpot', '--ledger', self.ledger, '--at', '2026-10-29T01:00:00Z']))
 
 
 class Guard(unittest.TestCase):
