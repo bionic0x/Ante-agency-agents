@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "observations": [
+    {
+      "chain": "eip155:42161",
+      "contract": "0x1111111111111111111111111111111111111111",
+      "task_id": "42",
+      "event": {
+        "transaction_hash": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "log_index": 0,
+        "block_number": 100,
+        "block_hash": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "removed": false,
+        "confirmations": 12
+      },
+      "observed_at": "2026-10-28T10:00:00Z",
+      "source_ref": "synthetic:act-review-envelope; not a deployment or API export",
+      "external_state": "ASSIGNED",
+      "topic": "research",
+      "payload": "Synthetic request: assess a public document without executing external actions.",
+      "deadline": "2026-10-29T10:00:00Z",
+      "payment_state": "NOT_OBSERVED"
+    }
+  ]
+}

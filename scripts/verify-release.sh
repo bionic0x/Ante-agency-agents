@@ -23,6 +23,7 @@ python3 scripts/test-runbook-contracts.py
 python3 scripts/check-strategy-vocabulary.py
 python3 scripts/test-nexus-instance.py
 python3 scripts/test-nexus-routing.py
+python3 scripts/test-marketplace-intake.py
 python3 scripts/test-nexus-anthropic.py
 python3 scripts/test-nexus-pilot.py
 python3 scripts/test-nexus-evaluation.py

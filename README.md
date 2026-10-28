@@ -133,6 +133,7 @@ To contribute: start with [CONTRIBUTING.md](CONTRIBUTING.md), use the [pull requ
 | [NEXUS contract](strategy/NEXUS-INSTANCE.md) · [Overdrive](strategy/NEXUS-OVERDRIVE.md) | Engine semantics, tests, optimizer and measured exits |
 | [Relay](relay/README.md) · [Threat model](relay/DESIGN.md) | Bounded local execution and residual risks |
 | [HTP Gate 0](strategy/runbooks/scenario-htp-gate0-solana-arbitrum.md) · [Alpha Research](strategy/alpha-research-suite/README.md) | Domain-specific non-executing workflows |
+| [External marketplace intake](strategy/external-marketplaces/README.md) | ACT-LABS source review and offline task packets with identity, freshness and mandatory HOLD |
 | [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) | Responsible changes, disclosures and project history |
 
 ### Origins and license
