@@ -66,7 +66,8 @@ platform :android do
       aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
       release_status: "draft"                        # human promotes to phased production
     )
-    upload_symbols_to_crashlytics                    # mapping.txt for deobfuscation
+    # mapping.txt is uploaded by the Crashlytics Gradle plugin during the release
+    # build; upload_symbols_to_crashlytics only handles iOS dSYMs
   end
 end
 ```

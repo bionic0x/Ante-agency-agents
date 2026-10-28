@@ -83,7 +83,9 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }   # full history so an old leak is caught too
       - uses: gitleaks/gitleaks-action@v2
-        env: { GITLEAKS_CONFIG: .gitleaks.toml }  # allowlist known-public test fixtures
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # required by the action to scan pull_request events
+          GITLEAKS_CONFIG: .gitleaks.toml            # allowlist known-public test fixtures
 ```
 
 ### Static Key → Dynamic, Short-Lived Credential

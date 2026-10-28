@@ -473,7 +473,7 @@ async function createApprovalInstance(params: {
 // Query approval instance details
 async function getApprovalInstance(instanceCode: string) {
   const resp = await client.approval.instance.get({
-    params: { instance_id: instanceCode },
+    path: { instance_id: instanceCode },
   });
 
   if (resp.code !== 0) {

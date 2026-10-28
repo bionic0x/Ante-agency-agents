@@ -1,11 +1,11 @@
 # Ante — Specialist AI agents, governed by evidence
 
-**A 506-agent catalog and NEXUS coordination toolkit for teams that need traceable decisions, explicit authority, and reproducible workflows.**
+**A 507-agent catalog and NEXUS coordination toolkit for teams that need traceable decisions, explicit authority, and reproducible workflows.**
 
 [![Runbook CI](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml/badge.svg)](https://github.com/bionic0x/Ante-agency-agents/actions/workflows/check-runbooks.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**506 agents** · **19 divisions** · **9 runbooks** · **17 registered tool targets**
+**507 agents** · **19 divisions** · **9 runbooks** · **17 registered tool targets**
 
 > **Project maturity:** Agent profiles and offline NEXUS contracts are usable now. NEXUS Relay is a local execution pilot. Overdrive's planner, scheduler, reviewer and optimizer are implemented but **not validated as improving live-model outcomes**. This is not a production-ready autonomous agency or an autonomous trading system.
 
@@ -93,11 +93,11 @@ For contracts, state transitions, and replay semantics, read [NEXUS instances](s
 
 ## Evidence, safety, and project status
 
-**As verified on 16 October 2026:**
+**As verified on 28 October 2026:**
 
 | Question | Evidence-backed answer |
 |---|---|
-| How many profiles and workflows? | 506 agents in 19 divisions; 9 runbooks; 17 registered tool targets. [Catalog](CATALOG.md) / [registries](strategy/runbooks.json) |
+| How many profiles and workflows? | 507 agents in 19 divisions; 9 runbooks; 17 registered tool targets. [Catalog](CATALOG.md) / [registries](strategy/runbooks.json) |
 | Can NEXUS validate task state? | Yes, against its declared contract and synthetic tests. [Specification](strategy/NEXUS-INSTANCE.md) |
 | Is multi-provider execution verified? | No. Five providers are declared; the registry has **zero observed/accepted models**. [Provider registry](strategy/providers.json) |
 | Has Overdrive shown improvement over a fixed team? | **No recorded independent live comparison** in the checked-in trials and judgments. [Measurement protocol](strategy/NEXUS-MEASUREMENT-PROTOCOL.md) |
