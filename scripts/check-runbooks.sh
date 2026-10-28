@@ -101,12 +101,16 @@ required_fields = (
 
 PLACEHOLDERS = {"", "tbd", "todo", "n/a", "na", "none", "-", "--", "pending", "unknown"}
 TERMINATION_KEYS = ("achieved", "outstanding", "accountable", "on_breach")
+# Every runbook is material unless it says otherwise; a material runbook's ante
+# command chain must include the four controls (foundation/DECISIONS.md D-009).
+MATERIAL_CONTROLS = ("cohere", "pathology", "close", "decide")
 OPTIONAL_TERMINATION_KEYS = ("conservation_resources", "revision_conditions")
 
 seen_slugs = set()
 total_refs = 0
 total_artifacts = 0
 contracts = 0
+chains = 0
 
 for rb in runbooks:
     if not isinstance(rb, dict):
@@ -225,6 +229,26 @@ for rb in runbooks:
                 f"runbook '{rid}': termination_contract has unknown key(s): {', '.join(sorted(unknown))}"
             )
 
+    commands = rb.get("strategy_commands")
+    if commands is None:
+        errors.append(f"runbook '{rid}' is missing strategy_commands (the ante command chain it requires)")
+    elif (not isinstance(commands, list) or not commands
+          or not all(isinstance(c, str) and c.isidentifier() and c.islower() for c in commands)):
+        errors.append(f"runbook '{rid}': strategy_commands must be a non-empty list of command names")
+    elif len(set(commands)) != len(commands):
+        errors.append(f"runbook '{rid}': strategy_commands repeats a command")
+    else:
+        chains += 1
+        material = rb.get("material", True)
+        if material is not True and not (isinstance(material, str) and material.strip().casefold() not in PLACEHOLDERS):
+            errors.append(f"runbook '{rid}': material must be true or a stated reason why it is not")
+        if material is True:
+            absent = [c for c in MATERIAL_CONTROLS if c not in commands]
+            if absent:
+                errors.append(f"runbook '{rid}': material runbook lacks control command(s): {', '.join(absent)}")
+            elif commands[-1] != "decide":
+                errors.append(f"runbook '{rid}': the chain must end with decide")
+
     if not isinstance(rb.get("mode"), str) or rb.get("mode") not in vocabulary["runbook_modes"]:
         errors.append(f"runbook '{rid}': mode is not a recognized NEXUS mode")
     owner = rb.get("decision_owner")
@@ -249,6 +273,7 @@ if errors:
 print(
     f"PASSED: {len(runbooks)} runbooks, {total_refs} agent slug references, "
     f"{total_artifacts} required artifacts, {contracts}/{len(runbooks)} termination contracts "
-    f"— references and required metadata are structurally valid; closure adequacy requires human review."
+    f"— references and required metadata are structurally valid; closure adequacy requires human review. "
+    f"{chains}/{len(runbooks)} strategy command chains declared."
 )
 PYEOF

@@ -55,6 +55,20 @@
             "testing-reality-checker"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -124,6 +138,20 @@
             "support-infrastructure-maintainer"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -197,6 +225,20 @@
             "project-management-experiment-tracker"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -273,6 +315,20 @@
             "support-legal-compliance-checker"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -329,6 +385,15 @@
             "product-sprint-prioritizer"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "cause",
+        "options",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -388,6 +453,20 @@
             "support-legal-compliance-checker"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -456,6 +535,20 @@
             "maxx-profit-offer-architect"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -502,6 +595,15 @@
             "marketing-book-co-author"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "cause",
+        "options",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     },
     {
@@ -552,6 +654,20 @@
             "finance-investment-thesis-challenger"
           ]
         }
+      ],
+      "strategy_commands": [
+        "frame",
+        "map",
+        "cause",
+        "focus",
+        "options",
+        "react",
+        "ach",
+        "watch",
+        "close",
+        "cohere",
+        "pathology",
+        "decide"
       ]
     }
   ]
