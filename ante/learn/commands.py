@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 from ante import registry
+from ante.constructs import frozen, snapshot as snapshot_mod
 from ante.core import canon, io, schema
 from ante.core import time as ante_time
 from ante.learn import apophenia, ledger
@@ -36,15 +37,28 @@ class LearnError(ValueError):
     pass
 
 
+def _frozen_expectations(entry: dict) -> list[dict]:
+    """Expectations as frozen at decision time; an altered or missing snapshot is a lineage error."""
+    try:
+        return snapshot_mod.verify(entry['payload']['artifact']['body'].get('snapshot'))['expectations']
+    except snapshot_mod.SnapshotError as exc:
+        raise ledger.LedgerError(f'decision {entry["seq"]}: {exc}') from None
+
+
 def _at(value: str) -> str:
     return ante_time.iso(ante_time.parse(value, 'at'))
 
 
 def record(decide_path: str, ledger_path: str, at: str, runbook: str | None, agent: str | None,
            synthetic: bool) -> dict:
+    frozen.guard_write(ledger_path)
     art = artifact.load_parent(decide_path)
     if art['command'] != 'decide':
         raise LearnError('only decide artefacts are recorded as decisions')
+    try:
+        snapshot_mod.verify(art['body'].get('snapshot'))
+    except snapshot_mod.SnapshotError as exc:
+        raise LearnError(str(exc)) from None
     if runbook is not None and runbook not in registry.runbooks():
         raise LearnError(f'unknown runbook {runbook}')
     entries = ledger.read(ledger_path)
@@ -57,6 +71,7 @@ def record(decide_path: str, ledger_path: str, at: str, runbook: str | None, age
 
 
 def reconcile(doc_path: str, ledger_path: str, at: str) -> list[dict]:
+    frozen.guard_write(ledger_path)
     doc = io.load_document(doc_path)
     schema.exact_keys(doc, ('observations',), 'input', ('at',))
     entries = ledger.read(ledger_path)
@@ -69,7 +84,7 @@ def reconcile(doc_path: str, ledger_path: str, at: str) -> list[dict]:
         entry = decided.get(obs['decision'])
         if entry is None:
             schema.fail(f'{path}.decision', 'no decision with this artefact hash in the ledger')
-        expectations = {e['id']: e for e in entry['payload']['artifact']['body']['expectations']}
+        expectations = {e['id']: e for e in _frozen_expectations(entry)}
         if obs['expectation'] not in expectations:
             schema.fail(f'{path}.expectation', 'not an expectation of that decision')
         outcome = schema.enum(obs['outcome'], OUTCOMES, f'{path}.outcome')
@@ -116,7 +131,7 @@ def calibrate(ledger_path: str, at: str, min_sample: int) -> dict:
     rows = []
     for sha, entry in sorted(decided.items()):
         payload = entry['payload']
-        for expectation in payload['artifact']['body']['expectations']:
+        for expectation in _frozen_expectations(entry):
             outcome = latest.get((sha, expectation['id']))
             if payload['synthetic']:
                 excluded['synthetic'] += 1
@@ -135,7 +150,11 @@ def calibrate(ledger_path: str, at: str, min_sample: int) -> dict:
         keys = sorted({'all'} if dimension == 'all' else {r[dimension] for r in rows})
         for key in keys:
             members = rows if dimension == 'all' else [r for r in rows if r[dimension] == key]
-            groups.append(_calibration_group(dimension, key, members, min_sample))
+            group = _calibration_group(dimension, key, members, min_sample)
+            if dimension == 'agent' and frozen.is_frozen_agent(key):
+                group['frozen_reviewer'] = True
+                group['note'] = 'frozen reviewer: reported for reading, never a target of ante develop'
+            groups.append(group)
     return {'schema_version': SCHEMA_VERSION, 'kind': 'calibration', 'at': _at(at),
             'ledger_head': entries[-1]['entry_hash'] if entries else ledger.GENESIS,
             'min_sample': min_sample, 'decisive_predictions': len(rows), 'excluded': excluded, 'groups': groups,
@@ -168,7 +187,7 @@ def patterns(ledger_path: str, at: str, min_group: int, seed: int = 20261028) ->
         if payload['synthetic']:
             excluded['synthetic'] += 1
             continue
-        outcomes = [latest[(sha, e['id'])] for e in payload['artifact']['body']['expectations']
+        outcomes = [latest[(sha, e['id'])] for e in _frozen_expectations(entry)
                     if (sha, e['id']) in latest and latest[(sha, e['id'])]['payload']['outcome'] in DECISIVE]
         if not outcomes:
             excluded['no_decisive_outcome'] += 1
@@ -252,7 +271,7 @@ def main(args) -> int:
     except (artifact.LineageError, ledger.LedgerError) as exc:
         print(f'LINEAGE {exc}', file=sys.stderr)
         return 3
-    except (LearnError, io.InputError, schema.SchemaError, ante_time.TimeError) as exc:
+    except (LearnError, frozen.ConstructError, io.InputError, schema.SchemaError, ante_time.TimeError) as exc:
         print(f'INVALID {exc}', file=sys.stderr)
         return 2
     return 0

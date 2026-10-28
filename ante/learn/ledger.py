@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ante.constructs import frozen
 from ante.core import canon, io
 from ante.core import time as ante_time
 
@@ -70,6 +71,7 @@ def append(path: Path | str, kind: str, payload: Any, at: str, kinds: tuple[str,
         raise LedgerError(f'unknown entry kind {kind}')
     at = ante_time.iso(ante_time.parse(at, 'at'))
     target = Path(path)
+    frozen.guard_write(target)
     entries = read(target)
     if entries and ante_time.parse(entries[-1]['at'], 'at') > ante_time.parse(at, 'at'):
         raise LedgerError('entries are appended in time order; this one is dated before the last')

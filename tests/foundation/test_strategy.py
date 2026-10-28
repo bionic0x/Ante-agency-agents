@@ -94,6 +94,18 @@ class FullChain(Base):
         self.assertIn('does not itself grant', decision['body']['authority'])
         self.assertTrue((self.chain.out / 'decide.md').read_text().startswith('# ante decide'))
 
+    def test_decide_freezes_what_was_known(self):
+        from ante.constructs import snapshot
+        self.chain.build()
+        decision = self.chain.artefact('decide')
+        frozen = snapshot.verify(decision['body']['snapshot'])
+        parents = {p['command'] for p in frozen['parents']}
+        self.assertTrue({'frame', 'cohere', 'pathology', 'close'} <= parents)
+        self.assertEqual(decision['body']['expectations'], frozen['expectations'])
+        known = {(c['from'], c['id']) for c in frozen['claims_known']}
+        cohere = self.chain.artefact('cohere')
+        self.assertTrue({('cohere', c['id']) for c in cohere['claims']} <= known)
+
     def test_same_input_same_at_same_bytes(self):
         first = self.chain.run('frame', load('frame'), out=self.chain.dir / 'a')
         second = self.chain.run('frame', load('frame'), out=self.chain.dir / 'b')

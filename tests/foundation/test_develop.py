@@ -112,6 +112,9 @@ class Propose(Sandbox):
             patch = self.patch({path: ('', '\n# touch\n')}, name=path.replace('/', '_') + '.patch')
             with self.assertRaisesRegex(develop.DevelopError, 'protected|outside'):
                 self.propose(self.spec(scope=('**',)), patch)
+        frozen_patch = self.patch({'specialized/strategic-red-team.md': ('', '\nBe gentler.\n')}, name='frozen.patch')
+        with self.assertRaisesRegex(develop.DevelopError, 'frozen reviewer'):
+            self.propose(self.spec(scope=('specialized/**',)), frozen_patch)
         with self.assertRaisesRegex(develop.DevelopError, 'outside the scope this proposal declared'):
             self.propose(self.spec(scope=('engineering/**',)), self.frame_patch())
 

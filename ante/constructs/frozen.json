@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "purpose": "Reviewer profiles frozen by hash. They judge; they do not learn. ante learn and ante develop cannot write to them, and a change to one needs a human, protected: commit that updates its hash here.",
+  "frozen_reviewers": [
+    {
+      "id": "finance-quant-alpha-validator",
+      "path": "finance/finance-quant-alpha-validator.md",
+      "sha256": "c203cf429f744c3c03289e195ada7c5a7fb49d3d8dbeece5b4d632a45747648e",
+      "rationale": "Challenger of the macro-quant pair (strategy/challenger-pairs.json): the validator of investment hypotheses must not be tuned by the work it validates."
+    },
+    {
+      "id": "strategic-red-team",
+      "path": "specialized/strategic-red-team.md",
+      "sha256": "b01a3b0c0a95824500d1909f7b9f4055d6560b6f75f280490ad69538c4ce7983",
+      "rationale": "Cross-domain challenge before irreversible commitment; the reviewer the improver could most profit from softening."
+    },
+    {
+      "id": "marketing-strategic-red-team",
+      "path": "marketing/marketing-strategic-red-team.md",
+      "sha256": "ccc0f53b0da042336ff1a119e6b0ecdc54f3bf69faccc2f484b2ee90fa8a3b11",
+      "rationale": "Marketing red team; same reason."
+    }
+  ]
+}

@@ -45,6 +45,7 @@ from pathlib import Path
 from ante.core import canon, io, schema
 from ante.core import time as ante_time
 from ante.develop import policy as policy_mod
+from ante.constructs.frozen import ConstructError
 from ante.learn import ledger
 from ante.turing.lock import DIMENSIONS as AUTONOMY_DIMENSIONS
 from ante.paths import ROOT
@@ -466,7 +467,7 @@ def main(args) -> int:
     except ledger.LedgerError as exc:
         print(f'LINEAGE {exc}', file=sys.stderr)
         return 3
-    except (DevelopError, policy_mod.PolicyError, io.InputError, schema.SchemaError, ante_time.TimeError) as exc:
+    except (DevelopError, policy_mod.PolicyError, ConstructError, io.InputError, schema.SchemaError, ante_time.TimeError) as exc:
         print(f'INVALID {exc}', file=sys.stderr)
         return 2
     print(json.dumps(result, indent=2, sort_keys=True))

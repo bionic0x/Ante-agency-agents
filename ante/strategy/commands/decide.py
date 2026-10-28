@@ -17,6 +17,11 @@ Rules:
 - dissent is recorded, or the record names who was asked for it;
 - the residual risk has a named acceptor, and the record expires.
 
+The record carries a frozen ``snapshot`` of what was known at decision time
+(parents, every visible claim with its status and origin, the expectations);
+``ante learn`` reconciles and calibrates against that snapshot only
+(``ante/constructs``, Marco I.10).
+
 Input fields::
 
     decision_owner, verdict, rationale, conditions: [text],
@@ -28,6 +33,7 @@ Input fields::
 """
 from __future__ import annotations
 
+from ante.constructs import snapshot as snapshot_mod
 from ante.core import canon, schema
 from ante.core import time as ante_time
 from ante.strategy.artifact import LineageError
@@ -139,6 +145,7 @@ def run(doc, ctx):
         'expires': ante_time.iso(expires),
         'expectations': expectations,
         'authority': AUTHORITY_NOTE,
+        'snapshot': snapshot_mod.build(ctx.at, ctx.lineage.parents, ctx.claims, expectations, verdict),
     }
     next_decision = {
         'PROCEED': 'Authorised work may start under the owner\'s own authority; record outcomes with ante learn reconcile.',

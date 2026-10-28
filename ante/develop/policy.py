@@ -6,7 +6,9 @@ Two lists apply together and the stricter one wins:
   CI (``nexus-improve.py paths`` enforces it);
 - ``foundation/develop-policy.json`` — the foundation's own protected paths (the
   gate, the Turing lock, ICE layers, constructs, doctrine, claims discipline,
-  this policy) plus the scopes a proposal may edit and the loop's limits.
+  this policy) plus the scopes a proposal may edit and the loop's limits;
+- ``ante/constructs/frozen.json`` — frozen reviewer profiles, which sit inside
+  editable agent divisions but judge rather than learn.
 
 Both are read **at the base revision**: a proposal is judged by the rules that
 existed before it, so it cannot loosen them.
@@ -18,6 +20,8 @@ import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+
+from ante.constructs import frozen as frozen_mod
 
 POLICY_PATH = 'foundation/develop-policy.json'
 OVERDRIVE_PATH = 'strategy/overdrive-protected.json'
@@ -42,12 +46,15 @@ class Policy:
     editable_scopes: tuple[str, ...]
     protected: tuple[str, ...]
     overdrive: tuple[str, ...]
+    frozen: tuple[str, ...] = ()
 
     def classify(self, path: str) -> str | None:
         """Why ``path`` may not be changed, or None if it may."""
         for pattern in self.overdrive:
             if fnmatch.fnmatchcase(path, pattern):
                 return f'protected by strategy/overdrive-protected.json ({pattern})'
+        if path in self.frozen:
+            return 'frozen reviewer construct (ante/constructs/frozen.json)'
         for pattern in self.protected:
             if fnmatch.fnmatchcase(path, pattern):
                 return f'protected by {POLICY_PATH} ({pattern})'
@@ -69,6 +76,7 @@ def at_ref(repo: Path, ref: str) -> Policy:
         editable_scopes=tuple(policy['editable_scopes']),
         protected=tuple(policy['protected']),
         overdrive=tuple(overdrive['protected']),
+        frozen=frozen_mod.paths(repo, ref),
     )
 
 

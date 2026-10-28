@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from ante import cli  # noqa: E402
+from ante.constructs import frozen, snapshot  # noqa: E402
 from ante.core import canon  # noqa: E402
 from ante.learn import apophenia, commands, ledger  # noqa: E402
 from ante.strategy.artifact import seal  # noqa: E402
@@ -27,7 +28,8 @@ def decide_artifact(case, verdict='PROCEED_WITH_CONDITIONS', pathologies=(), rev
     return seal({'schema_version': 1, 'command': 'decide', 'case_id': case, 'at': at,
                  'input_sha256': canon.digest(case), 'parents': [], 'independence_level': None, 'claims': [],
                  'body': {'verdict': verdict, 'review_independence': review,
-                          'detected_pathologies': list(pathologies), 'expectations': expectations},
+                          'detected_pathologies': list(pathologies), 'expectations': expectations,
+                          'snapshot': snapshot.build(at, [], [], expectations, verdict)},
                  'findings': [], 'verdict': verdict, 'next_decision': 'n'})
 
 
@@ -209,6 +211,42 @@ class Patterns(Workspace):
         self.record(decide_artifact('lonely'))
         result = commands.patterns(self.ledger, '2026-12-31T00:00:00Z', min_group=3)
         self.assertEqual((0, False), (result['decisions_used'], result['learned_anything']))
+
+
+class Constructs(Workspace):
+    def test_learn_cannot_write_into_a_construct(self):
+        art = decide_artifact('a')
+        for target in (ROOT / 'specialized/strategic-red-team.md', ROOT / 'ante/constructs/ledger.jsonl'):
+            before = target.read_bytes() if target.exists() else None
+            with self.assertRaises(frozen.ConstructError):
+                commands.record(self.write('a.json', art), str(target), '2026-10-28T13:00:00Z', None, None, False)
+            self.assertEqual(before, target.read_bytes() if target.exists() else None)
+        self.assertEqual([], frozen.verify())
+
+    def test_reconcile_compares_only_against_the_frozen_snapshot(self):
+        art = decide_artifact('a')
+        # A record whose visible expectations were edited after the snapshot was taken
+        # (and then resealed) cannot be recorded: the snapshot no longer matches.
+        body = dict(art['body'], snapshot=dict(art['body']['snapshot'], expectations=[]))
+        resealed = seal({**{k: v for k, v in art.items() if k != 'artifact_sha256'}, 'body': body})
+        with self.assertRaisesRegex(commands.LearnError, 'snapshot'):
+            commands.record(self.write('r.json', resealed), self.ledger, '2026-10-28T13:00:00Z', None, None, False)
+        # Expectations added to the body but absent from the snapshot are not reconcilable.
+        extra = dict(art['body'], expectations=art['body']['expectations'] + [
+            dict(art['body']['expectations'][0], id='e2')])
+        late = seal({**{k: v for k, v in art.items() if k != 'artifact_sha256'}, 'body': extra})
+        self.record(late)
+        with self.assertRaisesRegex(Exception, 'not an expectation'):
+            self.observe(late, 'CONFIRMED', expectation='e2')
+        self.observe(late, 'CONFIRMED', expectation='e1')
+
+    def test_frozen_reviewers_are_marked_in_calibration(self):
+        art = decide_artifact('a')
+        self.record(art, agent='strategic-red-team')
+        self.observe(art, 'CONFIRMED')
+        groups = commands.calibrate(self.ledger, '2026-12-31T00:00:00Z', min_sample=1)['groups']
+        agent = next(g for g in groups if g['dimension'] == 'agent')
+        self.assertTrue(agent['frozen_reviewer'])
 
 
 class Guard(unittest.TestCase):
