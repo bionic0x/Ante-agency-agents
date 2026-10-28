@@ -1,0 +1,5 @@
+# Directory-local exception for CI security tooling, not Ante/Relay runtime.
+[[IgnoredVulns]]
+id = "GHSA-xcq7-p3pf-p88h"
+ignoreUntil = 2027-01-31
+reason = "Accepted for the one-shot Semgrep CI scanner only: no inbound HTTP listener or untrusted tracestate extraction is configured; metrics/version checks and OpenTelemetry SDK/propagation are disabled. Semgrep pins the incompatible API family. Review before any server/instrumentation use or dependency change. See SECURITY-EXCEPTIONS.md."
