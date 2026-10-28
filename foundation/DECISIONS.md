@@ -131,3 +131,27 @@ continues to cover them, and the baseline records their result.
 that accept them today (characterization `routing--route-duplicate`,
 `instance--validate-duplicate-keys`) keep doing so through Phase 1. Tightening
 them is a behaviour change with its own pull request and rebaselined recordings.
+
+---
+
+## D-008 · The installer runtime stays self-contained in `scripts/` — ACCEPTED
+
+**Context.** Moving `resolve-agents.py` into the package made six cases of the
+protected `test-install-functional.py` fail with `No module named 'ante'`: the
+test installs from a copy of `scripts/` plus `tools.json`, which is how the
+installer is meant to run. Moving `registry.py` broke `check-tools.sh`, which
+verifies capabilities by reading that file's source.
+
+**Decision.** `install.sh`'s Python dependencies — `resolve-agents.py`,
+`build-catalog.py`, `registry.py`, `integration-state.py`, `build-hermes-plugin.py`,
+`check-hermes-config-rewrite.py` — stay where they are, unchanged.
+`ante.registry` loads them by path (`ante._compat.load_script`) and adds only
+readers for `strategy/runbooks.json`. One implementation, no copies.
+
+**Alternatives.** Ship `ante/` with the installer (changes the distribution
+contract the protected test encodes); duplicate the catalog code in the package
+(two implementations of one roster).
+
+**Consequences.** The prompt's "every old script is a wrapper" holds for the
+NEXUS programs; for the installer runtime the rule is inverted on purpose, and
+the inventory says so.
