@@ -61,7 +61,7 @@ def audit(directory: str, at: str, regimes: list[dict] = ()) -> dict:
                            'date': claim['date'], 'reasons': reasons, 'cited_by': cited,
                            'required': 'renew with a new dated statement, or withdraw it from the citing artefacts'})
     return {'kind': 'stale_claims', 'at': ante_time.iso(now), 'case_id': arts[0]['case_id'] if arts else None,
-            'live': live, 'ghosts': ghosts}
+            'live': live, 'stale_claims': ghosts}
 
 
 def add_parser(sub) -> None:
@@ -82,4 +82,4 @@ def main(args) -> int:
         print(f'INVALID {exc}', file=sys.stderr)
         return 2
     sys.stdout.write(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + '\n')
-    return 1 if result['ghosts'] else 0
+    return 1 if result['stale_claims'] else 0

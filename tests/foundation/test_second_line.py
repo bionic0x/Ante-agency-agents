@@ -44,8 +44,8 @@ class Ghosts(Case):
         self.chain.run('frame', frame)
         for command, parents in (('map', ['frame']), ('cause', ['frame', 'map'])):
             self.assertEqual(0, self.chain.run(command, load(command), parents)[0])
-        self.assertEqual([], ghosts.audit(self.chain.out, '2026-11-01T00:00:00Z')['ghosts'])
-        found = ghosts.audit(self.chain.out, '2026-11-20T00:00:00Z')['ghosts']
+        self.assertEqual([], ghosts.audit(self.chain.out, '2026-11-01T00:00:00Z')['stale_claims'])
+        found = ghosts.audit(self.chain.out, '2026-11-20T00:00:00Z')['stale_claims']
         self.assertEqual(['cap-100'], [g['claim'] for g in found])
         self.assertTrue(found[0]['cited_by'])
         code, _, _ = self.run_cli('ghosts', '--artifacts', self.chain.out, '--at', '2026-11-20T00:00:00Z')
@@ -57,7 +57,7 @@ class Ghosts(Case):
         regimes.write_text(json.dumps({'changes': [{'id': 'new-funding-rules', 'at': '2026-10-23T00:00:00Z',
                                                     'scope': 'funder deadlines',
                                                     'description': 'funders moved to rolling deadlines'}]}))
-        found = ghosts.audit(self.chain.out, '2026-10-28T23:00:00Z', ghosts._regimes(str(regimes)))['ghosts']
+        found = ghosts.audit(self.chain.out, '2026-10-28T23:00:00Z', ghosts._regimes(str(regimes)))['stale_claims']
         self.assertIn('demand-110', [g['claim'] for g in found])   # dated 2026-10-21, cited downstream
 
     def test_a_case_whose_decision_expired_is_not_live(self):
@@ -65,7 +65,7 @@ class Ghosts(Case):
         self.assertLess(self.chain.artefact('decide')['body']['expires'], '2030-01-01')
         result = ghosts.audit(self.chain.out, '2030-01-01T00:00:00Z')
         self.assertFalse(result['live'])
-        self.assertEqual([], result['ghosts'])
+        self.assertEqual([], result['stale_claims'])
 
 
 class Boxmaker(Case):

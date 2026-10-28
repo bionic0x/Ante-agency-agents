@@ -424,7 +424,7 @@ class Street(Base):
         self.assertEqual('CONDITIONAL', interactive['status'])
         self.assertEqual('PENDING_EVIDENCE', interactive['finding']['class'])
         self.assertNotIn('PROCEED_WITH_CONDITIONS', cohere['body']['admissible_verdicts'])
-        self.assertEqual(['STREET_ANALYSIS_MISSING'], [f['code'] for f in cohere['findings']])
+        self.assertEqual(['MISUSE_ANALYSIS_MISSING'], [f['code'] for f in cohere['findings']])
 
     def test_partial_analysis_still_conditions_the_test(self):
         doc = load('street')

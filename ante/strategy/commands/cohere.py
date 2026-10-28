@@ -110,7 +110,7 @@ def run(doc, ctx):
     interactive = tests.get('interactive')
     if uncovered and isinstance(interactive, dict):
         trigger = 'ante street misuse analysis of: ' + '; '.join(uncovered)
-        findings.warn('STREET_ANALYSIS_MISSING', 'tests.interactive',
+        findings.warn('MISUSE_ANALYSIS_MISSING', 'tests.interactive',
                       'plan metrics without misuse analysis: ' + '; '.join(uncovered))
         if interactive.get('status') == 'PASS':
             tests = dict(tests, interactive={

@@ -70,7 +70,7 @@ def build(at: str, directories: list[str] = (), ledger_path: str | None = None,
                               'reason': '; '.join(entry['payload']['reasons']), 'from': f'develop:{entry["seq"]}'})
     for item in items:
         item['id'] = 'box-' + canon.digest({k: item[k] for k in ('kind', 'text', 'from')})[:10]
-    return {'kind': 'boxmaker_archive', 'at': ante_time.iso(ante_time.parse(at, 'at')), 'items': items,
+    return {'kind': 'discard_archive', 'at': ante_time.iso(ante_time.parse(at, 'at')), 'items': items,
             'note': 'Discarded material with its reason. Recombined items enter as HYPOTHESIS, never as evidence.'}
 
 
@@ -84,10 +84,10 @@ def recombine(box: dict, item_ids: list[str], at: str) -> dict:
     date = ante_time.iso(ante_time.parse(at, 'at'))[:10]
     claims = [{'id': f'recombined-{item["id"]}',
                'text': f'Recombined from a {item["kind"].replace("_", " ")}: {item["text"]}',
-               'status': 'HYPOTHESIS', 'source': {'ref': f'boxmaker:{item["from"]}', 'origin': 'system'},
+               'status': 'HYPOTHESIS', 'source': {'ref': f'discard-archive:{item["from"]}', 'origin': 'system'},
                'date': date, 'limit': f'Previously set aside because: {item["reason"]}. Needs new evidence.'}
               for item in (by_id[i] for i in item_ids)]
-    return {'kind': 'boxmaker_recombination', 'claims': claims,
+    return {'kind': 'discard_recombination', 'claims': claims,
             'note': 'Paste these claims into an ante options input. They cannot be promoted to EVIDENCE as they are.'}
 
 
@@ -111,7 +111,7 @@ def main(args) -> int:
         if args.box_command == 'build':
             result = build(args.at, args.artifacts, args.ledger, args.state)
             Path(args.out).write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
-            print(f'boxmaker: {len(result["items"])} item(s) -> {args.out}')
+            print(f'discard archive: {len(result["items"])} item(s) -> {args.out}')
             return 0
         result = recombine(io.load_json(args.box), [i.strip() for i in args.items.split(',') if i.strip()], args.at)
     except (artifact.LineageError, ledger.LedgerError) as exc:

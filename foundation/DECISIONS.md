@@ -293,3 +293,18 @@ The five ICE layers (`ante/ice/layers.json`) — canary scan (detect), autonomy 
 spend margins (absorb), base-revision evaluation (contain), draft-only branch
 (recover), held-out regression stop (learn) — each declare their data and their
 assumption; `ante ice layers` fails if two share either.
+
+---
+
+## D-016 · Literary names stay in the CLI; artefacts use functional names — ACCEPTED
+
+The prompt names the mechanisms after Gibson (`nodal`, `street`, `stub`,
+`jackpot`, `ghosts`, `deck`, constructs, ICE, the Turing lock). They are kept as
+command and module names, which are internal conventions. Everything a third
+party reads uses functional names: `load_bearing_claims`, `misuse_analysis`,
+`snapshot`, `frozen_reviewer`, `shadow_trial`, `cumulative_drift`,
+`stale_claims`, `discard_archive`, finding codes such as
+`MISUSE_ANALYSIS_MISSING` and `LOAD_BEARING_UNVERIFIED`. One residue remains for
+the owner to decide: an artefact's `command` field records the command that
+produced it, so a decision's lineage lists `nodal` and `street`. Renaming those
+two commands (for example `load` and `misuse`) would remove it.

@@ -54,7 +54,7 @@ class Policy:
             if fnmatch.fnmatchcase(path, pattern):
                 return f'protected by strategy/overdrive-protected.json ({pattern})'
         if path in self.frozen:
-            return 'frozen reviewer construct (ante/constructs/frozen.json)'
+            return 'frozen reviewer (ante/constructs/frozen.json)'
         for pattern in self.protected:
             if fnmatch.fnmatchcase(path, pattern):
                 return f'protected by {POLICY_PATH} ({pattern})'

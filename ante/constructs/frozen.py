@@ -52,7 +52,7 @@ def guard_write(target: Path | str, root: Path = ROOT) -> None:
     resolved = Path(target).resolve()
     base = Path(root).resolve()
     if resolved.is_relative_to(base / CONSTRUCTS_DIR):
-        raise ConstructError(f'{resolved.name}: constructs are read-only to ante learn and ante develop')
+        raise ConstructError(f'{resolved.name}: frozen evaluators are read-only to ante learn and ante develop')
     frozen = {(base / p).resolve() for p in paths(root)}
     if resolved in frozen:
         raise ConstructError(f'{resolved.name} is a frozen reviewer; ante learn and ante develop cannot write to it')
@@ -79,5 +79,5 @@ def main(args) -> int:
     if drift:
         print('A frozen reviewer changed. Update its hash only in a human-authored protected: commit.')
         return 1
-    print(f'constructs: {len(load())} frozen reviewer(s) match their pinned hash')
+    print(f'frozen reviewers: {len(load())} frozen reviewer(s) match their pinned hash')
     return 0
