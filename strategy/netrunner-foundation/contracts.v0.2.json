@@ -1,0 +1,83 @@
+{
+  "schema_version": "0.2",
+  "project": "NETRUNNER FOUNDATION",
+  "corpus_source_count": 27,
+  "mode": "DOCUMENTARY_AND_OFFLINE_SYNTHETIC",
+  "gate0": "HOLD",
+  "live_authority": false,
+  "human_decision_owner": "PENDING",
+  "network_scopes": [
+    "solana",
+    "arbitrum_one"
+  ],
+  "epistemic_states": [
+    "EVIDENCE",
+    "HYPOTHESIS",
+    "ASSUMPTION",
+    "UNKNOWN"
+  ],
+  "quantitative_states": [
+    "MEASURED",
+    "TARGET",
+    "ESTIMATE",
+    "HYPOTHESIS"
+  ],
+  "source_assertion_not_evidence": true,
+  "chain_signals": {
+    "solana": [
+      "SOL-ORD",
+      "SOL-ORC"
+    ],
+    "arbitrum_one": [
+      "ARB-ORC",
+      "ARB-RES"
+    ]
+  },
+  "research_workflow": [
+    "observe",
+    "validate_source",
+    "normalize",
+    "infer",
+    "compare_alternatives",
+    "chain_review",
+    "challenge",
+    "claim_audit",
+    "human_decision",
+    "export_dossier"
+  ],
+  "required_dossier_fields": [
+    "event_id",
+    "network",
+    "source_id",
+    "source_digest",
+    "observed_at",
+    "environment",
+    "claim_status",
+    "alternative_explanations",
+    "missing_evidence",
+    "artifact_revision",
+    "reviewer",
+    "decision_state"
+  ],
+  "excluded_actions": [
+    "transaction_signing",
+    "transaction_submission",
+    "custody",
+    "trade",
+    "liquidation",
+    "forced_inclusion",
+    "market_manipulation",
+    "unauthorized_intrusion",
+    "evidence_destruction",
+    "regulatory_evasion",
+    "token_sale",
+    "payment"
+  ],
+  "ante_dependencies": [
+    "strategy/STRATEGIC-CONTROL-PLANE.md",
+    "strategy/htp-gate0/agent-mapping.md",
+    "strategy/htp-gate0/handoff-e1-s1.md",
+    "strategy/htp-gate0/overlays/solana.md",
+    "strategy/htp-gate0/overlays/arbitrum.md"
+  ]
+}
